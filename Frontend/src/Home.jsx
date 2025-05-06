@@ -62,7 +62,7 @@ const Home = () => {
   const navLinks = [
     { name: 'Home', id: 'hero' },
     { name: 'Cars', id: 'cars' },
-    { name: 'About', id: 'about' },
+    { name: 'About', path: '/aboutus' }, // Changed to use path instead of id
     { name: 'Book Now', id: 'booking' },
     { name: 'Testimonials', id: 'testimonials' },
     { name: 'Contact', id: 'contact' }
@@ -99,8 +99,14 @@ const Home = () => {
     });
   }, [scrolled, headerControls]);
 
-  const scrollToSection = (sectionId) => {
+  const scrollToSection = (sectionId, path) => {
     setDrawerOpen(false);
+    
+    if (path) {
+      window.location.href = path;
+      return;
+    }
+    
     const element = document.getElementById(sectionId);
     if (element) {
       const offsetPosition = element.offsetTop - 80;
@@ -603,8 +609,8 @@ const Home = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   {navLinks.map((link) => (
                     <Button
-                      key={link.id}
-                      onClick={() => scrollToSection(link.id)}
+                      key={link.id || link.path}
+                      onClick={() => scrollToSection(link.id, link.path)}
                       sx={{
                         mx: 2,
                         position: 'relative',

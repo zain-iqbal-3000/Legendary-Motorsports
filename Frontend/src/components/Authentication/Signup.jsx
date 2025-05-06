@@ -15,7 +15,10 @@ import {
   Stack,
   FormControlLabel,
   Checkbox,
-  Grid
+  Grid,
+  Alert,
+  Snackbar,
+  CircularProgress
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { 
@@ -24,9 +27,11 @@ import {
   Facebook as FacebookIcon,
   Google as GoogleIcon 
 } from '@mui/icons-material';
+import { useAuth } from '../../context/AuthContext';
 
 const Signup = () => {
   const navigate = useNavigate();
+  const { register, loading, error } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -37,6 +42,12 @@ const Signup = () => {
     confirmPassword: '',
     termsAccepted: false
   });
+  const [formErrors, setFormErrors] = useState({});
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
 
   const handleChange = (e) => {
     const { name, value, checked } = e.target;
@@ -44,19 +55,89 @@ const Signup = () => {
       ...prev,
       [name]: name === 'termsAccepted' ? checked : value
     }));
+
+    // Clear field-specific error when user starts typing again
+    if (formErrors[name]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Basic validation
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!formData.firstName.trim()) {
+      errors.firstName = 'First name is required';
+    }
+    
+    if (!formData.lastName.trim()) {
+      errors.lastName = 'Last name is required';
+    }
+    
+    if (!formData.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = 'Email is invalid';
+    }
+    
+    if (!formData.password) {
+      errors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      errors.password = 'Password must be at least 6 characters';
+    }
+    
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match");
+      errors.confirmPassword = "Passwords don't match";
+    }
+    
+    if (!formData.termsAccepted) {
+      errors.termsAccepted = 'You must accept the terms and conditions';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
+    
+    try {
+      await register({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password
+      });
+      
+      setSnackbar({
+        open: true,
+        message: 'Account created successfully!',
+        severity: 'success'
+      });
+      
+      // Give a moment to see the success message
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
+      
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message: err.response?.data?.msg || 'Registration failed. Please try again.',
+        severity: 'error'
+      });
+    }
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
       return;
     }
-    // Handle signup logic here
-    console.log('Signup form submitted:', formData);
-    // Redirect user after successful signup
-    // navigate('/login');
+    setSnackbar({ ...snackbar, open: false });
   };
 
   const containerVariants = {
@@ -161,6 +242,12 @@ const Signup = () => {
                   Create Your Account
                 </Typography>
 
+                {error && (
+                  <Alert severity="error" sx={{ mb: 3 }}>
+                    {error}
+                  </Alert>
+                )}
+
                 <Box component="form" onSubmit={handleSubmit} noValidate>
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
@@ -173,6 +260,9 @@ const Signup = () => {
                         label="First Name"
                         value={formData.firstName}
                         onChange={handleChange}
+                        error={!!formErrors.firstName}
+                        helperText={formErrors.firstName}
+                        disabled={loading}
                         sx={{
                           '& .MuiInputLabel-root': { color: 'gray' },
                           '& .MuiOutlinedInput-root': {
@@ -180,7 +270,10 @@ const Signup = () => {
                             '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.4)' },
                             '&.Mui-focused fieldset': { borderColor: 'primary.main' },
                           },
-                          '& input': { color: 'white' }
+                          '& input': { color: 'white' },
+                          '& .MuiFormHelperText-root': {
+                            color: 'error.main'
+                          }
                         }}
                       />
                     </Grid>
@@ -194,6 +287,9 @@ const Signup = () => {
                         autoComplete="family-name"
                         value={formData.lastName}
                         onChange={handleChange}
+                        error={!!formErrors.lastName}
+                        helperText={formErrors.lastName}
+                        disabled={loading}
                         sx={{
                           '& .MuiInputLabel-root': { color: 'gray' },
                           '& .MuiOutlinedInput-root': {
@@ -201,7 +297,10 @@ const Signup = () => {
                             '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.4)' },
                             '&.Mui-focused fieldset': { borderColor: 'primary.main' },
                           },
-                          '& input': { color: 'white' }
+                          '& input': { color: 'white' },
+                          '& .MuiFormHelperText-root': {
+                            color: 'error.main'
+                          }
                         }}
                       />
                     </Grid>
@@ -217,6 +316,9 @@ const Signup = () => {
                     autoComplete="email"
                     value={formData.email}
                     onChange={handleChange}
+                    error={!!formErrors.email}
+                    helperText={formErrors.email}
+                    disabled={loading}
                     sx={{
                       mt: 2,
                       mb: 2,
@@ -226,7 +328,10 @@ const Signup = () => {
                         '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.4)' },
                         '&.Mui-focused fieldset': { borderColor: 'primary.main' },
                       },
-                      '& input': { color: 'white' }
+                      '& input': { color: 'white' },
+                      '& .MuiFormHelperText-root': {
+                        color: 'error.main'
+                      }
                     }}
                   />
                   
@@ -241,6 +346,9 @@ const Signup = () => {
                     autoComplete="new-password"
                     value={formData.password}
                     onChange={handleChange}
+                    error={!!formErrors.password}
+                    helperText={formErrors.password}
+                    disabled={loading}
                     sx={{
                       mb: 2,
                       '& .MuiInputLabel-root': { color: 'gray' },
@@ -249,7 +357,10 @@ const Signup = () => {
                         '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.4)' },
                         '&.Mui-focused fieldset': { borderColor: 'primary.main' },
                       },
-                      '& input': { color: 'white' }
+                      '& input': { color: 'white' },
+                      '& .MuiFormHelperText-root': {
+                        color: 'error.main'
+                      }
                     }}
                     InputProps={{
                       endAdornment: (
@@ -259,6 +370,7 @@ const Signup = () => {
                             onClick={() => setShowPassword(!showPassword)}
                             edge="end"
                             sx={{ color: 'gray' }}
+                            disabled={loading}
                           >
                             {showPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
@@ -278,6 +390,9 @@ const Signup = () => {
                     autoComplete="new-password"
                     value={formData.confirmPassword}
                     onChange={handleChange}
+                    error={!!formErrors.confirmPassword}
+                    helperText={formErrors.confirmPassword}
+                    disabled={loading}
                     sx={{
                       mb: 2,
                       '& .MuiInputLabel-root': { color: 'gray' },
@@ -286,7 +401,10 @@ const Signup = () => {
                         '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.4)' },
                         '&.Mui-focused fieldset': { borderColor: 'primary.main' },
                       },
-                      '& input': { color: 'white' }
+                      '& input': { color: 'white' },
+                      '& .MuiFormHelperText-root': {
+                        color: 'error.main'
+                      }
                     }}
                     InputProps={{
                       endAdornment: (
@@ -296,6 +414,7 @@ const Signup = () => {
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                             edge="end"
                             sx={{ color: 'gray' }}
+                            disabled={loading}
                           >
                             {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
@@ -311,6 +430,7 @@ const Signup = () => {
                         color="primary"
                         checked={formData.termsAccepted}
                         onChange={handleChange}
+                        disabled={loading}
                         sx={{
                           color: 'gray',
                           '&.Mui-checked': {
@@ -355,6 +475,11 @@ const Signup = () => {
                     }
                     sx={{ mb: 3, mt: 1 }}
                   />
+                  {formErrors.termsAccepted && (
+                    <Typography variant="caption" color="error" sx={{ ml: 2, mt: -2, display: 'block' }}>
+                      {formErrors.termsAccepted}
+                    </Typography>
+                  )}
                   
                   <Button
                     type="submit"
@@ -362,6 +487,7 @@ const Signup = () => {
                     variant="contained"
                     color="primary"
                     size="large"
+                    disabled={loading}
                     sx={{ 
                       py: 1.5,
                       mb: 3,
@@ -369,7 +495,11 @@ const Signup = () => {
                       boxShadow: '0 4px 14px 0 rgba(255, 189, 0, 0.39)'
                     }}
                   >
-                    Create Account
+                    {loading ? (
+                      <CircularProgress size={24} color="inherit" />
+                    ) : (
+                      'Create Account'
+                    )}
                   </Button>
 
                   <Divider sx={{ 
@@ -389,6 +519,7 @@ const Signup = () => {
                       fullWidth
                       variant="outlined"
                       startIcon={<GoogleIcon />}
+                      disabled={loading}
                       sx={{ 
                         py: 1.2, 
                         color: 'white',
@@ -405,6 +536,7 @@ const Signup = () => {
                       fullWidth
                       variant="outlined"
                       startIcon={<FacebookIcon />}
+                      disabled={loading}
                       sx={{ 
                         py: 1.2, 
                         color: 'white',
@@ -453,6 +585,21 @@ const Signup = () => {
           </motion.div>
         </motion.div>
       </Container>
+
+      <Snackbar 
+        open={snackbar.open} 
+        autoHideDuration={6000} 
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity={snackbar.severity} 
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

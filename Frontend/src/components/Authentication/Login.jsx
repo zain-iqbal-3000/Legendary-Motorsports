@@ -14,7 +14,10 @@ import {
   Checkbox,
   FormControlLabel,
   Divider,
-  Stack
+  Stack,
+  Alert,
+  Snackbar,
+  CircularProgress
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { 
@@ -23,14 +26,22 @@ import {
   Facebook as FacebookIcon,
   Google as GoogleIcon 
 } from '@mui/icons-material';
+import { useAuth } from '../../context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login, loading, error } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false
+  });
+  const [formErrors, setFormErrors] = useState({});
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
   });
 
   const handleChange = (e) => {
@@ -39,14 +50,64 @@ const Login = () => {
       ...prev,
       [name]: name === 'rememberMe' ? checked : value
     }));
+
+    // Clear field-specific error when user starts typing again
+    if (formErrors[name]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = 'Email is invalid';
+    }
+    
+    if (!formData.password) {
+      errors.password = 'Password is required';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log('Login form submitted:', formData);
-    // Redirect user after successful login
-    // navigate('/dashboard');
+    
+    if (!validateForm()) return;
+    
+    try {
+      await login(formData.email, formData.password);
+      setSnackbar({
+        open: true,
+        message: 'Login successful!',
+        severity: 'success'
+      });
+      
+      // Give a moment to see the success message
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
+      
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message: err.response?.data?.msg || 'Login failed. Please try again.',
+        severity: 'error'
+      });
+    }
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
   };
 
   const containerVariants = {
@@ -151,6 +212,12 @@ const Login = () => {
                   Welcome Back
                 </Typography>
 
+                {error && (
+                  <Alert severity="error" sx={{ mb: 3 }}>
+                    {error}
+                  </Alert>
+                )}
+
                 <Box component="form" onSubmit={handleSubmit} noValidate>
                   <TextField
                     margin="normal"
@@ -162,6 +229,9 @@ const Login = () => {
                     autoComplete="email"
                     value={formData.email}
                     onChange={handleChange}
+                    error={!!formErrors.email}
+                    helperText={formErrors.email}
+                    disabled={loading}
                     sx={{
                       mb: 3,
                       '& .MuiInputLabel-root': { color: 'gray' },
@@ -170,7 +240,10 @@ const Login = () => {
                         '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.4)' },
                         '&.Mui-focused fieldset': { borderColor: 'primary.main' },
                       },
-                      '& input': { color: 'white' }
+                      '& input': { color: 'white' },
+                      '& .MuiFormHelperText-root': {
+                        color: 'error.main'
+                      }
                     }}
                   />
                   
@@ -185,6 +258,9 @@ const Login = () => {
                     autoComplete="current-password"
                     value={formData.password}
                     onChange={handleChange}
+                    error={!!formErrors.password}
+                    helperText={formErrors.password}
+                    disabled={loading}
                     sx={{
                       mb: 2,
                       '& .MuiInputLabel-root': { color: 'gray' },
@@ -193,7 +269,10 @@ const Login = () => {
                         '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.4)' },
                         '&.Mui-focused fieldset': { borderColor: 'primary.main' },
                       },
-                      '& input': { color: 'white' }
+                      '& input': { color: 'white' },
+                      '& .MuiFormHelperText-root': {
+                        color: 'error.main'
+                      }
                     }}
                     InputProps={{
                       endAdornment: (
@@ -203,6 +282,7 @@ const Login = () => {
                             onClick={() => setShowPassword(!showPassword)}
                             edge="end"
                             sx={{ color: 'gray' }}
+                            disabled={loading}
                           >
                             {showPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
@@ -219,6 +299,7 @@ const Login = () => {
                           color="primary"
                           checked={formData.rememberMe}
                           onChange={handleChange}
+                          disabled={loading}
                           sx={{
                             color: 'gray',
                             '&.Mui-checked': {
@@ -251,6 +332,7 @@ const Login = () => {
                     variant="contained"
                     color="primary"
                     size="large"
+                    disabled={loading}
                     sx={{ 
                       py: 1.5,
                       mb: 3,
@@ -258,7 +340,11 @@ const Login = () => {
                       boxShadow: '0 4px 14px 0 rgba(255, 189, 0, 0.39)'
                     }}
                   >
-                    Sign In
+                    {loading ? (
+                      <CircularProgress size={24} color="inherit" />
+                    ) : (
+                      'Sign In'
+                    )}
                   </Button>
 
                   <Divider sx={{ 
@@ -278,6 +364,7 @@ const Login = () => {
                       fullWidth
                       variant="outlined"
                       startIcon={<GoogleIcon />}
+                      disabled={loading}
                       sx={{ 
                         py: 1.2, 
                         color: 'white',
@@ -294,6 +381,7 @@ const Login = () => {
                       fullWidth
                       variant="outlined"
                       startIcon={<FacebookIcon />}
+                      disabled={loading}
                       sx={{ 
                         py: 1.2, 
                         color: 'white',
@@ -342,6 +430,21 @@ const Login = () => {
           </motion.div>
         </motion.div>
       </Container>
+
+      <Snackbar 
+        open={snackbar.open} 
+        autoHideDuration={6000} 
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity={snackbar.severity} 
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
