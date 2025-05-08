@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { 
   Box, 
   Container, 
@@ -25,7 +25,7 @@ import {
 } from '@mui/icons-material';
 
 const Login = () => {
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -73,10 +73,11 @@ const Login = () => {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        height: '90vh',
         display: 'flex',
         alignItems: 'center',
         position: 'relative',
+        border:'1px solid gold',
         py: 8,
         '&::before': {
           content: '""',
@@ -101,13 +102,13 @@ const Login = () => {
         >
           <motion.div variants={itemVariants}>
             <Box 
-              component={RouterLink}
               to="/"
               sx={{ 
                 display: 'flex', 
                 justifyContent: 'center', 
                 mb: 5,
-                textDecoration: 'none'
+                textDecoration: 'none',
+                border: '1px solid gold',
               }}
             >
               <Typography 
@@ -230,7 +231,6 @@ const Login = () => {
                       label={<Typography variant="body2" sx={{ color: 'white' }}>Remember me</Typography>}
                     />
                     <Link 
-                      component={RouterLink} 
                       to="/forgot-password"
                       variant="body2"
                       sx={{ 
@@ -313,7 +313,6 @@ const Login = () => {
                       Don't have an account?{' '}
                     </Typography>
                     <Link 
-                      component={RouterLink} 
                       to="/signup"
                       variant="body2"
                       sx={{ 

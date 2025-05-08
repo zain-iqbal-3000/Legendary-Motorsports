@@ -4,6 +4,8 @@ import viteLogo from '/vite.svg'
 import Home from './Home.jsx'
 import CarDetail from './CarDetail'
 import Dashboard from './Dashboard.jsx'
+import Login from './components/Authentication/Login.jsx'
+import CarInventory from './CarInventory.jsx'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -13,6 +15,8 @@ function App() {
       {/* <Home /> */}
       {/* <CarDetail /> */}
       <Dashboard />
+      {/* <Login /> */}
+      {/* <CarInventory /> */}
       
     </>
   )
