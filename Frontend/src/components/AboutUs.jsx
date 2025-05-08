@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { 
   Box, 
   Container, 
@@ -9,67 +8,21 @@ import {
   CardContent, 
   CardMedia, 
   Button, 
-  AppBar, 
-  Toolbar, 
-  useMediaQuery, 
-  Drawer, 
-  List, 
-  ListItem, 
-  ListItemText, 
-  IconButton,
   Avatar,
   Stack,
   Divider,
 } from '@mui/material';
-import { motion, useAnimation } from 'framer-motion';
-import MenuIcon from '@mui/icons-material/Menu';
-import CloseIcon from '@mui/icons-material/Close';
+import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import EngineeringIcon from '@mui/icons-material/Engineering';
 import SpeedIcon from '@mui/icons-material/Speed';
 import StarsIcon from '@mui/icons-material/Stars';
 import LocalGasStationIcon from '@mui/icons-material/LocalGasStation';
+import Header from './Header';
+import Footer from './Footer';
 
 const AboutUs = () => {
-  // =============== HEADER SECTION ===============
-  const [scrolled, setScrolled] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const isMobile = useMediaQuery('(max-width:768px)');
-  const headerControls = useAnimation();
-
-  // Navigation links
-  const navLinks = [
-    { name: 'Home', path: '/' },
-    { name: 'About', path: '/aboutus' },
-    { name: 'Cars', path: '/#cars' },
-    { name: 'Book Now', path: '/#booking' },
-    { name: 'Contact', path: '/#contact' }
-  ];
-
-  // Handle scroll effects
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Animation for header
-  useEffect(() => {
-    headerControls.start({
-      backgroundColor: scrolled ? 'rgba(57, 0, 153, 0.95)' : 'rgba(57, 0, 153, 0)',
-      boxShadow: scrolled ? '0 4px 20px rgba(0, 0, 0, 0.15)' : 'none',
-      height: scrolled ? 70 : 90,
-      transition: { duration: 0.3 }
-    });
-  }, [scrolled, headerControls]);
-
   // Team members data
   const teamMembers = [
     {
@@ -152,133 +105,7 @@ const AboutUs = () => {
 
   return (
     <>
-      {/* =============== HEADER =============== */}
-      <motion.div
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-      >
-        <AppBar 
-          position="fixed" 
-          component={motion.div}
-          animate={headerControls}
-          elevation={0}
-          sx={{ 
-            bgcolor: 'transparent',
-            zIndex: 1100
-          }}
-        >
-          <Container>
-            <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 0, sm: 2 } }}>
-              <Typography 
-                variant="h4" 
-                component={motion.div}
-                whileHover={{ scale: 1.05 }}
-                sx={{ 
-                  fontWeight: 800, 
-                  letterSpacing: 1,
-                  color: 'primary.main',
-                  cursor: 'pointer'
-                }}
-                onClick={() => window.location.href = '/'}
-              >
-                LEGENDARY MOTORSPORTS
-              </Typography>
-
-              {!isMobile && (
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  {navLinks.map((link) => (
-                    <Button
-                      key={link.name}
-                      component={Link}
-                      to={link.path}
-                      sx={{
-                        mx: 2,
-                        position: 'relative',
-                        color: 'text.primary',
-                        fontWeight: 500,
-                        '&::after': {
-                          content: '""',
-                          position: 'absolute',
-                          bottom: -5,
-                          left: 0,
-                          width: link.name === 'About' ? '100%' : 0,
-                          height: 2,
-                          bgcolor: 'primary.main',
-                          transition: 'all 0.3s ease'
-                        },
-                        '&:hover::after': {
-                          width: '100%'
-                        }
-                      }}
-                    >
-                      {link.name}
-                    </Button>
-                  ))}
-                </Box>
-              )}
-
-              {isMobile && (
-                <IconButton 
-                  edge="end" 
-                  color="inherit" 
-                  aria-label="menu"
-                  onClick={() => setDrawerOpen(true)}
-                >
-                  <MenuIcon />
-                </IconButton>
-              )}
-            </Toolbar>
-          </Container>
-        </AppBar>
-      </motion.div>
-
-      <Drawer
-        anchor="right"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        sx={{
-          '& .MuiDrawer-paper': {
-            width: '70%',
-            maxWidth: 300,
-            backgroundColor: 'background.default',
-            boxShadow: '-5px 0 30px rgba(0, 0, 0, 0.3)'
-          }
-        }}
-      >
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
-          <IconButton onClick={() => setDrawerOpen(false)}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
-        <List>
-          {navLinks.map((link) => (
-            <ListItem 
-              button 
-              key={link.name} 
-              component={Link}
-              to={link.path}
-              onClick={() => setDrawerOpen(false)}
-              sx={{
-                py: 2,
-                borderLeft: link.name === 'About' ? '3px solid' : 'none',
-                borderColor: 'primary.main',
-                bgcolor: link.name === 'About' ? 'rgba(255, 189, 0, 0.08)' : 'transparent'
-              }}
-            >
-              <ListItemText 
-                primary={link.name} 
-                sx={{ 
-                  textAlign: 'center',
-                  '& .MuiTypography-root': {
-                    fontWeight: 500
-                  }
-                }}
-              />
-            </ListItem>
-          ))}
-        </List>
-      </Drawer>
+      <Header />
 
       {/* Adding top spacing to compensate for fixed header */}
       <Box sx={{ height: { xs: 70, sm: 90 } }} />
@@ -1036,30 +863,7 @@ const AboutUs = () => {
         </Container>
       </Box>
 
-      {/* =============== FOOTER SECTION =============== */}
-      <Box
-        component="footer"
-        sx={{
-          bgcolor: '#212121',
-          pt: { xs: 6, md: 8 },
-          pb: 4
-        }}
-      >
-        <Container maxWidth="lg">
-          <Box 
-            sx={{ 
-              borderTop: 1, 
-              borderColor: 'rgba(255, 255, 255, 0.1)', 
-              pt: 3,
-              textAlign: 'center'
-            }}
-          >
-            <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.9rem' }}>
-              &copy; {new Date().getFullYear()} Legendary Motorsports. All rights reserved.
-            </Typography>
-          </Box>
-        </Container>
-      </Box>
+      <Footer />
     </>
   );
 };

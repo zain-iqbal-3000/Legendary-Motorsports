@@ -13,7 +13,6 @@ const ProtectedRoute = ({ redirectPath = '/login' }) => {
           justifyContent: 'center',
           alignItems: 'center',
           height: '100vh',
-          backgroundColor: 'primary.blue'
         }}
       >
         <CircularProgress color="primary" size={60} />

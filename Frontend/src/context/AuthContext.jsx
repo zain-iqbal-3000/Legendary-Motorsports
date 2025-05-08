@@ -1,83 +1,81 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
+
+axios.defaults.baseURL = 'http://localhost:5000'; // Ensure this matches your backend URL
+
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Start with loading as true
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    // Check if user is already logged in
+  // Fetch user data from the backend
+  const fetchUser = async () => {
     const token = localStorage.getItem('token');
-    if (token) {
-      loadUser(token);
-    } else {
-      setLoading(false);
+    if (!token) {
+      setLoading(false); // Stop loading if no token is found
+      return;
     }
-  }, []);
 
-  // Load user data
-  const loadUser = async (token) => {
     try {
-      setLoading(true);
-      const config = {
-        headers: {
-          'x-auth-token': token
-        }
-      };
-      const res = await axios.get('http://localhost:5000/api/auth/user', config);
+      // Set the token in Axios headers
+      axios.defaults.headers.common['x-auth-token'] = token;
+
+      const res = await axios.get('/api/auth/user');
       setUser(res.data);
-      setError(null);
     } catch (err) {
-      localStorage.removeItem('token');
-      setError(err.response?.data?.msg || 'Authentication failed');
+      console.error('Error fetching user:', err);
+      localStorage.removeItem('token'); // Remove invalid token
       setUser(null);
     } finally {
-      setLoading(false);
+      setLoading(false); // Stop loading after fetching user
     }
   };
 
-  // Register user
+  // Register a new user
   const register = async (userData) => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      const res = await axios.post('http://localhost:5000/api/auth/register', userData);
+      const res = await axios.post('/api/auth/register', userData);
       localStorage.setItem('token', res.data.token);
-      setUser(res.data.user);
-      setError(null);
-      return res.data;
+      await fetchUser();
     } catch (err) {
       setError(err.response?.data?.msg || 'Registration failed');
-      throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  // Login user
+  // Log in an existing user
   const login = async (email, password) => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+      const res = await axios.post('/api/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
-      setUser(res.data.user);
-      setError(null);
-      return res.data;
+      await fetchUser();
     } catch (err) {
-      setError(err.response?.data?.msg || 'Invalid credentials');
-      throw err;
+      setError(err.response?.data?.msg || 'Login failed');
     } finally {
       setLoading(false);
     }
   };
 
-  // Logout
+  // Log out the user
   const logout = () => {
     localStorage.removeItem('token');
+    delete axios.defaults.headers.common['x-auth-token']; // Remove token from Axios headers
     setUser(null);
   };
+
+  // Fetch user data on app initialization
+  useEffect(() => {
+    fetchUser();
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading, error, register, login, logout }}>
@@ -85,5 +83,3 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-
-export const useAuth = () => useContext(AuthContext);
