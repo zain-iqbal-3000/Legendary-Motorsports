@@ -1,18 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { 
-  AppBar,
   Box,
   Container,
-  Toolbar,
   Typography,
   Button,
-  IconButton,
-  Drawer,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  useMediaQuery,
   Card,
   CardMedia,
   CardContent,
@@ -25,11 +16,14 @@ import {
   Select,
   MenuItem,
   Avatar,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
   Link
 } from '@mui/material';
 import { 
-  Menu as MenuIcon, 
-  Close as CloseIcon,
   Speed as SpeedIcon, 
   ShutterSpeed as ShutterSpeedIcon, 
   Build as BuildIcon,
@@ -41,75 +35,18 @@ import {
   LocationOn as LocationIcon, 
   Phone as PhoneIcon, 
   Email as EmailIcon,
-  Facebook as FacebookIcon, 
-  Instagram as InstagramIcon, 
-  Twitter as TwitterIcon, 
+  Facebook as FacebookIcon,
+  Instagram as InstagramIcon,
+  Twitter as TwitterIcon,
   YouTube as YouTubeIcon
 } from '@mui/icons-material';
-import { motion, AnimatePresence, useAnimation } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import Header from './components/Header';
+import Footer from './components/Footer';
 
 const Home = () => {
-    const primaryColour = '#ffbd00';
-    const secondaryColour = '#390099';
-  // =============== HEADER SECTION ===============
-  const [scrolled, setScrolled] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('hero');
-  const isMobile = useMediaQuery('(max-width:768px)');
-  const headerControls = useAnimation();
-
-  // Navigation links
-  const navLinks = [
-    { name: 'Home', id: 'hero' },
-    { name: 'Cars', id: 'cars' },
-    { name: 'About', id: 'about' },
-    { name: 'Book Now', id: 'booking' },
-    { name: 'Testimonials', id: 'testimonials' },
-    { name: 'Contact', id: 'contact' }
-  ];
-
-  // Handle scroll effects
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      setScrolled(scrollPosition > 100);
-
-      // Update active section based on scroll position
-      const sections = document.querySelectorAll('section');
-      sections.forEach(section => {
-        const sectionTop = section.offsetTop - 100;
-        const sectionHeight = section.clientHeight;
-        if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
-          setActiveSection(section.id);
-        }
-      });
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Animation for header
-  useEffect(() => {
-    headerControls.start({
-      backgroundColor: scrolled ? 'rgba(57, 0, 153, 0.95)' : 'rgba(57, 0, 153, 0)',
-      boxShadow: scrolled ? '0 4px 20px rgba(0, 0, 0, 0.15)' : 'none',
-      height: scrolled ? 70 : 90,
-      transition: { duration: 0.3 }
-    });
-  }, [scrolled, headerControls]);
-
-  const scrollToSection = (sectionId) => {
-    setDrawerOpen(false);
-    const element = document.getElementById(sectionId);
-    if (element) {
-      const offsetPosition = element.offsetTop - 80;
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    }
-  };
+  const primaryColour = '#ffbd00';
+  const secondaryColour = '#390099';
 
   // =============== HERO SECTION ===============
   const [activeImage, setActiveImage] = useState(0);
@@ -565,135 +502,8 @@ const Home = () => {
 
   return (
     <>
-      {/* =============== HEADER =============== */}
-      <motion.div
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-      >
-        <AppBar 
-          position="fixed" 
-          component={motion.div}
-          animate={headerControls}
-          elevation={0}
-          sx={{ 
-            bgcolor: 'transparent',
-            zIndex: 1100
-          }}
-        >
-          <Container>
-            <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 0, sm: 2 } }}>
-              <Typography 
-                variant="h4" 
-                component={motion.div}
-                whileHover={{ scale: 1.05 }}
-                sx={{ 
-                  fontWeight: 800, 
-                  letterSpacing: 1,
-                  color: 'primary.main',
-                  cursor: 'pointer'
-                }}
-                onClick={() => scrollToSection('hero')}
-              >
-                LEGENDARY MOTORSPORTS
-              </Typography>
-
-              {/* Desktop Navigation */}
-              {!isMobile && (
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  {navLinks.map((link) => (
-                    <Button
-                      key={link.id}
-                      onClick={() => scrollToSection(link.id)}
-                      sx={{
-                        mx: 2,
-                        position: 'relative',
-                        color: 'text.primary',
-                        fontWeight: 500,
-                        '&::after': {
-                          content: '""',
-                          position: 'absolute',
-                          bottom: -5,
-                          left: 0,
-                          width: activeSection === link.id ? '100%' : 0,
-                          height: 2,
-                          bgcolor: 'primary.main',
-                          transition: 'all 0.3s ease'
-                        },
-                        '&:hover::after': {
-                          width: '100%'
-                        }
-                      }}
-                    >
-                      {link.name}
-                    </Button>
-                  ))}
-                </Box>
-              )}
-
-              {/* Mobile Menu Toggle */}
-              {isMobile && (
-                <IconButton 
-                  edge="end" 
-                  color="inherit" 
-                  aria-label="menu"
-                  onClick={() => setDrawerOpen(true)}
-                >
-                  <MenuIcon />
-                </IconButton>
-              )}
-            </Toolbar>
-          </Container>
-        </AppBar>
-      </motion.div>
-
-      {/* Mobile Navigation Drawer */}
-      <Drawer
-        anchor="right"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        sx={{
-          '& .MuiDrawer-paper': {
-            width: '70%',
-            maxWidth: 300,
-            backgroundColor: 'background.default',
-            boxShadow: '-5px 0 30px rgba(0, 0, 0, 0.3)'
-          }
-        }}
-      >
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
-          <IconButton onClick={() => setDrawerOpen(false)}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
-        <List>
-          {navLinks.map((link) => (
-            <ListItem 
-              button 
-              key={link.id} 
-              onClick={() => scrollToSection(link.id)}
-              sx={{
-                py: 2,
-                borderLeft: activeSection === link.id ? '3px solid' : 'none',
-                borderColor: 'primary.main',
-                bgcolor: activeSection === link.id ? 'rgba(255, 189, 0, 0.08)' : 'transparent'
-              }}
-            >
-              <ListItemText 
-                primary={link.name} 
-                sx={{ 
-                  textAlign: 'center',
-                  '& .MuiTypography-root': {
-                    fontFamily: 'Orbitron, sans-serif',
-                    fontWeight: 500
-                  }
-                }}
-              />
-            </ListItem>
-          ))}
-        </List>
-      </Drawer>
-
+      <Header />
+      
       {/* =============== HERO SECTION =============== */}
       <Box
         id="hero"
@@ -1755,7 +1565,8 @@ const Home = () => {
                         sx={{ mb: 3, fontWeight: 600 }}
                       >
                         Send Us a Message
-                      </Typography>
+                      </Typography
+                      >
                       
                       <form onSubmit={handleContactSubmit}>
                         <TextField
