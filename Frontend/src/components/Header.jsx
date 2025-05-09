@@ -37,7 +37,7 @@ const Header = () => {
     { name: 'Services', path: '/services' },
     { name: 'Book Now', path: '/#booking' },
     { name: 'Testimonials', path: '/#testimonials' },
-    { name: 'Contact', path: '/#contact' },
+    { name: 'Contact', path: '/contact' },
   ];
 
   // Handle scroll effects
@@ -68,7 +68,7 @@ const Header = () => {
     headerControls.start({
       backgroundColor: scrolled ? 'rgba(57, 0, 153, 0.95)' : 'rgba(57, 0, 153, 0)',
       boxShadow: scrolled ? '0 4px 20px rgba(0, 0, 0, 0.15)' : 'none',
-      height: scrolled ? 70 : 90,
+      height: scrolled ? 80 : 90,
       transition: { duration: 0.3 }
     });
   }, [scrolled, headerControls]);

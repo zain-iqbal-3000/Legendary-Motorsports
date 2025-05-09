@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link,useNavigate } from 'react-router-dom';
 import { 
   Box, 
   Container, 
@@ -10,7 +10,6 @@ import {
   IconButton,
   Card,
   CardContent,
-  Link,
   Checkbox,
   FormControlLabel,
   Divider,
@@ -138,7 +137,6 @@ const Login = () => {
         display: 'flex',
         alignItems: 'center',
         position: 'relative',
-        border:'1px solid gold',
         py: 8,
         '&::before': {
           content: '""',
@@ -169,7 +167,6 @@ const Login = () => {
                 justifyContent: 'center', 
                 mb: 5,
                 textDecoration: 'none',
-                border: '1px solid gold',
               }}
             >
               <Typography 
