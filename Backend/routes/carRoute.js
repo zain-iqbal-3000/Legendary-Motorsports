@@ -37,6 +37,8 @@ router.post('/add', async (req, res) => {
      }
     );
 
+<<<<<<< HEAD
+=======
     router.get('/', async (req, res) => {
         try {
             const cars = await hypercar.find(); // Fetch all cars from the database
@@ -48,6 +50,7 @@ router.post('/add', async (req, res) => {
     });
     
 
+>>>>>>> 94d290b1b29ceade4163f8a3b2952e7a3d819a25
 //export
 
 module.exports = router;

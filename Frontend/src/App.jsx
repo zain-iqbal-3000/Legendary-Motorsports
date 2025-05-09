@@ -8,6 +8,7 @@ import Home from './Home';
 import Services from './components/Services';
 import AboutUs from "./components/AboutUs"
 import CarInventory from './CarInventory';
+import AccountSettings from './components/AccountSettings';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/services" element={<Services/>}/>
           <Route path="/aboutus" element={<AboutUs/>}/>
           <Route path="/CarInventory" element={<CarInventory/>}/>
+          <Route path="/settings" element={<AccountSettings/>}/>
           
           <Route
             path="/dashboard"
