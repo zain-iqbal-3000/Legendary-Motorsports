@@ -1,46 +1,11 @@
 import { useState, useEffect } from 'react';
+import AddCar from './components/AddCar';
 import {
-  Box,
-  Drawer,
-  AppBar,
-  Toolbar,
-  List,
-  Typography,
-  Divider,
-  IconButton,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Avatar,
-  Chip,
-  Grid,
-  Card,
-  CardContent,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Tab,
-  Tabs,
-  Badge,
-  Stack,
-  Switch,
-  FormControlLabel
+  Box, Drawer,AppBar,Toolbar,List,
+  Typography,Divider,IconButton,ListItem,ListItemButton,ListItemIcon,ListItemText,Avatar,Chip,
+  Grid,Card,CardContent,Button,Table,TableBody,TableCell,TableContainer,TableHead,TableRow,
+  Paper,Dialog,DialogActions,DialogContent,DialogContentText,DialogTitle,TextField,FormControl,InputLabel,
+  Select,MenuItem,Tab,Tabs,Badge,Stack,Switch,FormControlLabel
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -62,55 +27,9 @@ import {
   Help as HelpIcon
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
+import FleetStatus from './components/FleetStatus';
 
-// Mock data for the dashboard
-const mockCars = [
-  {
-    id: 1,
-    make: 'Lamborghini',
-    model: 'Aventador SVJ',
-    year: 2022,
-    status: 'Available',
-    dailyRate: 2999,
-    image: 'https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80'
-  },
-  {
-    id: 2,
-    make: 'Ferrari',
-    model: 'SF90 Stradale',
-    year: 2022,
-    status: 'Rented',
-    dailyRate: 3499,
-    image: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80'
-  },
-  {
-    id: 3,
-    make: 'McLaren',
-    model: '720S',
-    year: 2021,
-    status: 'Maintenance',
-    dailyRate: 2799,
-    image: 'https://images.unsplash.com/photo-1580414057403-c5f451f30e1c?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80'
-  },
-  {
-    id: 4,
-    make: 'Bugatti',
-    model: 'Chiron',
-    year: 2022,
-    status: 'Available',
-    dailyRate: 4999,
-    image: 'https://images.unsplash.com/photo-1546544336-7e8dde09e523?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80'
-  },
-  {
-    id: 5,
-    make: 'Porsche',
-    model: '911 GT2 RS',
-    year: 2022,
-    status: 'Available',
-    dailyRate: 2399,
-    image: 'https://images.unsplash.com/photo-1611821064430-0d40291d0f0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80'
-  }
-];
 
 const mockBookings = [
   {
@@ -187,11 +106,26 @@ const Dashboard = () => {
   const [selectedSection, setSelectedSection] = useState('overview');
   const [carDialogOpen, setCarDialogOpen] = useState(false);
   const [selectedCar, setSelectedCar] = useState(null);
-  const [cars, setCars] = useState(mockCars);
+  const [cars, setCars] = useState([]);
   const [bookings, setBookings] = useState(mockBookings);
   const [editMode, setEditMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [tabValue, setTabValue] = useState(0);
+
+
+   // Fetch car data from the backend
+   useEffect(() => {
+    const fetchCars = async () => {
+      try {
+        const response = await axios.get('/api/cars'); // Adjust the endpoint if necessary
+        setCars(response.data); // Update the state with the fetched car data
+      } catch (error) {
+        console.error('Error fetching car data:', error);
+      }
+    };
+
+    fetchCars();
+  }, []);
 
   // Handle drawer open/close
   const toggleDrawer = () => {
@@ -204,16 +138,12 @@ const Dashboard = () => {
   };
 
   // Handle car dialog open/close
-  const handleCarDialogOpen = (car = null) => {
-    setSelectedCar(car);
-    setEditMode(!!car);
+  const handleCarDialogOpen = () => {
     setCarDialogOpen(true);
   };
 
   const handleCarDialogClose = () => {
     setCarDialogOpen(false);
-    setSelectedCar(null);
-    setEditMode(false);
   };
 
   // Handle tab change
@@ -222,11 +152,14 @@ const Dashboard = () => {
   };
 
   // Handle car form submission
-  const handleCarSubmit = (event) => {
-    event.preventDefault();
-    // Here we would submit the form data to the backend
-    // For demo purposes, we're just closing the dialog
-    handleCarDialogClose();
+  const handleCarSubmit = (carData) => {
+    if (editMode) {
+      // Update existing car logic
+      console.log('Updating car:', carData);
+    } else {
+      // Add new car logic
+      console.log('Adding new car:', carData);
+    }
   };
 
   // Filter cars based on search query
@@ -262,7 +195,11 @@ const Dashboard = () => {
       transition: { duration: 0.5 }
     }
   };
-
+  
+  const cardStyles = {
+    height: '100%',
+    borderRadius: 2,
+  };
   // Dashboard sections
   const renderOverview = () => (
     <motion.div
@@ -290,14 +227,16 @@ const Dashboard = () => {
       {/* // ===================/Header=================== */}
 
       {/*  // ===================Stats=================== */} 
-      <Grid container spacing={2} sx={{ mb: 2, border:'1px solid blue' }}>
-        <Grid size={{xs:12, md:6, lg:3}} sx={{ border:'1px solid red' }}>
+      <Grid container spacing={1} sx={{ mb: 1 }}>
+        {/* Total Revenue Card */}
+        <Grid size={{ xs: 12, md: 6, lg: 3 }}>
           <motion.div variants={itemVariants}>
-            <Card sx={{ 
-              height: '100%', 
-              borderRadius: 2,
-              background: 'linear-gradient(135deg, rgba(57, 0, 153, 0.8), rgba(57, 0, 153, 0.6))'
-            }}>
+            <Card
+              sx={{
+                ...cardStyles,
+                background: 'linear-gradient(135deg, rgba(57, 0, 153, 0.8), rgba(57, 0, 153, 0.6))', // Purple background
+              }}
+            >
               <CardContent>
                 <Typography variant="subtitle2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                   Total Revenue
@@ -305,26 +244,27 @@ const Dashboard = () => {
                 <Typography variant="h4" sx={{ my: 1, fontWeight: 700, color: 'white' }}>
                   ${mockStats.totalRevenue.toLocaleString()}
                 </Typography>
-                <Typography 
-                  variant="body2" 
+                <Typography
+                  variant="body2"
                   component="div"
-                  sx={{ 
-                    display: 'flex', 
+                  sx={{
+                    display: 'flex',
                     alignItems: 'center',
-                    color: 'primary.main'
+                    color: 'primary.main',
                   }}
                 >
-                  <Box sx={{ 
-                    display: 'inline-block', 
-                    width: 0, 
-                    height: 0, 
-                    borderLeft: '4px solid transparent',
-                    borderRight: '4px solid transparent',
-                    borderBottom: '6px solid',
-                    color: 'primary.main',
-                    mr: 0.5,
-                    
-                  }} />
+                  <Box
+                    sx={{
+                      display: 'inline-block',
+                      width: 0,
+                      height: 0,
+                      borderLeft: '4px solid transparent',
+                      borderRight: '4px solid transparent',
+                      borderBottom: '6px solid',
+                      color: 'primary.main',
+                      mr: 0.5,
+                    }}
+                  />
                   {mockStats.monthlyGrowth}% from last month
                 </Typography>
               </CardContent>
@@ -332,9 +272,10 @@ const Dashboard = () => {
           </motion.div>
         </Grid>
 
-        <Grid size={{xs:12, md:6, lg:3}}>
+        {/* Active Bookings Card */}
+        <Grid size={{ xs: 12, md: 6, lg: 3 }}>
           <motion.div variants={itemVariants}>
-            <Card sx={{ height: '100%', borderRadius: 2 }}>
+            <Card sx={{ ...cardStyles, background: '#fff' }}>
               <CardContent>
                 <Typography variant="subtitle2" color="text.secondary">
                   Active Bookings
@@ -342,23 +283,24 @@ const Dashboard = () => {
                 <Typography variant="h4" sx={{ my: 1, fontWeight: 700 }}>
                   {mockStats.activeBookings}
                 </Typography>
-                <Chip 
-                  label="1 Delivery Today" 
-                  size="small" 
-                  sx={{ 
-                    bgcolor: 'rgba(255, 189, 0, 0.1)', 
+                <Chip
+                  label="1 Delivery Today"
+                  size="small"
+                  sx={{
+                    bgcolor: 'rgba(255, 189, 0, 0.1)',
                     color: 'primary.main',
-                    fontWeight: 500
-                  }} 
+                    fontWeight: 500,
+                  }}
                 />
               </CardContent>
             </Card>
           </motion.div>
         </Grid>
 
-        <Grid size={{xs:12, md:6, lg:3}}>
+        {/* Available Cars Card */}
+        <Grid size={{ xs: 12, md: 6, lg: 3 }}>
           <motion.div variants={itemVariants}>
-            <Card sx={{ height: '100%', borderRadius: 2 }}>
+            <Card sx={{ ...cardStyles, background: '#fff' }}>
               <CardContent>
                 <Typography variant="subtitle2" color="text.secondary">
                   Available Cars
@@ -366,23 +308,24 @@ const Dashboard = () => {
                 <Typography variant="h4" sx={{ my: 1, fontWeight: 700 }}>
                   {mockStats.availableCars}
                 </Typography>
-                <Chip 
-                  label="1 In Maintenance" 
-                  size="small" 
-                  sx={{ 
-                    bgcolor: 'rgba(255, 255, 255, 0.1)', 
+                <Chip
+                  label="1 In Maintenance"
+                  size="small"
+                  sx={{
+                    bgcolor: 'rgba(255, 255, 255, 0.1)',
                     color: 'text.secondary',
-                    fontWeight: 500
-                  }} 
+                    fontWeight: 500,
+                  }}
                 />
               </CardContent>
             </Card>
           </motion.div>
         </Grid>
 
-        <Grid size={{xs:12, md:6, lg:3}}>
+        {/* Conversion Rate Card */}
+        <Grid size={{ xs: 12, md: 6, lg: 3 }}>
           <motion.div variants={itemVariants}>
-            <Card sx={{ height: '100%', borderRadius: 2 }}>
+            <Card sx={{ ...cardStyles, background: '#fff' }}>
               <CardContent>
                 <Typography variant="subtitle2" color="text.secondary">
                   Conversion Rate
@@ -390,33 +333,36 @@ const Dashboard = () => {
                 <Typography variant="h4" sx={{ my: 1, fontWeight: 700 }}>
                   {mockStats.conversionRate}%
                 </Typography>
-                <Typography 
-                  variant="body2" 
+                <Typography
+                  variant="body2"
                   component="div"
-                  sx={{ 
-                    display: 'flex', 
+                  sx={{
+                    display: 'flex',
                     alignItems: 'center',
-                    color: 'success.main'
+                    color: 'success.main',
                   }}
                 >
-                  <Box sx={{ 
-                    display: 'inline-block', 
-                    width: 0, 
-                    height: 0, 
-                    borderLeft: '4px solid transparent',
-                    borderRight: '4px solid transparent',
-                    borderBottom: '6px solid',
-                    color: 'success.main',
-                    mr: 0.5
-                  }} />
+                  <Box
+                    sx={{
+                      display: 'inline-block',
+                      width: 0,
+                      height: 0,
+                      borderLeft: '4px solid transparent',
+                      borderRight: '4px solid transparent',
+                      borderBottom: '6px solid',
+                      color: 'success.main',
+                      mr: 0.5,
+                    }}
+                  />
                   4.2% increase
                 </Typography>
               </CardContent>
             </Card>
           </motion.div>
         </Grid>
-      </Grid>
-    {/*  // ===================/Stats=================== */} 
+      </Grid>;
+      
+      {/*  // ===================/Stats=================== */} 
 
 
       {/* // ================Recent Bookings Table ========= */}
@@ -504,83 +450,14 @@ const Dashboard = () => {
 
 
       {/* ======================Fleet Status=================== */}
-      <motion.div variants={itemVariants}>
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-          Fleet Status
-        </Typography>
-        <Grid container spacing={3}>
-          {cars.slice(0, 4).map((car) => (
-            <Grid size={{xs:12, sm:6, md:3}} key={car.id}>
-              <Card 
-                sx={{ 
-                  borderRadius: 2,
-                  overflow: 'hidden',
-                  position: 'relative'
-                }}
-              >
-                <Box
-                  sx={{
-                    height: 160,
-                    position: 'relative',
-                    overflow: 'hidden'
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={car.image}
-                    alt={`${car.make} ${car.model}`}
-                    sx={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover'
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 10,
-                      right: 10
-                    }}
-                  >
-                    <Chip 
-                      label={car.status} 
-                      size="small" 
-                      sx={{ 
-                        bgcolor: car.status === 'Available' 
-                          ? 'rgba(76, 175, 80, 0.8)' 
-                          : car.status === 'Rented' 
-                            ? 'rgba(25, 118, 210, 0.8)' 
-                            : 'rgba(255, 189, 0, 0.8)',
-                        color: 'white',
-                        fontWeight: 600
-                      }} 
-                    />
-                  </Box>
-                </Box>
-                <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    {car.make} {car.model}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    {car.year} • ${car.dailyRate}/day
-                  </Typography>
-                  <Button 
-                    size="small" 
-                    variant="outlined" 
-                    fullWidth
-                    onClick={() => handleCarDialogOpen(car)}
-                  >
-                    Manage
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      </motion.div>
+      <Box sx={{ mb: 10 }}>
+        <FleetStatus cars={cars} />
+      </Box>
+    
+      {/* ======================Fleet Status=================== */}
+
     </motion.div>
   );
-  {/* ======================Fleet Status=================== */}
 
   {/* ======================Car Inventory=================== */}
   const renderInventory = () => (
@@ -627,6 +504,11 @@ const Dashboard = () => {
           >
             Add New Car
           </Button>
+          <AddCar
+            open={carDialogOpen}
+            onClose={handleCarDialogClose}
+            
+          />
         </Box>
 
         <Box sx={{ mb: 3 }}>
