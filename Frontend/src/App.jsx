@@ -7,6 +7,7 @@ import ProtectedRoute from './components/Authentication/ProtectedRoute';
 import Home from './Home';
 import Services from './components/Services';
 import AboutUs from "./components/AboutUs"
+import CarInventory from './CarInventory';
 
 function App() {
   return (
@@ -18,12 +19,14 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/services" element={<Services/>}/>
           <Route path="/aboutus" element={<AboutUs/>}/>
+          <Route path="/CarInventory" element={<CarInventory/>}/>
+          
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
+              // <ProtectedRoute>
                 <Dashboard />
-              </ProtectedRoute>
+              // </ProtectedRoute>
             }
           />
         </Routes>
