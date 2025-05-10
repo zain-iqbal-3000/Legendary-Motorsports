@@ -146,7 +146,7 @@ const Header = () => {
         navigate('/settings');
         break;
       case 'bookings':
-        navigate('/dashboard');
+        navigate('/booking-history');
         break;
       case 'settings':
         navigate('/settings');

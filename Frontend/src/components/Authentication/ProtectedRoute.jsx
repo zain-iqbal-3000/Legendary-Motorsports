@@ -1,9 +1,9 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Box, CircularProgress } from '@mui/material';
 
-const ProtectedRoute = ({ redirectPath = '/login' }) => {
-  const { user, loading } = useAuth();
+const ProtectedRoute = ({ children, redirectPath = '/login' }) => {
+  const { currentUser, loading } = useAuth();
 
   if (loading) {
     return (
@@ -20,11 +20,14 @@ const ProtectedRoute = ({ redirectPath = '/login' }) => {
     );
   }
 
-  if (!user) {
+  // Store the intended URL before redirecting
+  if (!currentUser) {
+    const currentPath = window.location.pathname;
+    sessionStorage.setItem('intendedPath', currentPath);
     return <Navigate to={redirectPath} replace />;
   }
 
-  return <Outlet />;
+  return children;
 };
 
 export default ProtectedRoute;

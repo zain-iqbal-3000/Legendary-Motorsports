@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Container,
@@ -33,106 +33,60 @@ import {
   TableHead,
   TableRow,
   IconButton,
+  CircularProgress,
+  Alert,
 } from "@mui/material";
-import { AccessTime, CheckCircle, Cancel, DirectionsCar, Edit, Receipt, ArrowRightAlt, PrintOutlined, GetAppOutlined, Close } from "@mui/icons-material";
-import Header from './Header';
-import Footer from './Footer';
+import {
+  AccessTime,
+  CheckCircle,
+  Cancel,
+  DirectionsCar,
+  Edit,
+  Receipt,
+  ArrowRightAlt,
+  PrintOutlined,
+  GetAppOutlined,
+  Close,
+  ErrorOutline,
+} from "@mui/icons-material";
+import Header from "./Header";
+import Footer from "./Footer";
 import { motion } from "framer-motion";
-import theme from '../theme'; // Import theme to ensure consistency
+import theme from "../theme";
+import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
-// Example data
-const bookingsData = [
-  {
-    id: 1,
-    car: {
-      name: "Lamborghini Aventador",
-      year: 2023,
-      image: "https://images.unsplash.com/photo-1526726538690-5cbf956ae2fd?auto=format&fit=crop&w=600&q=80",
-      type: "Coupe",
-    },
-    pickup: { location: "Dubai Downtown", date: "2025-05-10 10:00" },
-    dropoff: { location: "Dubai Airport", date: "2025-05-12 14:00" },
-    price: 5200,
-    duration: "2 days",
-    status: "Active",
-    requiresAction: true,
-  },
-  {
-    id: 2,
-    car: {
-      name: "Ferrari SF90 Stradale",
-      year: 2024,
-      image: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=600&q=80",
-      type: "Convertible",
-    },
-    pickup: { location: "Abu Dhabi Marina", date: "2025-06-01 09:00" },
-    dropoff: { location: "Abu Dhabi Marina", date: "2025-06-03 18:00" },
-    price: 6000,
-    duration: "2 days",
-    status: "Upcoming",
-    requiresAction: false,
-  },
-  {
-    id: 3,
-    car: {
-      name: "McLaren 720S",
-      year: 2022,
-      image: "https://images.unsplash.com/photo-1580414057403-c5f451f30e1c?auto=format&fit=crop&w=600&q=80",
-      type: "Coupe",
-    },
-    pickup: { location: "Dubai Marina", date: "2025-04-01 11:00" },
-    dropoff: { location: "Dubai Marina", date: "2025-04-04 11:00" },
-    price: 8100,
-    duration: "3 days",
-    status: "Completed",
-    requiresAction: false,
-  },
-  {
-    id: 4,
-    car: {
-      name: "Bugatti Chiron",
-      year: 2023,
-      image: "https://images.unsplash.com/photo-1546544336-7e8dde09e523?auto=format&fit=crop&w=600&q=80",
-      type: "Coupe",
-    },
-    pickup: { location: "Dubai Mall", date: "2025-03-12 08:00" },
-    dropoff: { location: "Dubai Mall", date: "2025-03-14 20:00" },
-    price: 9000,
-    duration: "2 days",
-    status: "Cancelled",
-    requiresAction: false,
-  },
-];
-
-const statusColors = {
-  Active: "primary",
-  Upcoming: "info",
-  Completed: "success",
-  Cancelled: "error",
-};
-
-const statusIcons = {
-  Active: <AccessTime sx={{ mr: 0.5 }} fontSize="small" />,
-  Upcoming: <DirectionsCar sx={{ mr: 0.5 }} fontSize="small" />,
-  Completed: <CheckCircle sx={{ mr: 0.5 }} fontSize="small" />,
-  Cancelled: <Cancel sx={{ mr: 0.5 }} fontSize="small" />,
-};
-
-// Replace hardcoded colors with theme colors for consistency
-const primaryColour = theme.palette.primary.main; // '#ffd633';
-const secondaryColour = theme.palette.secondary.main; // '#390099';
-const darkBlueColor = theme.palette.primary.blue; // '#040430'
-const accentRedColor = theme.palette.primary.red; // '#570808'
+// Replace hardcoded colors with theme colors
+const primaryColour = theme.palette.primary.main;
+const secondaryColour = theme.palette.secondary.main;
+const darkBlueColor = theme.palette.primary.blue;
+const accentRedColor = theme.palette.primary.red;
 
 // Animation variants for cards
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
+  visible: { opacity: 1, y: 0 },
+};
+
+// Status mapping constants
+const statusColors = {
+  active: "primary",
+  upcoming: "info",
+  completed: "success",
+  cancelled: "error",
+};
+
+const statusIcons = {
+  active: <AccessTime sx={{ mr: 0.5 }} fontSize="small" />,
+  upcoming: <DirectionsCar sx={{ mr: 0.5 }} fontSize="small" />,
+  completed: <CheckCircle sx={{ mr: 0.5 }} fontSize="small" />,
+  cancelled: <Cancel sx={{ mr: 0.5 }} fontSize="small" />,
 };
 
 function BookingHistory() {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const { currentUser } = useAuth();
   
   // Tab state: 0=Current, 1=Upcoming, 2=Past
   const [tab, setTab] = useState(0);
@@ -141,9 +95,99 @@ function BookingHistory() {
   const [filterType, setFilterType] = useState("All");
   const [sortBy, setSortBy] = useState("date-desc");
   
+  // Booking data state
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
   // Invoice modal state
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  // Fetch bookings on component mount
+  useEffect(() => {
+    fetchBookings();
+  }, [currentUser]);
+
+  // Fetch bookings from backend
+  const fetchBookings = async () => {
+    if (!currentUser) return;
+    
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await axios.get('/api/bookings', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setBookings(response.data);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching bookings:", err);
+      setError("Failed to load your bookings. Please try again.");
+      // Provide fallback mock data for development/testing
+      if (process.env.NODE_ENV !== 'production') {
+        setBookings([
+          {
+            id: "b1",
+            carId: "c1",
+            car: {
+              name: "Lamborghini Aventador",
+              year: 2023,
+              image: "https://images.unsplash.com/photo-1526726538690-5cbf956ae2fd?auto=format&fit=crop&w=600&q=80",
+              type: "Coupe",
+            },
+            pickup: { location: "Dubai Downtown", date: "2025-05-10T10:00:00Z" },
+            dropoff: { location: "Dubai Airport", date: "2025-05-12T14:00:00Z" },
+            price: 5200,
+            duration: "2 days",
+            status: "active",
+            requiresAction: true,
+            createdAt: "2023-05-01T12:00:00Z",
+          },
+          // ...more mock data
+        ]);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Cancel booking
+  const handleCancelBooking = async (bookingId) => {
+    if (!currentUser) return;
+    
+    setActionLoading(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      await axios.put(`/api/bookings/${bookingId}/cancel`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      // Update local state
+      setBookings(bookings.map(booking => 
+        booking.id === bookingId ? { ...booking, status: 'cancelled' } : booking
+      ));
+      
+      // Show success message
+      // You could add a snackbar/toast here
+      
+    } catch (err) {
+      console.error("Error cancelling booking:", err);
+      setError("Failed to cancel booking. Please try again.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Generate invoice number
+  const generateInvoiceNumber = (bookingId) => {
+    return `INV-${new Date().getFullYear()}-${bookingId.toString().padStart(5, "0")}`;
+  };
   
   // Invoice handling functions
   const handleOpenInvoice = (booking) => {
@@ -154,34 +198,40 @@ function BookingHistory() {
   const handleCloseInvoice = () => {
     setInvoiceOpen(false);
   };
-  
-  const generateInvoiceNumber = (bookingId) => {
-    return `INV-${new Date().getFullYear()}-${bookingId.toString().padStart(5, '0')}`;
-  };
 
   // Filter and sort logic
   const filterBookings = (status) => {
-    let filtered = bookingsData.filter((b) => {
-      if (status === "Current") return b.status === "Active";
-      if (status === "Upcoming") return b.status === "Upcoming";
-      if (status === "Past") return b.status === "Completed" || b.status === "Cancelled";
+    // Guard clause if bookings aren't loaded yet
+    if (!bookings.length) return [];
+    
+    let filtered = bookings.filter((b) => {
+      if (status === "Current") return b.status === "active";
+      if (status === "Upcoming") return b.status === "upcoming";
+      if (status === "Past") return b.status === "completed" || b.status === "cancelled";
       return true;
     });
+    
     if (filterType !== "All") {
       filtered = filtered.filter((b) => b.car.type === filterType);
     }
+    
     if (sortBy === "date-desc") {
       filtered = filtered.sort((a, b) => new Date(b.pickup.date) - new Date(a.pickup.date));
     } else if (sortBy === "date-asc") {
       filtered = filtered.sort((a, b) => new Date(a.pickup.date) - new Date(b.pickup.date));
     }
+    
     return filtered;
   };
+
+  // Get unique car types from the bookings for filtering
+  const carTypes = ["All", ...new Set(bookings.map(b => b.car.type))];
 
   // Invoice Modal Component
   const InvoiceModal = () => {
     if (!selectedBooking) return null;
     
+    // Invoice calculation logic
     const invoiceNumber = generateInvoiceNumber(selectedBooking.id);
     const pickupDate = new Date(selectedBooking.pickup.date);
     const dropoffDate = new Date(selectedBooking.dropoff.date);
@@ -448,7 +498,7 @@ function BookingHistory() {
           }}
           aria-label={`Booking for ${booking.car.name}`}
         >
-          {booking.status === "Cancelled" && (
+          {booking.status === "cancelled" && (
             <Box sx={{
               position: "absolute",
               top: 20,
@@ -464,7 +514,7 @@ function BookingHistory() {
             }}>CANCELLED</Box>
           )}
           
-          {/* Upcoming pickup notification - Improved */}
+          {/* Upcoming pickup notification */}
           {booking.requiresAction && (
             <Box
               sx={{
@@ -597,6 +647,7 @@ function BookingHistory() {
                 />
               </Stack>
               
+              {/* Pickup and Dropoff Information */}
               <Paper 
                 elevation={0} 
                 sx={{
@@ -719,8 +770,6 @@ function BookingHistory() {
                   }}
                   aria-label={`Status: ${booking.status}`}
                 />
-                
-                {/* Removed old notification - we have a better one now at the top of the card */}
               </Stack>
               
               {/* Action Buttons */}
@@ -745,7 +794,7 @@ function BookingHistory() {
                 >
                   View Invoice
                 </Button>
-                {booking.status === "Upcoming" && (
+                {booking.status === "upcoming" && (
                   <Button
                     variant="contained"
                     startIcon={<Edit />}
@@ -767,6 +816,22 @@ function BookingHistory() {
                     Modify Booking
                   </Button>
                 )}
+                {(booking.status === "upcoming" || booking.status === "active") && (
+                  <Button
+                    variant="outlined" 
+                    color="error"
+                    disabled={actionLoading}
+                    onClick={() => handleCancelBooking(booking.id)}
+                    sx={{
+                      borderRadius: 2,
+                      fontWeight: 600,
+                      textTransform: "none",
+                      px: 2,
+                    }}
+                  >
+                    {actionLoading ? <CircularProgress size={20} /> : 'Cancel'}
+                  </Button>
+                )}
               </Stack>
             </Box>
           </CardContent>
@@ -778,9 +843,6 @@ function BookingHistory() {
   // Tab names
   const tabLabels = ["Current Rentals", "Upcoming Reservations", "Past Rentals"];
   const tabStatuses = ["Current", "Upcoming", "Past"];
-
-  // Car type options for filter
-  const carTypes = ["All", ...Array.from(new Set(bookingsData.map((b) => b.car.type)))];
 
   return (
     <>
@@ -795,6 +857,7 @@ function BookingHistory() {
         }}
       >
         <Container maxWidth="lg">
+          {/* Page Title Section */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -808,7 +871,6 @@ function BookingHistory() {
                 mb: 1,
                 letterSpacing: "-0.02em",
                 textAlign: "center",
-                fontFamily: "'Montserrat', sans-serif",
               }}
             >
               My Rentals
@@ -819,7 +881,6 @@ function BookingHistory() {
                 color: "#555",
                 mb: 5,
                 textAlign: "center",
-                fontFamily: "'Open Sans', sans-serif",
                 maxWidth: 600,
                 mx: "auto",
                 lineHeight: 1.5,
@@ -877,118 +938,156 @@ function BookingHistory() {
             </Paper>
           </Box>
           
-          {/* Filters */}
-          <Paper 
-            elevation={0}
-            sx={{
-              borderRadius: 3,
-              bgcolor: alpha("#fff", 0.6),
-              backdropFilter: "blur(10px)",
-              p: 2,
-              mb: 4,
-              border: `1px solid ${alpha(darkBlueColor, 0.1)}`,
-            }}
-          >
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              spacing={2}
-              alignItems={{ xs: "stretch", sm: "center" }}
-              justifyContent="space-between"
-            >
-              <Typography variant="subtitle2" fontWeight={600} color="text.secondary">
-                {filterBookings(tabStatuses[tab]).length} {tabStatuses[tab].toLowerCase()} {filterBookings(tabStatuses[tab]).length === 1 ? 'rental' : 'rentals'} found
+          {/* Loading State */}
+          {loading ? (
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: 300,
+              py: 8
+            }}>
+              <CircularProgress sx={{ color: primaryColour, mb: 3 }} />
+              <Typography variant="h6" fontWeight={500} color="text.secondary">
+                Loading your bookings...
               </Typography>
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <FormControl 
-                  size="small" 
-                  sx={{ 
-                    minWidth: 140,
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 2,
-                      borderColor: alpha(darkBlueColor, 0.2),
-                    },
-                    "& .MuiInputLabel-root": {
-                      color: alpha(darkBlueColor, 0.7),
-                    }
-                  }}
+            </Box>
+          ) : error ? (
+            <Alert 
+              severity="error" 
+              icon={<ErrorOutline />}
+              sx={{ 
+                mb: 4, 
+                borderRadius: 3,
+                boxShadow: `0 4px 12px ${alpha('#000', 0.05)}`
+              }}
+              action={
+                <Button color="inherit" onClick={fetchBookings}>
+                  Retry
+                </Button>
+              }
+            >
+              <Typography fontWeight={600}>{error}</Typography>
+            </Alert>
+          ) : (
+            <>
+              {/* Filters */}
+              <Paper 
+                elevation={0}
+                sx={{
+                  borderRadius: 3,
+                  bgcolor: alpha("#fff", 0.6),
+                  backdropFilter: "blur(10px)",
+                  p: 2,
+                  mb: 4,
+                  border: `1px solid ${alpha(darkBlueColor, 0.1)}`,
+                }}
+              >
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={2}
+                  alignItems={{ xs: "stretch", sm: "center" }}
+                  justifyContent="space-between"
                 >
-                  <InputLabel>Car Type</InputLabel>
-                  <Select
-                    value={filterType}
-                    label="Car Type"
-                    onChange={(e) => setFilterType(e.target.value)}
-                    aria-label="Filter by car type"
-                  >
-                    {carTypes.map((type) => (
-                      <MenuItem key={type} value={type}>
-                        {type}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <FormControl 
-                  size="small" 
-                  sx={{ 
-                    minWidth: 140,
-                    "& .MuiOutlinedInput-root": {
-                      borderRadius: 2,
-                      borderColor: alpha(darkBlueColor, 0.2),
-                    },
-                    "& .MuiInputLabel-root": {
-                      color: alpha(darkBlueColor, 0.7),
-                    }
-                  }}
-                >
-                  <InputLabel>Sort By</InputLabel>
-                  <Select
-                    value={sortBy}
-                    label="Sort By"
-                    onChange={(e) => setSortBy(e.target.value)}
-                    aria-label="Sort by"
-                  >
-                    <MenuItem value="date-desc">Newest First</MenuItem>
-                    <MenuItem value="date-asc">Oldest First</MenuItem>
-                  </Select>
-                </FormControl>
-              </Stack>
-            </Stack>
-          </Paper>
-          
-          {/* Booking Cards */}
-          <Box
-            role="tabpanel"
-            id={`tabpanel-${tab}`}
-            aria-labelledby={`tab-${tab}`}
-            sx={{ width: "100%", minHeight: 200 }}
-          >
-            <Grid container spacing={3}>
-              {filterBookings(tabStatuses[tab]).length === 0 ? (
-                <Grid item xs={12}>
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      bgcolor: alpha("#fff", 0.8),
-                      borderRadius: 4,
-                      p: 6,
-                      textAlign: "center",
-                      boxShadow: "0 2px 8px rgba(57,0,153,0.05)",
-                      border: `1px dashed ${alpha(darkBlueColor, 0.2)}`,
-                    }}
-                  >
-                    <DirectionsCar sx={{ fontSize: 64, color: alpha(darkBlueColor, 0.2), mb: 2 }} />
-                    <Typography variant="h6" color="text.secondary" fontWeight={500}>
-                      No rentals found in this category
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                      Try changing your filters or check another tab
-                    </Typography>
-                  </Paper>
+                  <Typography variant="subtitle2" fontWeight={600} color="text.secondary">
+                    {filterBookings(tabStatuses[tab]).length} {tabStatuses[tab].toLowerCase()} {filterBookings(tabStatuses[tab]).length === 1 ? 'rental' : 'rentals'} found
+                  </Typography>
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                    <FormControl 
+                      size="small" 
+                      sx={{ 
+                        minWidth: 140,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                          borderColor: alpha(darkBlueColor, 0.2),
+                        },
+                        "& .MuiInputLabel-root": {
+                          color: alpha(darkBlueColor, 0.7),
+                        }
+                      }}
+                    >
+                      <InputLabel>Car Type</InputLabel>
+                      <Select
+                        value={filterType}
+                        label="Car Type"
+                        onChange={(e) => setFilterType(e.target.value)}
+                        aria-label="Filter by car type"
+                      >
+                        {carTypes.map((type) => (
+                          <MenuItem key={type} value={type}>
+                            {type}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <FormControl 
+                      size="small" 
+                      sx={{ 
+                        minWidth: 140,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                          borderColor: alpha(darkBlueColor, 0.2),
+                        },
+                        "& .MuiInputLabel-root": {
+                          color: alpha(darkBlueColor, 0.7),
+                        }
+                      }}
+                    >
+                      <InputLabel>Sort By</InputLabel>
+                      <Select
+                        value={sortBy}
+                        label="Sort By"
+                        onChange={(e) => setSortBy(e.target.value)}
+                        aria-label="Sort by"
+                      >
+                        <MenuItem value="date-desc">Newest First</MenuItem>
+                        <MenuItem value="date-asc">Oldest First</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Stack>
+                </Stack>
+              </Paper>
+              
+              {/* Booking Cards */}
+              <Box
+                role="tabpanel"
+                id={`tabpanel-${tab}`}
+                aria-labelledby={`tab-${tab}`}
+                sx={{ width: "100%", minHeight: 200 }}
+              >
+                <Grid container spacing={3}>
+                  {filterBookings(tabStatuses[tab]).length === 0 ? (
+                    <Grid item xs={12}>
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          bgcolor: alpha("#fff", 0.8),
+                          borderRadius: 4,
+                          p: 6,
+                          textAlign: "center",
+                          boxShadow: "0 2px 8px rgba(57,0,153,0.05)",
+                          border: `1px dashed ${alpha(darkBlueColor, 0.2)}`,
+                        }}
+                      >
+                        <DirectionsCar sx={{ fontSize: 64, color: alpha(darkBlueColor, 0.2), mb: 2 }} />
+                        <Typography variant="h6" color="text.secondary" fontWeight={500}>
+                          No rentals found in this category
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                          Try changing your filters or check another tab
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  ) : (
+                    filterBookings(tabStatuses[tab]).map((booking, index) => 
+                      renderBookingCard(booking, index)
+                    )
+                  )}
                 </Grid>
-              ) : (
-                filterBookings(tabStatuses[tab]).map((booking, index) => renderBookingCard(booking, index))
-              )}
-            </Grid>
-          </Box>
+              </Box>
+            </>
+          )}
         </Container>
       </Box>
       <Footer />

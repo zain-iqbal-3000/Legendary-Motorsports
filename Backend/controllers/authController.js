@@ -9,22 +9,65 @@ const generateToken = (user) => {
 
 // Register User
 exports.registerUser = async (req, res) => {
-  const { firstName, lastName, email, password } = req.body;
+  // Log the request body for debugging
+  console.log('Registration request body:', req.body);
+  
+  const { firstName, lastName, email, password, phoneNumber } = req.body;
 
   try {
+    // Validate required fields manually for clearer errors
+    if (!firstName || !lastName) {
+      return res.status(400).json({ 
+        msg: 'First name and last name are required' 
+      });
+    }
+    
+    if (!email || !password) {
+      return res.status(400).json({ 
+        msg: 'Email and password are required' 
+      });
+    }
+
     let user = await User.findOne({ email });
     if (user) {
       return res.status(400).json({ msg: 'User already exists' });
     }
 
-    user = new User({ firstName, lastName, email, password });
+    // Create the user
+    user = new User({ 
+      firstName, 
+      lastName, 
+      email, 
+      password, 
+      phoneNumber: phoneNumber || '' 
+    });
+    
+    // Save user to database
     await user.save();
 
     const token = generateToken(user);
-    res.status(201).json({ token });
+    
+    // Return both token and user data (excluding password)
+    res.status(201).json({ 
+      token,
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phoneNumber: user.phoneNumber || '',
+        role: user.role
+      }
+    });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    // Improved error reporting for validation errors
+    if (err.name === 'ValidationError') {
+      console.error('Validation error:', err.message);
+      const messages = Object.values(err.errors).map(e => e.message);
+      return res.status(400).json({ msg: messages.join(', ') });
+    }
+    console.error('Server error during registration:', err);
+    res.status(500).json({ msg: 'Server Error', error: err.message });
   }
 };
 

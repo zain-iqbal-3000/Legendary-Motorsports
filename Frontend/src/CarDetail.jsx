@@ -28,17 +28,64 @@ import {
   Send as SendIcon,
 } from '@mui/icons-material';
 import { motion, useAnimation } from 'framer-motion';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 
-const darkBg = "#18122B";
-const accent = "#393053";
-const gold = "#FFD700";
-const purple = "#7B1FA2";
-const cardBg = "#23203A";
-const border = "#FFD70044";
-const textPrimary = "#fff";
-const textSecondary = "#B0B0B0";
+// Mock car data
+const mockCarData = {
+  make: "Lamborghini",
+  model: "Aventador SVJ",
+  year: 2022,
+  description: "The pinnacle of automotive engineering, combining breathtaking performance with cutting-edge technology.",
+  images: [
+    "https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
+  ],
+  specifications: {
+    engine: {
+      type: "V12 Naturally Aspirated",
+      displacement: "6.5L",
+      horsepower: 770,
+      torque: 720,
+      transmission: "7-Speed ISR Automated Manual",
+      drivetrain: "All-Wheel Drive"
+    },
+    performance: {
+      topSpeed: 350,
+      zeroToSixty: 2.8,
+      quarterMile: 10.4,
+      nürburgringTime: 6.8
+    },
+    dimensions: {
+      length: 4943,
+      width: 2098,
+      height: 1136,
+      wheelbase: 2700,
+      curbWeight: 1525
+    }
+  },
+  availability: {
+    isAvailable: true,
+    location: "Los Angeles",
+    rentalPrice: {
+      daily: 2999,
+      weekly: 19999,
+      monthly: 69999
+    }
+  }
+};
+
+// Mock testimonials for this car
+const testimonials = [
+  {
+    id: 1,
+    content: "Driving the Aventador SVJ was pure adrenaline. The acceleration is insane and the car is a showstopper everywhere.",
+    author: { name: "James Wilson", location: "Los Angeles, CA", image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" }
+  },
+  {
+    id: 2,
+    content: "Impeccable service and a stunning car. Legendary Motorsports made my weekend unforgettable.",
+    author: { name: "Sophia Chen", location: "Miami, FL", image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" }
+  }
+];
 
 const AnimatedCard = ({ children }) => (
   <motion.div
@@ -68,51 +115,9 @@ const FeatureChip = ({ icon: Icon, label }) => (
   />
 );
 
-const CommentCard = ({ comment }) => (
-  <Paper
-    elevation={0}
-    sx={{
-      bgcolor: accent,
-      color: textPrimary,
-      borderRadius: 3,
-      p: 3,
-      mb: 3,
-      borderLeft: `5px solid ${gold}`,
-      boxShadow: '0 2px 16px #FFD70022',
-      display: 'flex',
-      alignItems: 'flex-start',
-      gap: 2,
-    }}
-  >
-    <Avatar
-      src={comment.user?.profileImage || ''}
-      alt={comment.user?.firstName || 'User'}
-      sx={{ width: 56, height: 56, border: `2px solid ${gold}` }}
-    />
-    <Box>
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-        <Typography variant="subtitle1" fontWeight={700} color={gold}>
-          {comment.user?.firstName} {comment.user?.lastName}
-        </Typography>
-        <Rating value={comment.rating} readOnly size="small" sx={{ color: gold }} />
-      </Stack>
-      <Typography variant="body1" sx={{ color: textPrimary, mb: 1 }}>
-        {comment.content}
-      </Typography>
-      <Typography variant="caption" sx={{ color: textSecondary }}>
-        {new Date(comment.createdAt).toLocaleDateString()}
-      </Typography>
-    </Box>
-  </Paper>
-);
-
 const CarDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const controls = useAnimation();
-
-  const [car, setCar] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState(0);
 
   // Comments
@@ -130,58 +135,9 @@ const CarDetail = () => {
     controls.start({ opacity: 1, y: 0 });
   }, [controls]);
 
-  useEffect(() => {
-    setLoading(true);
-    axios.get(`/api/cars/${id}`)
-      .then(res => {
-        setCar(res.data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [id]);
-
-  useEffect(() => {
-    setCommentsLoading(true);
-    setCommentsError(null);
-    axios.get(`/api/comments/car/${id}`)
-      .then(res => {
-        setComments(res.data);
-        setCommentsLoading(false);
-      })
-      .catch(() => {
-        setCommentsError("Failed to load comments.");
-        setCommentsLoading(false);
-      });
-  }, [id, addCommentSuccess]);
-
-  const handleAddComment = async (e) => {
-    e.preventDefault();
-    setAddCommentLoading(true);
-    setAddCommentError(null);
-    setAddCommentSuccess(null);
-    try {
-      // You may want to add authentication and user info here
-      await axios.post('/api/comments', {
-        carId: id,
-        rating: newComment.rating,
-        content: newComment.content,
-        // userId, bookingId, etc. if needed
-      });
-      setAddCommentSuccess("Comment submitted for review!");
-      setNewComment({ rating: 5, content: '' });
-    } catch (err) {
-      setAddCommentError("Failed to submit comment.");
-    }
-    setAddCommentLoading(false);
+  const handleBack = () => {
+    navigate('/carinventory');
   };
-
-  if (loading || !car) {
-    return (
-      <Box sx={{ minHeight: '80vh', bgcolor: darkBg, color: textPrimary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography variant="h5" color={gold}>Loading car details...</Typography>
-      </Box>
-    );
-  }
 
   return (
     <Box sx={{
@@ -194,7 +150,7 @@ const CarDetail = () => {
       <Container maxWidth="lg">
         <Button
           startIcon={<ArrowBack />}
-          onClick={() => navigate(-1)}
+          onClick={handleBack}
           sx={{
             mb: 3,
             color: gold,

@@ -31,7 +31,9 @@ import { useAuth } from '../../context/AuthContext';
 
 const Signup = () => {
   const navigate = useNavigate();
-  const { register, loading, error } = useAuth();
+  const { signup } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -104,9 +106,11 @@ const Signup = () => {
     e.preventDefault();
     
     if (!validateForm()) return;
-    
+    setLoading(true);
+    setError(null);
     try {
-      await register({
+      console.log("Attempting to register with data:", formData);
+      await signup({
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
@@ -119,17 +123,28 @@ const Signup = () => {
         severity: 'success'
       });
       
+      // Get intended path or default to home page
+      const intendedPath = sessionStorage.getItem('intendedPath') || '/';
+      sessionStorage.removeItem('intendedPath');
+      
       // Give a moment to see the success message
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate(intendedPath);
       }, 1000);
       
     } catch (err) {
+      setError(
+        err?.response?.data?.message ||
+        err?.message ||
+        'Registration failed. Please try again.'
+      );
       setSnackbar({
         open: true,
-        message: err.response?.data?.msg || 'Registration failed. Please try again.',
+        message: err?.response?.data?.message || 'Registration failed. Please try again.',
         severity: 'error'
       });
+    } finally {
+      setLoading(false);
     }
   };
 
