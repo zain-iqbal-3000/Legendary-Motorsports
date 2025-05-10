@@ -1,6 +1,9 @@
 const express = require('express');
 const connectDB = require('./config/db');
 const carRoute = require('./routes/carRoute');
+const commentRoute = require('./routes/commentRoutes');
+const bookingRoute = require('./routes/bookingRoutes');
+const authRoute = require('./routes/authRoutes');
 const cors = require('cors');
 require('dotenv').config();
 
@@ -20,6 +23,10 @@ app.use(cors(
 app.use(express.json({ extended: false }));
 
 app.use('/api/cars', carRoute);
+app.use('/api/comments', commentRoute); 
+app.use('/api/bookings', bookingRoute);
+app.use('/api/auth', authRoute);
+
 
 const PORT = process.env.PORT || 5000;
 

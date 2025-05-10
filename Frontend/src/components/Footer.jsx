@@ -1,355 +1,234 @@
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import {
   Box,
   Container,
-  Grid,
   Typography,
-  IconButton,
-  List,
-  ListItem,
-  ListItemText,
+  Grid,
+  Stack,
   Link,
+  Divider,
+  IconButton,
 } from '@mui/material';
 import {
   Facebook as FacebookIcon,
   Instagram as InstagramIcon,
   Twitter as TwitterIcon,
-  YouTube as YouTubeIcon
+  YouTube as YouTubeIcon,
 } from '@mui/icons-material';
-import { motion } from 'framer-motion';
 
-const Footer = () => {
-  const navigate = useNavigate();
-
-  // Footer links data
-  const quickLinks = [
-    { name: 'Home', href: '/' },
-    { name: 'Our Fleet', href: '/#cars' },
-    { name: 'About Us', href: '/aboutus' },
-    { name: 'Services', href: '/services' },
-    { name: 'Book Now', href: '/#booking' },
-    { name: 'Testimonials', href: '/#testimonials' },
-    { name: 'Contact', href: '/#contact' }
-  ];
-
-  const serviceLinks = [
-    { name: 'Hypercar Rentals', href: '#' },
-    { name: 'Chauffeur Services', href: '#' },
-    { name: 'Track Day Experiences', href: '#' },
-    { name: 'Custom Road Trips', href: '#' },
-    { name: 'Special Event Rentals', href: '#' },
-    { name: 'Corporate Packages', href: '#' }
-  ];
-
-  const legalLinks = [
-    { name: 'Terms & Conditions', href: '#' },
-    { name: 'Privacy Policy', href: '#' },
-    { name: 'Rental Agreement', href: '#' },
-    { name: 'Insurance Policy', href: '#' },
-    { name: 'Cancellation Policy', href: '#' },
-    { name: 'FAQ', href: '#' }
-  ];
-
-  const footerContainerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.1
-      }
-    }
-  };
-
-  const footerItemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { 
-      y: 0, 
-      opacity: 1,
-      transition: { duration: 0.5, ease: "easeOut" }
-    }
-  };
-
-  // Function to handle navigation
-  const navigateTo = (path) => {
-    if (path.startsWith('/#')) {
-      const id = path.substring(2);
-      navigate('/');
-      setTimeout(() => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 100);
-    } else {
-      navigate(path);
-    }
-  };
-
+const Footer = ({ primaryColour = '#ffd633' }) => {
   return (
-    <Box
-      component="footer"
-      sx={{
-        bgcolor: '#212121',
-        pt: { xs: 8, md: 10 },
-        pb: 4
+    <Box 
+      component="footer" 
+      sx={{ 
+        bgcolor: '#040430', 
+        color: 'white', 
+        pt: 8, 
+        pb: 4,
+        borderTop: `1px solid ${primaryColour}40`
       }}
     >
-      <Container>
-        <motion.div
-          variants={footerContainerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
-        >
-          <Grid container spacing={4} sx={{ mb: 6 }}>
-            {/* Company Information */}
-            <Grid item xs={12} sm={6} md={3}>
-              <motion.div variants={footerItemVariants}>
-                <Typography 
-                  variant="h4" 
-                  component={motion.div}
-                  whileHover={{ scale: 1.05 }}
-                  sx={{ 
-                    fontWeight: 800, 
-                    letterSpacing: 1,
-                    color: 'primary.main',
-                    mb: 2,
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => navigateTo('/')}
-                >
-                  LEGENDARY MOTORSPORTS
-                </Typography>
-                <Typography variant="body2" sx={{ mb: 3, color: 'text.secondary' }}>
-                  Experience the pinnacle of automotive engineering with our exclusive hypercar rental service, 
-                  designed for those who demand nothing less than extraordinary.
-                </Typography>
-                <Box sx={{ display: 'flex', mt: 2 }}>
-                  <IconButton 
-                    component={motion.button}
-                    whileHover={{ y: -5, color: '#FFBD00' }}
-                    transition={{ duration: 0.2 }}
-                    sx={{ 
-                      bgcolor: 'rgba(255, 255, 255, 0.1)', 
-                      mr: 1,
-                      '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.15)' }
-                    }}
-                  >
-                    <FacebookIcon />
-                  </IconButton>
-                  <IconButton 
-                    component={motion.button}
-                    whileHover={{ y: -5, color: '#FFBD00' }}
-                    transition={{ duration: 0.2 }}
-                    sx={{ 
-                      bgcolor: 'rgba(255, 255, 255, 0.1)', 
-                      mr: 1,
-                      '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.15)' }
-                    }}
-                  >
-                    <InstagramIcon />
-                  </IconButton>
-                  <IconButton 
-                    component={motion.button}
-                    whileHover={{ y: -5, color: '#FFBD00' }}
-                    transition={{ duration: 0.2 }}
-                    sx={{ 
-                      bgcolor: 'rgba(255, 255, 255, 0.1)', 
-                      mr: 1,
-                      '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.15)' }
-                    }}
-                  >
-                    <TwitterIcon />
-                  </IconButton>
-                  <IconButton 
-                    component={motion.button}
-                    whileHover={{ y: -5, color: '#FFBD00' }}
-                    transition={{ duration: 0.2 }}
-                    sx={{ 
-                      bgcolor: 'rgba(255, 255, 255, 0.1)',
-                      '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.15)' }
-                    }}
-                  >
-                    <YouTubeIcon />
-                  </IconButton>
-                </Box>
-              </motion.div>
-            </Grid>
-            
-            {/* Quick Links */}
-            <Grid item xs={12} sm={6} md={3}>
-              <motion.div variants={footerItemVariants}>
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    mb: 3, 
-                    position: 'relative',
-                    '&::after': {
-                      content: '""',
-                      position: 'absolute',
-                      bottom: -10,
-                      left: 0,
-                      width: 50,
-                      height: 3,
-                      bgcolor: 'primary.main'
-                    }
-                  }}
-                >
-                  Quick Links
-                </Typography>
-                <List disablePadding>
-                  {quickLinks.map((link) => (
-                    <ListItem 
-                      key={link.name} 
-                      disablePadding 
-                      sx={{ mb: 1 }}
-                      component={motion.li}
-                      whileHover={{ x: 10 }}
-                    >
-                      <ListItemText>
-                        <Link 
-                          component="button"
-                          onClick={() => navigateTo(link.href)}
-                          sx={{ 
-                            color: 'text.secondary',
-                            textDecoration: 'none',
-                            transition: 'all 0.3s ease',
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            font: 'inherit',
-                            padding: 0,
-                            '&:hover': {
-                              color: 'primary.main'
-                            }
-                          }}
-                        >
-                          {link.name}
-                        </Link>
-                      </ListItemText>
-                    </ListItem>
-                  ))}
-                </List>
-              </motion.div>
-            </Grid>
-            
-            {/* Our Services */}
-            <Grid item xs={12} sm={6} md={3}>
-              <motion.div variants={footerItemVariants}>
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    mb: 3, 
-                    position: 'relative',
-                    '&::after': {
-                      content: '""',
-                      position: 'absolute',
-                      bottom: -10,
-                      left: 0,
-                      width: 50,
-                      height: 3,
-                      bgcolor: 'primary.main'
-                    }
-                  }}
-                >
-                  Our Services
-                </Typography>
-                <List disablePadding>
-                  {serviceLinks.map((link) => (
-                    <ListItem 
-                      key={link.name} 
-                      disablePadding 
-                      sx={{ mb: 1 }}
-                      component={motion.li}
-                      whileHover={{ x: 10 }}
-                    >
-                      <ListItemText>
-                        <Link 
-                          href={link.href}
-                          sx={{ 
-                            color: 'text.secondary',
-                            textDecoration: 'none',
-                            transition: 'all 0.3s ease',
-                            '&:hover': {
-                              color: 'primary.main'
-                            }
-                          }}
-                        >
-                          {link.name}
-                        </Link>
-                      </ListItemText>
-                    </ListItem>
-                  ))}
-                </List>
-              </motion.div>
-            </Grid>
-            
-            {/* Legal */}
-            <Grid item xs={12} sm={6} md={3}>
-              <motion.div variants={footerItemVariants}>
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    mb: 3, 
-                    position: 'relative',
-                    '&::after': {
-                      content: '""',
-                      position: 'absolute',
-                      bottom: -10,
-                      left: 0,
-                      width: 50,
-                      height: 3,
-                      bgcolor: 'primary.main'
-                    }
-                  }}
-                >
-                  Legal
-                </Typography>
-                <List disablePadding>
-                  {legalLinks.map((link) => (
-                    <ListItem 
-                      key={link.name} 
-                      disablePadding 
-                      sx={{ mb: 1 }}
-                      component={motion.li}
-                      whileHover={{ x: 10 }}
-                    >
-                      <ListItemText>
-                        <Link 
-                          href={link.href}
-                          sx={{ 
-                            color: 'text.secondary',
-                            textDecoration: 'none',
-                            transition: 'all 0.3s ease',
-                            '&:hover': {
-                              color: 'primary.main'
-                            }
-                          }}
-                        >
-                          {link.name}
-                        </Link>
-                      </ListItemText>
-                    </ListItem>
-                  ))}
-                </List>
-              </motion.div>
-            </Grid>
+      <Container maxWidth="lg">
+        <Grid container spacing={5}>
+          <Grid item xs={12} md={4}>
+            <Typography variant="h5" fontWeight={700} mb={3} color="white">
+              Legendary Motorsports
+            </Typography>
+            <Typography variant="body2" mb={3} color="text.secondary">
+              The premier luxury car rental service offering the most exclusive hypercars worldwide. Experience automotive perfection with our curated fleet of the world's finest vehicles.
+            </Typography>
+            <Stack direction="row" spacing={2}>
+              <IconButton 
+                aria-label="Facebook" 
+                href="#" 
+                sx={{ 
+                  color: 'white',
+                  '&:hover': { color: primaryColour } 
+                }}
+              >
+                <FacebookIcon />
+              </IconButton>
+              <IconButton 
+                aria-label="Instagram" 
+                href="#" 
+                sx={{ 
+                  color: 'white',
+                  '&:hover': { color: primaryColour } 
+                }}
+              >
+                <InstagramIcon />
+              </IconButton>
+              <IconButton 
+                aria-label="Twitter" 
+                href="#" 
+                sx={{ 
+                  color: 'white',
+                  '&:hover': { color: primaryColour } 
+                }}
+              >
+                <TwitterIcon />
+              </IconButton>
+              <IconButton 
+                aria-label="YouTube" 
+                href="#" 
+                sx={{ 
+                  color: 'white',
+                  '&:hover': { color: primaryColour } 
+                }}
+              >
+                <YouTubeIcon />
+              </IconButton>
+            </Stack>
           </Grid>
-        </motion.div>
+          
+          <Grid item xs={6} sm={3} md={2}>
+            <Typography variant="h6" fontWeight={700} mb={3} color="white">
+              Quick Links
+            </Typography>
+            <Stack spacing={2}>
+              {['Home', 'Our Fleet', 'About Us', 'Book Now', 'Contact'].map((link) => (
+                <Link
+                  key={link}
+                  href={`#${link.toLowerCase().replace(/\s/g, '-')}`}
+                  underline="hover"
+                  color="text.secondary"
+                  sx={{ 
+                    cursor: 'pointer',
+                    '&:hover': { color: primaryColour } 
+                  }}
+                >
+                  {link}
+                </Link>
+              ))}
+            </Stack>
+          </Grid>
+          
+          <Grid item xs={6} sm={3} md={2}>
+            <Typography variant="h6" fontWeight={700} mb={3} color="white">
+              Services
+            </Typography>
+            <Stack spacing={2}>
+              {[
+                'Hypercar Rentals',
+                'Chauffeur Services',
+                'Track Experiences',
+                'Custom Road Trips',
+                'Corporate Events',
+              ].map((service) => (
+                <Link 
+                  key={service} 
+                  href="#" 
+                  underline="hover" 
+                  color="text.secondary" 
+                  sx={{ 
+                    cursor: 'pointer',
+                    '&:hover': { color: primaryColour } 
+                  }}
+                >
+                  {service}
+                </Link>
+              ))}
+            </Stack>
+          </Grid>
+          
+          <Grid item xs={6} sm={3} md={2}>
+            <Typography variant="h6" fontWeight={700} mb={3} color="white">
+              Legal
+            </Typography>
+            <Stack spacing={2}>
+              {[
+                'Terms & Conditions',
+                'Privacy Policy',
+                'Rental Agreement',
+                'Insurance Policy',
+                'FAQs',
+              ].map((item) => (
+                <Link 
+                  key={item} 
+                  href="#" 
+                  underline="hover" 
+                  color="text.secondary" 
+                  sx={{ 
+                    cursor: 'pointer',
+                    '&:hover': { color: primaryColour } 
+                  }}
+                >
+                  {item}
+                </Link>
+              ))}
+            </Stack>
+          </Grid>
+          
+          <Grid item xs={6} sm={3} md={2}>
+            <Typography variant="h6" fontWeight={700} mb={3} color="white">
+              Contact
+            </Typography>
+            <Stack spacing={2}>
+              <Typography variant="body2" color="text.secondary">
+                123 Luxury Lane
+                <br />
+                Beverly Hills, CA 90210
+              </Typography>
+              <Link 
+                href="mailto:info@legendarymotorsports.com" 
+                underline="hover" 
+                color="text.secondary"
+                sx={{ '&:hover': { color: primaryColour } }}
+              >
+                info@legendarymotorsports.com
+              </Link>
+              <Link 
+                href="tel:+18005552277" 
+                underline="hover" 
+                color="text.secondary"
+                sx={{ '&:hover': { color: primaryColour } }}
+              >
+                +1 (800) 555-CARS
+              </Link>
+            </Stack>
+          </Grid>
+        </Grid>
         
-        {/* Copyright Section */}
-        <Box 
-          sx={{ 
-            borderTop: 1, 
-            borderColor: 'rgba(255, 255, 255, 0.1)', 
-            pt: 3,
-            textAlign: 'center'
-          }}
-        >
-          <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.9rem' }}>
+        <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)', my: 4 }} />
+        
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between',
+          alignItems: { xs: 'center', sm: 'flex-start' },
+          textAlign: { xs: 'center', sm: 'left' }
+        }}>
+          <Typography variant="body2" color="text.secondary">
             &copy; {new Date().getFullYear()} Legendary Motorsports. All rights reserved.
           </Typography>
+          <Box sx={{ mt: { xs: 2, sm: 0 } }}>
+            <Stack direction="row" spacing={3}>
+              <Link 
+                href="#" 
+                underline="hover" 
+                color="text.secondary"
+                sx={{ fontSize: '0.875rem', '&:hover': { color: primaryColour } }}
+              >
+                Privacy Policy
+              </Link>
+              <Link 
+                href="#" 
+                underline="hover" 
+                color="text.secondary"
+                sx={{ fontSize: '0.875rem', '&:hover': { color: primaryColour } }}
+              >
+                Terms of Service
+              </Link>
+              <Link 
+                href="#" 
+                underline="hover" 
+                color="text.secondary"
+                sx={{ fontSize: '0.875rem', '&:hover': { color: primaryColour } }}
+              >
+                Sitemap
+              </Link>
+            </Stack>
+          </Box>
         </Box>
       </Container>
     </Box>

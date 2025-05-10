@@ -13,6 +13,10 @@ import {
   CardContent,
   Avatar,
   Divider,
+  TextField,
+  Rating,
+  Alert,
+  Paper,
 } from '@mui/material';
 import {
   ArrowBack,
@@ -21,66 +25,20 @@ import {
   FlashOn,
   TrackChanges,
   LocationOn,
+  Send as SendIcon,
 } from '@mui/icons-material';
 import { motion, useAnimation } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
-// Mock car data
-const mockCarData = {
-  make: "Lamborghini",
-  model: "Aventador SVJ",
-  year: 2022,
-  description: "The pinnacle of automotive engineering, combining breathtaking performance with cutting-edge technology.",
-  images: [
-    "https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
-  ],
-  specifications: {
-    engine: {
-      type: "V12 Naturally Aspirated",
-      displacement: "6.5L",
-      horsepower: 770,
-      torque: 720,
-      transmission: "7-Speed ISR Automated Manual",
-      drivetrain: "All-Wheel Drive"
-    },
-    performance: {
-      topSpeed: 350,
-      zeroToSixty: 2.8,
-      quarterMile: 10.4,
-      nürburgringTime: 6.8
-    },
-    dimensions: {
-      length: 4943,
-      width: 2098,
-      height: 1136,
-      wheelbase: 2700,
-      curbWeight: 1525
-    }
-  },
-  availability: {
-    isAvailable: true,
-    location: "Los Angeles",
-    rentalPrice: {
-      daily: 2999,
-      weekly: 19999,
-      monthly: 69999
-    }
-  }
-};
-
-// Mock testimonials for this car
-const testimonials = [
-  {
-    id: 1,
-    content: "Driving the Aventador SVJ was pure adrenaline. The acceleration is insane and the car is a showstopper everywhere.",
-    author: { name: "James Wilson", location: "Los Angeles, CA", image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" }
-  },
-  {
-    id: 2,
-    content: "Impeccable service and a stunning car. Legendary Motorsports made my weekend unforgettable.",
-    author: { name: "Sophia Chen", location: "Miami, FL", image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" }
-  }
-];
+const darkBg = "#18122B";
+const accent = "#393053";
+const gold = "#FFD700";
+const purple = "#7B1FA2";
+const cardBg = "#23203A";
+const border = "#FFD70044";
+const textPrimary = "#fff";
+const textSecondary = "#B0B0B0";
 
 const AnimatedCard = ({ children }) => (
   <motion.div
@@ -94,48 +52,157 @@ const AnimatedCard = ({ children }) => (
 
 const FeatureChip = ({ icon: Icon, label }) => (
   <Chip
-    icon={<Icon sx={{ color: '#390099' }} />}
+    icon={<Icon sx={{ color: gold }} />}
     label={label}
     sx={{
       m: 0.5,
       px: 2,
       py: 1,
       borderRadius: 2,
-      bgcolor: '#ffd63322',
-      color: '#390099',
+      bgcolor: `${gold}22`,
+      color: gold,
       fontWeight: 700,
       fontSize: '1rem',
-      border: '2px solid #ffd633'
+      border: `2px solid ${gold}`,
     }}
   />
 );
 
-const CarDetail = ({ onBack }) => {
-  const [tabValue, setTabValue] = useState(0);
+const CommentCard = ({ comment }) => (
+  <Paper
+    elevation={0}
+    sx={{
+      bgcolor: accent,
+      color: textPrimary,
+      borderRadius: 3,
+      p: 3,
+      mb: 3,
+      borderLeft: `5px solid ${gold}`,
+      boxShadow: '0 2px 16px #FFD70022',
+      display: 'flex',
+      alignItems: 'flex-start',
+      gap: 2,
+    }}
+  >
+    <Avatar
+      src={comment.user?.profileImage || ''}
+      alt={comment.user?.firstName || 'User'}
+      sx={{ width: 56, height: 56, border: `2px solid ${gold}` }}
+    />
+    <Box>
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+        <Typography variant="subtitle1" fontWeight={700} color={gold}>
+          {comment.user?.firstName} {comment.user?.lastName}
+        </Typography>
+        <Rating value={comment.rating} readOnly size="small" sx={{ color: gold }} />
+      </Stack>
+      <Typography variant="body1" sx={{ color: textPrimary, mb: 1 }}>
+        {comment.content}
+      </Typography>
+      <Typography variant="caption" sx={{ color: textSecondary }}>
+        {new Date(comment.createdAt).toLocaleDateString()}
+      </Typography>
+    </Box>
+  </Paper>
+);
+
+const CarDetail = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const controls = useAnimation();
-  const car = mockCarData;
+
+  const [car, setCar] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [tabValue, setTabValue] = useState(0);
+
+  // Comments
+  const [comments, setComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(true);
+  const [commentsError, setCommentsError] = useState(null);
+
+  // Add comment
+  const [newComment, setNewComment] = useState({ rating: 5, content: '' });
+  const [addCommentLoading, setAddCommentLoading] = useState(false);
+  const [addCommentError, setAddCommentError] = useState(null);
+  const [addCommentSuccess, setAddCommentSuccess] = useState(null);
 
   useEffect(() => {
     controls.start({ opacity: 1, y: 0 });
   }, [controls]);
 
+  useEffect(() => {
+    setLoading(true);
+    axios.get(`/api/cars/${id}`)
+      .then(res => {
+        setCar(res.data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [id]);
+
+  useEffect(() => {
+    setCommentsLoading(true);
+    setCommentsError(null);
+    axios.get(`/api/comments/car/${id}`)
+      .then(res => {
+        setComments(res.data);
+        setCommentsLoading(false);
+      })
+      .catch(() => {
+        setCommentsError("Failed to load comments.");
+        setCommentsLoading(false);
+      });
+  }, [id, addCommentSuccess]);
+
+  const handleAddComment = async (e) => {
+    e.preventDefault();
+    setAddCommentLoading(true);
+    setAddCommentError(null);
+    setAddCommentSuccess(null);
+    try {
+      // You may want to add authentication and user info here
+      await axios.post('/api/comments', {
+        carId: id,
+        rating: newComment.rating,
+        content: newComment.content,
+        // userId, bookingId, etc. if needed
+      });
+      setAddCommentSuccess("Comment submitted for review!");
+      setNewComment({ rating: 5, content: '' });
+    } catch (err) {
+      setAddCommentError("Failed to submit comment.");
+    }
+    setAddCommentLoading(false);
+  };
+
+  if (loading || !car) {
+    return (
+      <Box sx={{ minHeight: '80vh', bgcolor: darkBg, color: textPrimary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography variant="h5" color={gold}>Loading car details...</Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{
       minHeight: '100vh',
-      bgcolor: '#390099',
-      color: 'white',
+      bgcolor: darkBg,
+      color: textPrimary,
       pt: 4,
       pb: 8,
     }}>
       <Container maxWidth="lg">
         <Button
           startIcon={<ArrowBack />}
-          onClick={onBack}
+          onClick={() => navigate(-1)}
           sx={{
             mb: 3,
-            color: '#ffd633',
+            color: gold,
             fontWeight: 700,
-            '&:hover': { bgcolor: '#ffd63322' }
+            bgcolor: `${gold}11`,
+            borderRadius: 2,
+            px: 3,
+            '&:hover': { bgcolor: `${gold}33` }
           }}
         >
           Back to Fleet
@@ -143,7 +210,7 @@ const CarDetail = ({ onBack }) => {
 
         {/* Hero Section */}
         <Grid container spacing={4} alignItems="center" sx={{ mb: 6 }}>
-          <Grid size={{xs:12, md:6}}>
+          <Grid item xs={12} md={6}>
             <motion.div
               initial={{ opacity: 0, x: -40 }}
               animate={controls}
@@ -152,7 +219,7 @@ const CarDetail = ({ onBack }) => {
               <Typography variant="h2" sx={{
                 fontWeight: 900,
                 fontSize: { xs: '2.2rem', md: '3.2rem' },
-                background: 'linear-gradient(90deg, #ffd633 30%, #fff7b2 100%)',
+                background: `linear-gradient(90deg, ${gold} 30%, #fff7b2 100%)`,
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 mb: 2,
@@ -161,38 +228,39 @@ const CarDetail = ({ onBack }) => {
                 {car.make} {car.model}
               </Typography>
               <Typography variant="h6" sx={{
-                color: '#ffd633',
+                color: gold,
                 fontWeight: 600,
                 mb: 2
               }}>
-                {car.year} &bull; {car.availability.location}
+                {car.year} &bull; {car.availability?.location}
               </Typography>
               <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
-                <FeatureChip icon={FlashOn} label={`${car.specifications.engine.horsepower} HP`} />
-                <FeatureChip icon={Speed} label={`${car.specifications.performance.topSpeed} km/h`} />
-                <FeatureChip icon={TrackChanges} label={`0-100km/h ${car.specifications.performance.zeroToSixty}s`} />
+                <FeatureChip icon={FlashOn} label={`${car.specifications?.engine?.horsepower || 'N/A'} HP`} />
+                <FeatureChip icon={Speed} label={`${car.specifications?.performance?.topSpeed || 'N/A'} km/h`} />
+                <FeatureChip icon={TrackChanges} label={`0-100km/h ${car.specifications?.performance?.zeroToSixty || 'N/A'}s`} />
               </Stack>
               <Typography variant="body1" sx={{
                 fontSize: '1.15rem',
                 lineHeight: 1.7,
                 opacity: 0.92,
-                mb: 3
+                mb: 3,
+                color: textSecondary
               }}>
                 {car.description}
               </Typography>
               <Chip
-                icon={<LocationOn sx={{ color: '#390099' }} />}
-                label={`Available in ${car.availability.location}`}
+                icon={<LocationOn sx={{ color: purple }} />}
+                label={`Available in ${car.availability?.location || 'N/A'}`}
                 sx={{
-                  bgcolor: '#ffd633',
-                  color: '#390099',
+                  bgcolor: gold,
+                  color: purple,
                   fontWeight: 600,
                   fontSize: '0.95rem'
                 }}
               />
             </motion.div>
           </Grid>
-          <Grid item size={{xs:12, md:6}}>
+          <Grid item xs={12} md={6}>
             <motion.div
               initial={{ opacity: 0, scale: 0.93 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -201,10 +269,10 @@ const CarDetail = ({ onBack }) => {
               <Card
                 sx={{
                   borderRadius: 5,
-                  boxShadow: '0 12px 40px #ffd63344',
-                  border: '3px solid #ffd633',
+                  boxShadow: `0 12px 40px ${gold}44`,
+                  border: `3px solid ${gold}`,
                   overflow: 'hidden',
-                  bgcolor: '#fff',
+                  bgcolor: cardBg,
                   p: 0,
                   mb: 1
                 }}
@@ -212,7 +280,7 @@ const CarDetail = ({ onBack }) => {
                 <Box
                   sx={{
                     height: { xs: 220, md: 340 },
-                    backgroundImage: `url(${car.images[0]})`,
+                    backgroundImage: `url(${car.images?.[0] || 'https://via.placeholder.com/600x400'})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center'
                   }}
@@ -224,14 +292,14 @@ const CarDetail = ({ onBack }) => {
 
         {/* Specifications and Pricing */}
         <Grid container spacing={4}>
-          <Grid size={{xs:12, md:8}}>
+          <Grid item xs={12} md={8}>
             <AnimatedCard>
               <Card
                 sx={{
-                  bgcolor: '#2a005f',
+                  bgcolor: accent,
                   borderRadius: 4,
-                  boxShadow: '0 4px 24px #00000033',
-                  border: '2px solid #ffd63344',
+                  boxShadow: `0 4px 24px ${gold}22`,
+                  border: `2px solid ${border}`,
                   mb: 3
                 }}
               >
@@ -241,31 +309,31 @@ const CarDetail = ({ onBack }) => {
                     onChange={(e, newVal) => setTabValue(newVal)}
                     sx={{
                       mb: 3,
-                      '& .MuiTabs-indicator': { bgcolor: '#ffd633' },
-                      '& .MuiTab-root': { color: '#ffd63399', fontWeight: 700, fontSize: '1.1rem' },
-                      '& .Mui-selected': { color: '#ffd633' }
+                      '& .MuiTabs-indicator': { bgcolor: gold },
+                      '& .MuiTab-root': { color: `${gold}99`, fontWeight: 700, fontSize: '1.1rem' },
+                      '& .Mui-selected': { color: gold }
                     }}
                   >
                     <Tab label="Engine" />
                     <Tab label="Performance" />
                     <Tab label="Dimensions" />
                   </Tabs>
-                  <Divider sx={{ mb: 2, borderColor: '#ffd63333' }} />
+                  <Divider sx={{ mb: 2, borderColor: border }} />
                   {tabValue === 0 && (
                     <Grid container spacing={2}>
-                      {Object.entries(car.specifications.engine).map(([key, value]) => (
-                        <Grid size={{xs:12, sm:6}} key={key}>
+                      {Object.entries(car.specifications?.engine || {}).map(([key, value]) => (
+                        <Grid item xs={12} sm={6} key={key}>
                           <Box sx={{
                             p: 2,
                             borderRadius: 2,
-                            bgcolor: '#ffd63311',
-                            border: '1.5px solid #ffd63333',
+                            bgcolor: `${gold}11`,
+                            border: `1.5px solid ${border}`,
                             mb: 1
                           }}>
-                            <Typography variant="overline" sx={{ color: '#ffd633cc', fontWeight: 700 }}>
+                            <Typography variant="overline" sx={{ color: `${gold}cc`, fontWeight: 700 }}>
                               {key.replace(/([A-Z])/g, ' $1')}
                             </Typography>
-                            <Typography variant="h6" sx={{ fontWeight: 600, color: '#fff' }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600, color: textPrimary }}>
                               {value}
                             </Typography>
                           </Box>
@@ -275,19 +343,19 @@ const CarDetail = ({ onBack }) => {
                   )}
                   {tabValue === 1 && (
                     <Grid container spacing={2}>
-                      {Object.entries(car.specifications.performance).map(([key, value]) => (
-                        <Grid size={{xs:12, sm:6}} key={key}>
+                      {Object.entries(car.specifications?.performance || {}).map(([key, value]) => (
+                        <Grid item xs={12} sm={6} key={key}>
                           <Box sx={{
                             p: 2,
                             borderRadius: 2,
-                            bgcolor: '#ffd63311',
-                            border: '1.5px solid #ffd63333',
+                            bgcolor: `${gold}11`,
+                            border: `1.5px solid ${border}`,
                             mb: 1
                           }}>
-                            <Typography variant="overline" sx={{ color: '#ffd633cc', fontWeight: 700 }}>
+                            <Typography variant="overline" sx={{ color: `${gold}cc`, fontWeight: 700 }}>
                               {key.replace(/([A-Z])/g, ' $1')}
                             </Typography>
-                            <Typography variant="h6" sx={{ fontWeight: 600, color: '#fff' }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600, color: textPrimary }}>
                               {value}
                             </Typography>
                           </Box>
@@ -297,19 +365,19 @@ const CarDetail = ({ onBack }) => {
                   )}
                   {tabValue === 2 && (
                     <Grid container spacing={2}>
-                      {Object.entries(car.specifications.dimensions).map(([key, value]) => (
-                        <Grid size={{xs:12, sm:6}} key={key}>
+                      {Object.entries(car.specifications?.dimensions || {}).map(([key, value]) => (
+                        <Grid item xs={12} sm={6} key={key}>
                           <Box sx={{
                             p: 2,
                             borderRadius: 2,
-                            bgcolor: '#ffd63311',
-                            border: '1.5px solid #ffd63333',
+                            bgcolor: `${gold}11`,
+                            border: `1.5px solid ${border}`,
                             mb: 1
                           }}>
-                            <Typography variant="overline" sx={{ color: '#ffd633cc', fontWeight: 700 }}>
+                            <Typography variant="overline" sx={{ color: `${gold}cc`, fontWeight: 700 }}>
                               {key.replace(/([A-Z])/g, ' $1')}
                             </Typography>
-                            <Typography variant="h6" sx={{ fontWeight: 600, color: '#fff' }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600, color: textPrimary }}>
                               {value}
                             </Typography>
                           </Box>
@@ -321,15 +389,15 @@ const CarDetail = ({ onBack }) => {
               </Card>
             </AnimatedCard>
           </Grid>
-          <Grid size={{xs:12, md:4}}>
+          <Grid item xs={12} md={4}>
             <AnimatedCard>
               <Card
                 sx={{
-                  bgcolor: '#ffd633',
-                  color: '#390099',
+                  bgcolor: gold,
+                  color: purple,
                   borderRadius: 4,
-                  boxShadow: '0 2px 24px #ffd63355',
-                  border: '2px solid #39009933',
+                  boxShadow: `0 2px 24px ${gold}55`,
+                  border: `2px solid ${purple}33`,
                   mb: 3
                 }}
               >
@@ -341,10 +409,10 @@ const CarDetail = ({ onBack }) => {
                     alignItems: 'center',
                     gap: 1
                   }}>
-                    <AttachMoney sx={{ color: '#390099' }} /> Rental Rates
+                    <AttachMoney sx={{ color: purple }} /> Rental Rates
                   </Typography>
                   <Stack spacing={2} sx={{ mb: 3 }}>
-                    {Object.entries(car.availability.rentalPrice).map(([period, price]) => (
+                    {Object.entries(car.availability?.rentalPrice || {}).map(([period, price]) => (
                       <Box key={period} sx={{
                         display: 'flex',
                         justifyContent: 'space-between',
@@ -352,36 +420,35 @@ const CarDetail = ({ onBack }) => {
                         p: 1.5,
                         borderRadius: 2,
                         bgcolor: '#fffde4',
-                        border: '1px solid #39009922'
+                        border: `1px solid ${purple}22`
                       }}>
-                        <Typography variant="body1" sx={{ textTransform: 'capitalize', fontWeight: 700 }}>
+                        <Typography variant="body1" sx={{ textTransform: 'capitalize', fontWeight: 700, color: purple }}>
                           {period}
                         </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 900 }}>
-                          ${price.toLocaleString()}
+                        <Typography variant="h6" sx={{ fontWeight: 900, color: purple }}>
+                          ${price?.toLocaleString()}
                         </Typography>
                       </Box>
                     ))}
                   </Stack>
                   <Button
-                    component={Link}
-                    to={`/booking/${car.id}`}
                     fullWidth
                     variant="contained"
                     size="large"
                     sx={{
                       py: 1.5,
                       borderRadius: 2,
-                      bgcolor: '#390099',
-                      color: '#ffd633',
+                      bgcolor: purple,
+                      color: gold,
                       fontWeight: 800,
                       fontSize: '1.1rem',
                       '&:hover': {
-                        bgcolor: '#2a005f'
+                        bgcolor: '#4B006E'
                       },
-                      boxShadow: '0 4px 16px #39009922',
+                      boxShadow: `0 4px 16px ${purple}22`,
                       transition: 'all 0.2s'
                     }}
+                    onClick={() => navigate(`/booking/${car._id}`)}
                   >
                     Book Now
                   </Button>
@@ -391,56 +458,91 @@ const CarDetail = ({ onBack }) => {
           </Grid>
         </Grid>
 
-        {/* Testimonials */}
-        <Box sx={{ maxWidth: 800, mx: 'auto', mt: 8 }}>
+        {/* Comments Section */}
+        <Box sx={{ maxWidth: 900, mx: 'auto', mt: 10 }}>
           <Typography variant="h4" sx={{
             fontWeight: 800,
             mb: 3,
-            color: '#ffd633',
+            color: gold,
             letterSpacing: 1
           }}>
-            What Our Customers Say
+            Customer Reviews
           </Typography>
-          <Stack spacing={3}>
-            {testimonials.map((review) => (
-              <motion.div
-                key={review.id}
-                initial={{ opacity: 0, x: 40 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
+          {commentsLoading && (
+            <Typography color={gold} sx={{ mb: 2 }}>Loading comments...</Typography>
+          )}
+          {commentsError && (
+            <Alert severity="error" sx={{ mb: 2 }}>{commentsError}</Alert>
+          )}
+          {!commentsLoading && comments.length === 0 && (
+            <Typography color={textSecondary} sx={{ mb: 2 }}>No reviews yet. Be the first to review this car!</Typography>
+          )}
+          {comments.map((comment) => (
+            <CommentCard key={comment._id} comment={comment} />
+          ))}
+
+          {/* Add Comment */}
+          <Box
+            component="form"
+            onSubmit={handleAddComment}
+            sx={{
+              mt: 6,
+              bgcolor: accent,
+              borderRadius: 3,
+              p: 4,
+              boxShadow: `0 2px 16px ${gold}22`,
+              border: `2px solid ${gold}33`
+            }}
+          >
+            <Typography variant="h6" fontWeight={700} color={gold} mb={2}>
+              Add Your Review
+            </Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} alignItems="center" mb={2}>
+              <Rating
+                name="rating"
+                value={newComment.rating}
+                onChange={(_, value) => setNewComment((prev) => ({ ...prev, rating: value }))}
+                size="large"
+                sx={{ color: gold }}
+              />
+              <TextField
+                label="Your review"
+                variant="filled"
+                fullWidth
+                multiline
+                minRows={2}
+                value={newComment.content}
+                onChange={e => setNewComment((prev) => ({ ...prev, content: e.target.value }))}
+                sx={{
+                  bgcolor: cardBg,
+                  borderRadius: 2,
+                  input: { color: textPrimary },
+                  label: { color: gold },
+                  '& .MuiFilledInput-root': { bgcolor: cardBg, color: textPrimary }
+                }}
+                required
+              />
+              <Button
+                type="submit"
+                variant="contained"
+                endIcon={<SendIcon />}
+                disabled={addCommentLoading || !newComment.content}
+                sx={{
+                  bgcolor: gold,
+                  color: purple,
+                  fontWeight: 700,
+                  px: 4,
+                  py: 1.5,
+                  borderRadius: 2,
+                  '&:hover': { bgcolor: '#ffe066' }
+                }}
               >
-                <Card sx={{
-                  bgcolor: '#fff',
-                  color: '#390099',
-                  borderRadius: 3,
-                  boxShadow: '0 2px 12px #ffd63333',
-                  borderLeft: '6px solid #ffd633',
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 2,
-                  p: 2
-                }}>
-                  <Avatar
-                    src={review.author.image}
-                    alt={review.author.name}
-                    sx={{ width: 56, height: 56, border: '2px solid #ffd633' }}
-                  />
-                  <Box>
-                    <Typography variant="body1" sx={{ fontStyle: 'italic', mb: 1, color: '#390099' }}>
-                      "{review.content}"
-                    </Typography>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                      {review.author.name}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#390099' }}>
-                      {review.author.location}
-                    </Typography>
-                  </Box>
-                </Card>
-              </motion.div>
-            ))}
-          </Stack>
+                {addCommentLoading ? "Submitting..." : "Submit"}
+              </Button>
+            </Stack>
+            {addCommentError && <Alert severity="error" sx={{ mt: 2 }}>{addCommentError}</Alert>}
+            {addCommentSuccess && <Alert severity="success" sx={{ mt: 2 }}>{addCommentSuccess}</Alert>}
+          </Box>
         </Box>
       </Container>
     </Box>
