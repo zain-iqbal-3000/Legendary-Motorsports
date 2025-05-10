@@ -37,6 +37,23 @@ const hypercarSchema = new mongoose.Schema({
             weekly: { type: Number },
             monthly: { type: Number }
         }
+    },
+    bookings: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Booking'
+    }],
+    comments: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Comment'
+    }],
+    // Average rating calculated from comments
+    averageRating: {
+        type: Number,
+        default: 0
+    },
+    totalReviews: {
+        type: Number,
+        default: 0
     }
 }, { timestamps: true });
 

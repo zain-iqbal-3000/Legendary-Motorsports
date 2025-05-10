@@ -66,6 +66,10 @@ const userSchema = new mongoose.Schema({
   bookings: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Booking'
+  }],
+  comments: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Comment'
   }]
 }, { timestamps: true });
 
