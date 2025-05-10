@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { 
+import {
   Box,
   Container,
   Typography,
@@ -17,355 +17,235 @@ import {
   MenuItem,
   Avatar,
   IconButton,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Link
+  Link,
 } from '@mui/material';
-import { 
-  Speed as SpeedIcon, 
-  ShutterSpeed as ShutterSpeedIcon, 
+import {
+  Speed as SpeedIcon,
+  ShutterSpeed as ShutterSpeedIcon,
   Build as BuildIcon,
-  CheckCircle as CheckCircleIcon,
   Support as SupportIcon,
   Security as SecurityIcon,
-  ArrowBack as ArrowBackIcon, 
+  LocationOn as LocationIcon,
+  Search as SearchIcon,
+  CalendarToday as CalendarTodayIcon,
+  VerifiedUser as VerifiedUserIcon,
+  DriveEta as DriveEtaIcon,
+  ArrowBack as ArrowBackIcon,
   ArrowForward as ArrowForwardIcon,
-  LocationOn as LocationIcon, 
-  Phone as PhoneIcon, 
-  Email as EmailIcon,
   Facebook as FacebookIcon,
   Instagram as InstagramIcon,
   Twitter as TwitterIcon,
-  YouTube as YouTubeIcon
+  YouTube as YouTubeIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from './components/Header';
 import Footer from './components/Footer';
 
 const Home = () => {
-  const primaryColour = '#ffbd00';
-  const secondaryColour = '#390099';
+  const primaryColour = '#ffd633'; // from theme primary.main
+  const secondaryColour = '#390099'; // from theme secondary.main
 
-  // =============== HERO SECTION ===============
+  // ===== HERO SECTION =====
   const [activeImage, setActiveImage] = useState(0);
-
-  // Hero section background images
   const heroImages = [
     'https://images.unsplash.com/photo-1549399542-7e8f2e928464?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
     'https://images.unsplash.com/photo-1592198084033-aade902d1aae?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
-    'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80'
+    'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
   ];
 
-  // Auto rotate slides
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveImage((prev) => (prev + 1) % heroImages.length);
     }, 5000);
-    
     return () => clearInterval(interval);
   }, []);
 
-  // Hero Animation variants
   const heroContainerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.3
-      }
-    }
+      transition: { staggerChildren: 0.25, delayChildren: 0.3 },
+    },
   };
-
   const heroItemVariants = {
-    hidden: { y: 50, opacity: 0 },
-    visible: { 
-      y: 0, 
+    hidden: { y: 60, opacity: 0 },
+    visible: {
+      y: 0,
       opacity: 1,
-      transition: { duration: 0.6, ease: "easeOut" }
-    }
+      transition: { duration: 0.8, ease: 'easeOut' },
+    },
   };
-
   const backgroundVariants = {
     enter: { opacity: 0 },
-    center: { 
-      opacity: 1,
-      transition: { duration: 1.2, ease: "easeOut" }
-    },
-    exit: { 
-      opacity: 0,
-      transition: { duration: 1, ease: "easeIn" }
-    }
+    center: { opacity: 1, transition: { duration: 1.2, ease: 'easeOut' } },
+    exit: { opacity: 0, transition: { duration: 1, ease: 'easeIn' } },
   };
 
-  // =============== CARS SECTION ===============
+  // ===== CARS SECTION =====
   const [hoveredCard, setHoveredCard] = useState(null);
-
-  // Luxury cars data
   const carsData = [
     {
       id: 1,
       name: 'Lamborghini Aventador',
-      image: 'https://images.unsplash.com/photo-1526726538690-5cbf956ae2fd?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
-      specs: {
-        acceleration: '0-60 mph: 2.8s',
-        topSpeed: '217 mph',
-        engine: '6.5L V12'
-      },
-      price: '$2,500 / day'
+      image:
+        'https://images.unsplash.com/photo-1526726538690-5cbf956ae2fd?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
+      specs: { acceleration: '0-60 mph: 2.8s', topSpeed: '217 mph', engine: '6.5L V12' },
+      price: '$2,500 / day',
     },
     {
       id: 2,
       name: 'Ferrari SF90 Stradale',
-      image: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
-      specs: {
-        acceleration: '0-60 mph: 2.5s',
-        topSpeed: '211 mph',
-        engine: '4.0L V8 Hybrid'
-      },
-      price: '$3,000 / day'
+      image:
+        'https://images.unsplash.com/photo-1583121274602-3e2820c69888?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
+      specs: { acceleration: '0-60 mph: 2.5s', topSpeed: '211 mph', engine: '4.0L V8 Hybrid' },
+      price: '$3,000 / day',
     },
     {
       id: 3,
       name: 'McLaren 720S',
-      image: 'https://images.unsplash.com/photo-1580414057403-c5f451f30e1c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
-      specs: {
-        acceleration: '0-60 mph: 2.7s',
-        topSpeed: '212 mph',
-        engine: '4.0L V8 Twin-Turbo'
-      },
-      price: '$2,800 / day'
+      image:
+        'https://images.unsplash.com/photo-1580414057403-c5f451f30e1c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
+      specs: { acceleration: '0-60 mph: 2.7s', topSpeed: '212 mph', engine: '4.0L V8 Twin-Turbo' },
+      price: '$2,800 / day',
     },
     {
       id: 4,
       name: 'Bugatti Chiron',
-      image: 'https://images.unsplash.com/photo-1546544336-7e8dde09e523?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
-      specs: {
-        acceleration: '0-60 mph: 2.4s',
-        topSpeed: '261 mph',
-        engine: '8.0L W16 Quad-Turbo'
-      },
-      price: '$4,500 / day'
+      image:
+        'https://images.unsplash.com/photo-1546544336-7e8dde09e523?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
+      specs: { acceleration: '0-60 mph: 2.4s', topSpeed: '261 mph', engine: '8.0L W16 Quad-Turbo' },
+      price: '$4,500 / day',
     },
     {
       id: 5,
       name: 'Porsche 911 GT2 RS',
-      image: 'https://images.unsplash.com/photo-1611821064430-0d40291d0f0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
-      specs: {
-        acceleration: '0-60 mph: 2.7s',
-        topSpeed: '211 mph',
-        engine: '3.8L Twin-Turbo Flat-6'
-      },
-      price: '$2,200 / day'
+      image:
+        'https://images.unsplash.com/photo-1611821064430-0d40291d0f0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
+      specs: { acceleration: '0-60 mph: 2.7s', topSpeed: '211 mph', engine: '3.8L Twin-Turbo Flat-6' },
+      price: '$2,200 / day',
     },
     {
       id: 6,
       name: 'Aston Martin DBS Superleggera',
-      image: 'https://images.unsplash.com/photo-1542362567-b07e54358753?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
-      specs: {
-        acceleration: '0-60 mph: 3.2s',
-        topSpeed: '211 mph',
-        engine: '5.2L Twin-Turbo V12'
-      },
-      price: '$2,700 / day'
-    }
+      image:
+        'https://images.unsplash.com/photo-1542362567-b07e54358753?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
+      specs: { acceleration: '0-60 mph: 3.2s', topSpeed: '211 mph', engine: '5.2L Twin-Turbo V12' },
+      price: '$2,700 / day',
+    },
   ];
-
-  const carsContainerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.3
-      }
-    }
-  };
 
   const cardVariants = {
     hidden: { y: 50, opacity: 0 },
-    visible: { 
-      y: 0, 
-      opacity: 1,
-      transition: { duration: 0.6, ease: "easeOut" }
-    }
+    visible: { y: 0, opacity: 1, transition: { duration: 0.6, ease: 'easeOut' } },
   };
 
-  const titleVariants = {
-    hidden: { y: -50, opacity: 0 },
-    visible: { 
-      y: 0, 
-      opacity: 1,
-      transition: { duration: 0.6, ease: "easeOut" }
-    }
-  };
-
-  // =============== ABOUT SECTION ===============
-  const aboutContainerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.3
-      }
-    }
-  };
-
+  // ===== ABOUT SECTION =====
   const aboutItemVariants = {
     hidden: { x: -50, opacity: 0 },
-    visible: { 
-      x: 0, 
-      opacity: 1,
-      transition: { duration: 0.6, ease: "easeOut" }
-    }
+    visible: { x: 0, opacity: 1, transition: { duration: 0.6, ease: 'easeOut' } },
   };
-
   const imageVariants = {
     hidden: { x: 50, opacity: 0 },
-    visible: { 
-      x: 0, 
-      opacity: 1,
-      transition: { duration: 0.8, ease: "easeOut" }
-    }
+    visible: { x: 0, opacity: 1, transition: { duration: 0.8, ease: 'easeOut' } },
   };
 
-  // =============== BOOKING SECTION ===============
+  // ===== BOOKING SECTION =====
   const [bookingFormData, setBookingFormData] = useState({
     selectedCar: '',
     pickupDate: '',
     returnDate: '',
     fullName: '',
     email: '',
-    phone: ''
+    phone: '',
   });
+  const availableCars = carsData.map(({ id, name }) => ({ id, name }));
 
-  // Data for car selection dropdown
-  const availableCars = [
-    { id: 'lamborghini-aventador', name: 'Lamborghini Aventador' },
-    { id: 'ferrari-sf90', name: 'Ferrari SF90 Stradale' },
-    { id: 'mclaren-720s', name: 'McLaren 720S' },
-    { id: 'bugatti-chiron', name: 'Bugatti Chiron' },
-    { id: 'porsche-911gt2rs', name: 'Porsche 911 GT2 RS' },
-    { id: 'aston-martin-dbs', name: 'Aston Martin DBS Superleggera' }
-  ];
-
-  // Booking process steps
   const bookingSteps = [
     {
       number: 1,
       title: 'Choose Your Hypercar',
-      description: 'Browse our exclusive collection and select the vehicle that matches your style.'
+      description: 'Browse our exclusive collection and select the vehicle that matches your style.',
     },
     {
       number: 2,
       title: 'Set Your Schedule',
-      description: 'Select your preferred dates and duration for the rental period.'
+      description: 'Select your preferred dates and duration for the rental period.',
     },
     {
       number: 3,
       title: 'Confirm Details',
-      description: 'Complete your booking with payment and verification details.'
+      description: 'Complete your booking with payment and verification details.',
     },
     {
       number: 4,
       title: 'Drive & Enjoy',
-      description: 'Receive your vehicle and experience the thrill of hypercar performance.'
-    }
+      description: 'Receive your vehicle and experience the thrill of hypercar performance.',
+    },
   ];
 
   const handleBookingChange = (e) => {
     const { name, value } = e.target;
-    setBookingFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
+    setBookingFormData((prev) => ({ ...prev, [name]: value }));
   };
-
   const handleBookingSubmit = (e) => {
     e.preventDefault();
-    // In a real application, this would submit the form data to the backend
     console.log('Booking form submitted:', bookingFormData);
-    
-    // Reset form (for demo purposes)
+    alert('Thank you for your booking request! Our team will contact you shortly to confirm details.');
     setBookingFormData({
       selectedCar: '',
       pickupDate: '',
       returnDate: '',
       fullName: '',
       email: '',
-      phone: ''
+      phone: '',
     });
-    
-    // Show success message or redirect
-    alert('Thank you for your booking request! Our team will contact you shortly to confirm details.');
   };
 
-  const bookingContainerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.3
-      }
-    }
-  };
-
-  const bookingItemVariants = {
-    hidden: { y: 30, opacity: 0 },
-    visible: { 
-      y: 0, 
-      opacity: 1,
-      transition: { duration: 0.6, ease: "easeOut" }
-    }
-  };
-
-  // =============== TESTIMONIALS SECTION ===============
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const [direction, setDirection] = useState(0); // -1 for left, 1 for right
-  const timerRef = useRef(null);
-
-  // Testimonial data
+  // ===== TESTIMONIALS SECTION =====
   const testimonials = [
     {
       id: 1,
-      content: "Renting the Lamborghini Aventador from Legendary Motorsports was the highlight of my year. The car was immaculate, and the service was beyond exceptional. The team went out of their way to ensure I had an unforgettable experience.",
+      content:
+        'Renting the Lamborghini Aventador from Legendary Motorsports was the highlight of my year. The car was immaculate, and the service was beyond exceptional. The team went out of their way to ensure I had an unforgettable experience.',
       author: {
-        name: "James Wilson",
-        location: "Los Angeles, CA",
-        image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80"
-      }
+        name: 'James Wilson',
+        location: 'Los Angeles, CA',
+        image:
+          'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80',
+      },
     },
     {
       id: 2,
-      content: "As a car enthusiast, I've rented from many luxury car services, but Legendary Motorsports stands apart. The Ferrari SF90 was delivered in pristine condition, and the staff's knowledge and passion for hypercars added to the overall experience.",
+      content:
+        "As a car enthusiast, I've rented from many luxury car services, but Legendary Motorsports stands apart. The Ferrari SF90 was delivered in pristine condition, and the staff's knowledge and passion for hypercars added to the overall experience.",
       author: {
-        name: "Sophia Chen",
-        location: "Miami, FL",
-        image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80"
-      }
+        name: 'Sophia Chen',
+        location: 'Miami, FL',
+        image:
+          'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80',
+      },
     },
     {
       id: 3,
-      content: "Legendary Motorsports made my 40th birthday truly special. Driving the McLaren 720S along the coast was a dream come true. The booking process was seamless, and the concierge service was top-notch. I'll definitely be returning for more experiences!",
+      content:
+        "Legendary Motorsports made my 40th birthday truly special. Driving the McLaren 720S along the coast was a dream come true. The booking process was seamless, and the concierge service was top-notch. I'll definitely be returning for more experiences!",
       author: {
-        name: "Michael Johnson",
-        location: "New York, NY",
-        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80"
-      }
-    }
+        name: 'Michael Johnson',
+        location: 'New York, NY',
+        image:
+          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80',
+      },
+    },
   ];
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const [direction, setDirection] = useState(0);
+  const timerRef = useRef(null);
 
-  // Auto-rotate testimonials
   useEffect(() => {
     timerRef.current = setTimeout(() => {
       setDirection(1);
       setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
     }, 8000);
-    
     return () => clearTimeout(timerRef.current);
   }, [currentTestimonial]);
 
@@ -374,7 +254,6 @@ const Home = () => {
     setDirection(-1);
     setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length);
   };
-
   const handleNext = () => {
     clearTimeout(timerRef.current);
     setDirection(1);
@@ -382,163 +261,102 @@ const Home = () => {
   };
 
   const slideVariants = {
-    enter: (direction) => ({
-      x: direction > 0 ? 300 : -300,
-      opacity: 0
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-      transition: { duration: 0.5, ease: "easeOut" }
+    enter: (dir) => ({ x: dir > 0 ? 300 : -300, opacity: 0 }),
+    center: { x: 0, opacity: 1, transition: { duration: 0.5, ease: 'easeOut' } },
+    exit: (dir) => ({ x: dir > 0 ? -300 : 300, opacity: 0, transition: { duration: 0.5, ease: 'easeIn' } }),
+  };
+
+  // ===== BENEFITS SECTION =====
+  const benefitsData = [
+    {
+      icon: <SpeedIcon sx={{ fontSize: 48, color: primaryColour }} />,
+      title: 'Unlimited Mileage',
+      description: 'Drive as far as your adventure takes you with our no-limit mileage policy on select rentals.',
     },
-    exit: (direction) => ({
-      x: direction > 0 ? -300 : 300,
-      opacity: 0,
-      transition: { duration: 0.5, ease: "easeIn" }
-    })
-  };
-
-  // =============== CONTACT SECTION ===============
-  const [contactFormData, setContactFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: ''
-  });
-
-  const handleContactChange = (e) => {
-    const { name, value } = e.target;
-    setContactFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
-  };
-
-  const handleContactSubmit = (e) => {
-    e.preventDefault();
-    // In a real application, this would submit the form data to the backend
-    console.log('Contact form submitted:', contactFormData);
-    
-    // Reset form (for demo purposes)
-    setContactFormData({
-      name: '',
-      email: '',
-      subject: '',
-      message: ''
-    });
-    
-    // Show success message
-    alert('Thank you for your message! We will get back to you as soon as possible.');
-  };
-
-  const contactContainerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.3
-      }
-    }
-  };
-
-  const contactItemVariants = {
-    hidden: { y: 30, opacity: 0 },
-    visible: { 
-      y: 0, 
-      opacity: 1,
-      transition: { duration: 0.6, ease: "easeOut" }
-    }
-  };
-
-  // =============== FOOTER SECTION ===============
-  // Footer links data
-  const quickLinks = [
-    { name: 'Home', href: '#hero' },
-    { name: 'Our Fleet', href: '#cars' },
-    { name: 'About Us', href: '#about' },
-    { name: 'Book Now', href: '#booking' },
-    { name: 'Testimonials', href: '#testimonials' },
-    { name: 'Contact', href: '#contact' }
+    {
+      icon: <LocationIcon sx={{ fontSize: 48, color: primaryColour }} />,
+      title: 'Door-to-Door Delivery',
+      description: 'We deliver your dream car directly to your hotel, home, or airport for maximum convenience.',
+    },
+    {
+      icon: <SupportIcon sx={{ fontSize: 48, color: primaryColour }} />,
+      title: '24/7 Concierge',
+      description: 'Our dedicated support team is available around the clock to ensure a flawless experience.',
+    },
+    {
+      icon: <SecurityIcon sx={{ fontSize: 48, color: primaryColour }} />,
+      title: 'Premium Insurance',
+      description: "Drive with complete peace of mind knowing you're covered by our comprehensive insurance.",
+    },
   ];
 
-  const serviceLinks = [
-    { name: 'Hypercar Rentals', href: '#' },
-    { name: 'Chauffeur Services', href: '#' },
-    { name: 'Track Day Experiences', href: '#' },
-    { name: 'Custom Road Trips', href: '#' },
-    { name: 'Special Event Rentals', href: '#' },
-    { name: 'Corporate Packages', href: '#' }
+  // ===== HOW IT WORKS SECTION =====
+  const processSteps = [
+    {
+      number: '01',
+      title: 'Browse & Select',
+      description:
+        'Explore our curated collection of luxury and exotic vehicles. Filter by make, model, or performance specs to find your perfect match.',
+      icon: <SearchIcon sx={{ fontSize: 36, color: primaryColour }} />,
+    },
+    {
+      number: '02',
+      title: 'Reserve Online',
+      description: 'Choose your rental dates and complete our streamlined booking process. Secure your dream car with just a few clicks.',
+      icon: <CalendarTodayIcon sx={{ fontSize: 36, color: primaryColour }} />,
+    },
+    {
+      number: '03',
+      title: 'Verification',
+      description: 'Our team will verify your driving credentials and process your reservation within minutes.',
+      icon: <VerifiedUserIcon sx={{ fontSize: 36, color: primaryColour }} />,
+    },
+    {
+      number: '04',
+      title: 'Enjoy the Ride',
+      description: 'Your dream car will be delivered to your doorstep, ready for you to experience the ultimate in luxury performance.',
+      icon: <DriveEtaIcon sx={{ fontSize: 36, color: primaryColour }} />,
+    },
   ];
-
-  const legalLinks = [
-    { name: 'Terms & Conditions', href: '#' },
-    { name: 'Privacy Policy', href: '#' },
-    { name: 'Rental Agreement', href: '#' },
-    { name: 'Insurance Policy', href: '#' },
-    { name: 'Cancellation Policy', href: '#' },
-    { name: 'FAQ', href: '#' }
-  ];
-
-  const footerContainerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.1
-      }
-    }
-  };
-
-  const footerItemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { 
-      y: 0, 
-      opacity: 1,
-      transition: { duration: 0.5, ease: "easeOut" }
-    }
-  };
 
   return (
-    <>
+    <Box sx={{ overflowX: 'hidden' }}>
       <Header />
-      
-      {/* =============== HERO SECTION =============== */}
+
+      {/* HERO SECTION */}
       <Box
         id="hero"
-        component="section"
         sx={{
-          height: '100vh',
           position: 'relative',
+          height: '100vh',
+          width: '100%',
           display: 'flex',
+          justifyContent: 'center',
           alignItems: 'center',
-          overflow: 'hidden'
+          overflow: 'hidden',
         }}
       >
-        {/* Background Image Carousel */}
-        <AnimatePresence mode="wait">
-          <motion.div
+        <AnimatePresence initial={false} custom={1}>
+          <motion.img
             key={activeImage}
+            src={heroImages[activeImage]}
+            alt="Hero Background"
             variants={backgroundVariants}
             initial="enter"
             animate="center"
             exit="exit"
+            transition={{ duration: 1, ease: 'easeInOut' }}
             style={{
               position: 'absolute',
               top: 0,
               left: 0,
               width: '100%',
               height: '100%',
-              backgroundImage: `url(${heroImages[activeImage]})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              zIndex: 0
+              objectFit: 'cover',
+              zIndex: -1,
             }}
           />
         </AnimatePresence>
-
-        {/* Dark Overlay */}
         <Box
           sx={{
             position: 'absolute',
@@ -546,1363 +364,624 @@ const Home = () => {
             left: 0,
             width: '100%',
             height: '100%',
-            background: 'linear-gradient(to right, rgba(57, 0, 153, 0.8), rgba(57, 0, 153, 0.4))',
-            zIndex: 1
+            background:
+              'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0.7) 100%)',
+            zIndex: -1,
           }}
         />
-
-        {/* Content */}
-        <Container sx={{ position: 'relative', zIndex: 2, maxWidth: 'lg' }}>
-          <motion.div
-            variants={heroContainerVariants}
-            initial="hidden"
-            animate="visible"
-          >
+        <Container maxWidth="md" sx={{ textAlign: 'center', color: 'white', position: 'relative', zIndex: 1 }}>
+          <motion.div variants={heroContainerVariants} initial="hidden" animate="visible">
+            <motion.h1
+              variants={heroItemVariants}
+              style={{
+                fontSize: '3.5rem',
+                fontWeight: 700,
+                marginBottom: '1rem',
+                letterSpacing: '0.1em',
+                textShadow: '2px 2px 6px rgba(0,0,0,0.7)',
+                fontFamily: "'Montserrat', sans-serif",
+              }}
+            >
+              Experience the Ultimate in Luxury Car Rentals
+            </motion.h1>
+            <motion.p
+              variants={heroItemVariants}
+              style={{
+                fontSize: '1.5rem',
+                fontWeight: 400,
+                marginBottom: '2rem',
+                textShadow: '1px 1px 3px rgba(0,0,0,0.6)',
+                fontFamily: "'Open Sans', sans-serif",
+              }}
+            >
+              Unleash your dreams with our exclusive collection of hypercars.
+            </motion.p>
             <motion.div variants={heroItemVariants}>
-              <Typography 
-                variant="h1" 
-                component="h1" 
-                sx={{ 
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                sx={{
+                  padding: '1rem 3rem',
+                  fontSize: '1.25rem',
                   fontWeight: 700,
-                  mb: 4,
-                  textShadow: '0 4px 30px rgba(0, 0, 0, 0.3)',
-                  '& .highlight': { color: 'primary.main' },
-                  lineHeight: 1.2,
-                  fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4rem' }
+                  borderRadius: '12px',
+                  boxShadow: `0 0 12px ${primaryColour}`,
+                  transition: 'box-shadow 0.3s ease-in-out',
+                  '&:hover': {
+                    boxShadow: `0 0 20px ${primaryColour}`,
+                    backgroundColor: primaryColour,
+                    color: '#040430',
+                  },
                 }}
               >
-                DRIVE <span className="highlight">BEYOND</span> LIMITS
-              </Typography>
-            </motion.div>
-
-            <motion.div variants={heroItemVariants}>
-              <Typography 
-                variant="h5" 
-                sx={{ 
-                  mb: 5, 
-                  maxWidth: 700,
-                  lineHeight: 1.6,
-                  fontWeight: 400,
-                  textShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-                  fontSize: {xs: '1rem', md: '1.2rem' }
-                }}
-              >
-                Experience the thrill of driving the world's most exclusive hypercars with Legendary Motorsports. 
-                Our premium collection offers unmatched performance and luxury for those who demand the extraordinary.
-              </Typography>
-            </motion.div>
-
-            <motion.div variants={heroItemVariants}>
-              <Stack 
-                direction={{ xs: 'column', sm: 'row' }} 
-                spacing={{ xs: 2, sm: 3 }}
-                sx={{ mt: 2 }}
-              >
-                <Button 
-                  variant="contained" 
-                  color="primary" 
-                  size="large"
-                  component={motion.button}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => document.getElementById('cars').scrollIntoView({ behavior: 'smooth' })}
-                  sx={{ fontWeight: 600, px: 4, py: 1.5 }}
-                >
-                  Explore Fleet
-                </Button>
-                <Button 
-                  variant="outlined" 
-                  color="primary" 
-                  size="large"
-                  component={motion.button}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => document.getElementById('booking').scrollIntoView({ behavior: 'smooth' })}
-                  sx={{ fontWeight: 600, px: 4, py: 1.5 }}
-                >
-                  Book Now
-                </Button>
-              </Stack>
+                Book Your Dream Car
+              </Button>
             </motion.div>
           </motion.div>
         </Container>
-
-        {/* Slide Indicators */}
-        <Box 
-          sx={{ 
-            position: 'absolute', 
-            bottom: 40, 
-            left: 0, 
-            width: '100%', 
-            display: 'flex', 
-            justifyContent: 'center',
-            zIndex: 3
-          }}
-        >
-          <Stack direction="row" spacing={1}>
-            {heroImages.map((_, index) => (
-              <Box
-                key={index}
-                component={motion.div}
-                whileHover={{ scale: 1.2 }}
-                onClick={() => setActiveImage(index)}
-                sx={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: '50%',
-                  cursor: 'pointer',
-                  bgcolor: index === activeImage ? 'primary.main' : 'rgba(255, 255, 255, 0.3)',
-                  transition: 'all 0.3s ease'
-                }}
-              />
-            ))}
-          </Stack>
-        </Box>
       </Box>
 
-      {/* =============== CARS SECTION =============== */}
-      <Box
-        id="cars"
-        component="section"
-        sx={{
-          py: { xs: 8, md: 12 },
-          bgcolor: 'primary.red',
-        //   bgcolor: 'linear-gradient(to right, rgba(57, 0, 153, 1), rgba(33, 33, 33, 0.9))'
-        }}
-      >
-        <Container>
-          <motion.div
-            variants={titleVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
+      {/* CARS SECTION */}
+      <Box id="cars" sx={{ py: 8, bgcolor: '#f4f4f4' }}>
+        <Container maxWidth="lg">
+          <Typography
+            variant="h4"
+            component="h2"
+            sx={{
+              fontWeight: 700,
+              color: '#333',
+              mb: 1,
+              textAlign: 'center',
+            }}
           >
-            <Box sx={{ textAlign: 'center', mb: 8, position: 'relative' }}>
-              <Typography 
-                variant="h2" 
-                component="h2"
-                sx={{
-                  fontWeight: 700,
-                  mb: 2,
-                  '& .highlight': { color: 'primary.main' }
-                }}
-              >
-                OUR <span className="highlight">HYPERCAR</span> COLLECTION
-              </Typography>
-              <Box 
-                sx={{ 
-                  width: 100, 
-                  height: 4, 
-                  bgcolor: 'primary.main', 
-                  mx: 'auto',
-                  mt: 2,
-                }} 
-              />
-            </Box>
-          </motion.div>
+            Our Fleet of Luxury Hypercars
+          </Typography>
+          <Divider
+            sx={{
+              width: '50%',
+              mx: 'auto',
+              borderColor: primaryColour,
+              borderWidth: '2px',
+              mb: 4,
+            }}
+          />
 
-          <motion.div
-            variants={carsContainerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.1 }}
-          >
-            <Grid container spacing={3}>
-              {carsData.map((car) => (
-                <Grid  size = {{xs:12, sm:6, md:4}} key={car.id}>
-                  <motion.div
-                    variants={cardVariants}
-                    whileHover={{ y: -15 }}
-                    onHoverStart={() => setHoveredCard(car.id)}
-                    onHoverEnd={() => setHoveredCard(null)}
+          <Grid container spacing={4} justifyContent="center">
+            {carsData.map((car) => (
+              <Grid item xs={12} sm={6} md={4} key={car.id} sx={{ display: 'flex', justifyContent: 'center' }}>
+                <Card
+                  sx={{
+                    width: 320, // Fixed width for all cards
+                    height: 440, // Fixed height for all cards
+                    display: 'flex',
+                    flexDirection: 'column',
+                    borderRadius: '12px',
+                    boxShadow: '0px 5px 15px rgba(0, 0, 0, 0.1)',
+                    transition: 'transform 0.3s, box-shadow 0.3s',
+                    '&:hover': {
+                      transform: 'scale(1.04)',
+                      boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.18)',
+                    },
+                    bgcolor: 'background.paper',
+                  }}
+                  onMouseEnter={() => setHoveredCard(car.id)}
+                  onMouseLeave={() => setHoveredCard(null)}
+                >
+                  <CardMedia
+                    component="img"
+                    image={car.image}
+                    alt={car.name}
+                    sx={{
+                      height: 180, // Fixed image height for all cards
+                      width: '100%',
+                      objectFit: 'cover',
+                      borderTopLeftRadius: '12px',
+                      borderTopRightRadius: '12px',
+                    }}
+                  />
+                  <CardContent
+                    sx={{
+                      flex: '1 1 0',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      p: 2,
+                    }}
                   >
-                    <Card
-                      sx={{
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        transition: 'all 0.3s ease',
-                        boxShadow: hoveredCard === car.id 
-                          ? '0 20px 40px rgba(0, 0, 0, 0.4)' 
-                          : '0 10px 30px rgba(0, 0, 0, 0.3)',
-                        bgcolor: "primary.blue",
-                        
-                        borderRadius: 2,
-                        color: "primary.main"
-                      }}
-                    >
-                      <CardMedia
-                        component="img"
-                        height="220"
-                        image={car.image}
-                        alt={car.name}
-                        sx={{ objectFit: 'cover' }}
-                      />
-                      <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                        <Typography 
-                          variant="h5" 
-                          component="h3"
-                          gutterBottom
-                          sx={{ fontWeight: 600 }}
-                        >
-                          {car.name}
+                    <Box>
+                      <Typography
+                        variant="h6"
+                        component="h3"
+                        sx={{
+                          fontWeight: 600,
+                          color: '#222',
+                          mb: 1,
+                          minHeight: 32, // Ensures consistent name area
+                        }}
+                      >
+                        {car.name}
+                      </Typography>
+                      <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
+                        <SpeedIcon sx={{ color: primaryColour }} />
+                        <Typography variant="body2" color="textSecondary">
+                          {car.specs.acceleration}
                         </Typography>
-                        
-                        <Stack spacing={1.5} sx={{ my: 3 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <SpeedIcon sx={{ color: 'primary.main', mr: 1.5 }} />
-                            <Typography variant="body2">{car.specs.acceleration}</Typography>
-                          </Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <ShutterSpeedIcon sx={{ color: 'primary.main', mr: 1.5 }} />
-                            <Typography variant="body2">{car.specs.topSpeed}</Typography>
-                          </Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <BuildIcon sx={{ color: 'primary.main', mr: 1.5 }} />
-                            <Typography variant="body2">{car.specs.engine}</Typography>
-                          </Box>
-                        </Stack>
-                        
-                        <Divider sx={{ my: 2 }} />
-                        
-                        <Typography 
-                          variant="h6" 
-                          component="p"
-                          sx={{ 
-                            color: 'primary.main', 
-                            fontWeight: 700,
-                            my: 2
-                          }}
-                        >
-                          {car.price}
+                      </Stack>
+                      <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
+                        <ShutterSpeedIcon sx={{ color: primaryColour }} />
+                        <Typography variant="body2" color="textSecondary">
+                          {car.specs.topSpeed}
                         </Typography>
-                        
-                        <Button 
-                          variant="contained" 
-                          
-                          fullWidth
-                          onClick={() => document.getElementById('booking').scrollIntoView({ behavior: 'smooth' })}
-                          sx={{ mt: 1, bgcolor:'primary.main', color: 'primary.blue' }}
-                        >
-                          Reserve Now
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                </Grid>
-              ))}
-            </Grid>
-          </motion.div>
+                      </Stack>
+                      <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
+                        <BuildIcon sx={{ color: primaryColour }} />
+                        <Typography variant="body2" color="textSecondary">
+                          {car.specs.engine}
+                        </Typography>
+                      </Stack>
+                    </Box>
+                    <Box sx={{ mt: 2 }}>
+                      <Typography
+                        variant="h6"
+                        component="p"
+                        sx={{
+                          fontWeight: 600,
+                          color: primaryColour,
+                        }}
+                      >
+                        {car.price}
+                      </Typography>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
         </Container>
       </Box>
 
-      {/* =============== ABOUT SECTION =============== */}
-      <Box
-        id="about"
-        component="section"
-        sx={{
-          py: { xs: 8, md: 12 },
-          background: 'linear-gradient(to right, rgba(57, 0, 153, 1), rgba(33, 33, 33, 0.9))'
-        }}
-      >
-        <Container>
+
+      {/* ABOUT SECTION */}
+      <Box id="about" sx={{ py: 10 }}>
+        <Container maxWidth="lg">
           <Grid container spacing={6} alignItems="center">
-            {/* Image Column */}
-            <Grid  xs={12} md={6}>
+            <Grid item xs={12} md={6}>
+              <motion.div variants={aboutItemVariants} initial="hidden" animate="visible">
+                <Typography variant="h4" fontWeight={700} mb={3} color="#222" letterSpacing="0.05em">
+                  About Legendary Motorsports
+                </Typography>
+                <Typography variant="body1" color="text.secondary" mb={3} sx={{ lineHeight: 1.7, fontSize: '1.1rem' }}>
+                  Legendary Motorsports is your premier destination for luxury car rentals. We offer an unparalleled selection
+                  of hypercars, combined with bespoke concierge services to elevate your driving experience.
+                </Typography>
+                <Typography variant="body1" color="text.secondary" mb={4} sx={{ lineHeight: 1.7, fontSize: '1.1rem' }}>
+                  Whether you're seeking the thrill of a high-performance vehicle for a weekend getaway or require a sophisticated
+                  ride for a special event, we're here to fulfill your automotive desires.
+                </Typography>
+                <Button
+                  component={Link}
+                  href="/aboutus"
+                  variant="outlined"
+                  color="secondary"
+                  size="large"
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: '1.1rem',
+                    borderRadius: 3,
+                    borderColor: secondaryColour,
+                    color: secondaryColour,
+                    '&:hover': {
+                      backgroundColor: secondaryColour,
+                      color: '#fff',
+                      borderColor: secondaryColour,
+                    },
+                  }}
+                >
+                  Learn More
+                </Button>
+              </motion.div>
+            </Grid>
+            <Grid item xs={12} md={6}>
               <motion.div
                 variants={imageVariants}
                 initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.3 }}
-              >
-                <Box
-                  sx={{
-                    height: { xs: 300, sm: 400, md: 500 },
-                    borderRadius: 2,
-                    overflow: 'hidden',
-                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
-                  }}
-                >
-                  <img
-                    src="https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
-                    alt="About Legendary Motorsports"
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                    }}
-                  />
-                </Box>
-              </motion.div>
-            </Grid>
-
-            {/* Content Column */}
-            <Grid  xs={12} md={6}>
-              <motion.div
-                variants={aboutContainerVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.3 }}
-              >
-                <motion.div variants={aboutItemVariants}>
-                  <Box sx={{ mb: 4, position: 'relative' }}>
-                    <Typography 
-                      variant="h2" 
-                      component="h2"
-                      sx={{
-                        fontWeight: 700,
-                        mb: 1,
-                        '& .highlight': { color: 'primary.main' }
-                      }}
-                    >
-                      THE <span className="highlight">LEGENDARY</span> EXPERIENCE
-                    </Typography>
-                    <Box 
-                      sx={{ 
-                        width: 80, 
-                        height: 4, 
-                        bgcolor: 'primary.main',
-                        mt: 2,
-                        mb: 4
-                      }} 
-                    />
-                  </Box>
-                </motion.div>
-
-                <motion.div variants={aboutItemVariants}>
-                  <Typography variant="body1" paragraph>
-                    At Legendary Motorsports, we're passionate about hypercars and believe that everyone deserves to experience 
-                    the thrill of driving these engineering marvels. Our mission is to provide unparalleled access 
-                    to the world's most exclusive vehicles through our premium rental service.
-                  </Typography>
-                </motion.div>
-
-                <motion.div variants={aboutItemVariants}>
-                  <Typography variant="body1" paragraph sx={{ mb: 4 }}>
-                    Founded by automotive enthusiasts, we've curated a collection of the finest hypercars, 
-                    each maintained to perfection and ready to deliver an unforgettable driving experience.
-                  </Typography>
-                </motion.div>
-
-                <List sx={{ mt: 4 }}>
-                  <motion.div variants={aboutItemVariants}>
-                    <ListItem 
-                      sx={{ 
-                        px: 0, 
-                        py: 2,
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          transform: 'translateX(10px)'
-                        }
-                      }}
-                    >
-                      <ListItemIcon>
-                        <CheckCircleIcon sx={{ color: 'primary.main', fontSize: 30 }} />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary={
-                          <Typography variant="h6" component="h4" sx={{ mb: 0.5 }}>
-                            Premium Selection
-                          </Typography>
-                        }
-                        secondary={
-                          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                            Meticulously curated fleet of the latest and most exclusive hypercars.
-                          </Typography>
-                        }
-                      />
-                    </ListItem>
-                  </motion.div>
-
-                  <motion.div variants={aboutItemVariants}>
-                    <ListItem 
-                      sx={{ 
-                        px: 0, 
-                        py: 2,
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          transform: 'translateX(10px)'
-                        }
-                      }}
-                    >
-                      <ListItemIcon>
-                        <SupportIcon sx={{ color: 'primary.main', fontSize: 30 }} />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary={
-                          <Typography variant="h6" component="h4" sx={{ mb: 0.5 }}>
-                            Concierge Service
-                          </Typography>
-                        }
-                        secondary={
-                          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                            24/7 personalized support and vehicle delivery to your location.
-                          </Typography>
-                        }
-                      />
-                    </ListItem>
-                  </motion.div>
-
-                  <motion.div variants={aboutItemVariants}>
-                    <ListItem 
-                      sx={{ 
-                        px: 0, 
-                        py: 2,
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          transform: 'translateX(10px)'
-                        }
-                      }}
-                    >
-                      <ListItemIcon>
-                        <SecurityIcon sx={{ color: 'primary.main', fontSize: 30 }} />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary={
-                          <Typography variant="h6" component="h4" sx={{ mb: 0.5 }}>
-                            Comprehensive Insurance
-                          </Typography>
-                        }
-                        secondary={
-                          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                            Drive with confidence knowing you're fully covered by our premium insurance.
-                          </Typography>
-                        }
-                      />
-                    </ListItem>
-                  </motion.div>
-                </List>
-              </motion.div>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
-
-      {/* =============== BOOKING SECTION =============== */}
-      <Box
-        id="booking"
-        component="section"
-        sx={{
-          py: { xs: 8, md: 12 },
-          backgroundColor: 'rgba(33, 33, 33, 0.95)',
-          position: 'relative',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            backgroundImage: 'url(https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            opacity: 0.1,
-            zIndex: 0
-          }
-        }}
-      >
-        <Container sx={{ position: 'relative', zIndex: 1 }}>
-          <Grid container spacing={6}>
-            {/* Booking Info Column */}
-            <Grid  xs={12} md={6}>
-              <motion.div
-                variants={bookingContainerVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.3 }}
-              >
-                <motion.div variants={bookingItemVariants}>
-                  <Typography 
-                    variant="h2" 
-                    component="h2"
-                    sx={{
-                      fontWeight: 700,
-                      mb: 1,
-                      '& .highlight': { color: 'primary.main' },
-                      textAlign: { xs: 'center', md: 'left' }
-                    }}
-                  >
-                    BOOK YOUR <span className="highlight">DREAM</span> CAR
-                  </Typography>
-                  <Box 
-                    sx={{ 
-                      width: 80, 
-                      height: 4, 
-                      bgcolor: 'primary.main',
-                      mt: 2,
-                      mb: 4,
-                      mx: { xs: 'auto', md: 0 }
-                    }} 
-                  />
-                </motion.div>
-
-                <motion.div variants={bookingItemVariants}>
-                  <Typography variant="body1" paragraph sx={{ mb: 4 }}>
-                    Experience the extraordinary with our simple booking process. Select your desired hypercar, 
-                    choose your dates, and we'll handle the rest to ensure a seamless and memorable driving experience.
-                  </Typography>
-                </motion.div>
-
-                <Box sx={{ mt: 6 }}>
-                  {bookingSteps.map((step) => (
-                    <motion.div 
-                      key={step.number}
-                      variants={bookingItemVariants}
-                      whileHover={{ x: 10 }}
-                    >
-                      <Box 
-                        sx={{ 
-                          display: 'flex', 
-                          mb: 4,
-                          alignItems: 'flex-start'
-                        }}
-                      >
-                        <Box 
-                          sx={{ 
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: 40,
-                            height: 40,
-                            bgcolor: 'primary.blue',
-                            color: 'background.dark',
-                            borderRadius: '50%',
-                            fontWeight: 700,
-                            mr: 2,
-                            flexShrink: 0
-                          }}
-                        >
-                          {step.number}
-                        </Box>
-                        <Box>
-                          <Typography variant="h6" component="h4" sx={{ mb: 0.5 }}>
-                            {step.title}
-                          </Typography>
-                          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                            {step.description}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </motion.div>
-                  ))}
-                </Box>
-              </motion.div>
-            </Grid>
-            
-            {/* Booking Form Column */}
-            <Grid  xs={12} md={6}>
-              <motion.div
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, ease: "easeOut" }}
-                viewport={{ once: true, amount: 0.3 }}
-              >
-                <Card 
-                  sx={{ 
-                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
-                    bgcolor: 'background.paper',
-                    borderRadius: 2
-                  }}
-                >
-                  <CardContent sx={{ p: 4 }}>
-                    <Typography 
-                      variant="h5" 
-                      component="h3" 
-                      sx={{ mb: 3, fontWeight: 600 }}
-                    >
-                      Book Your Experience
-                    </Typography>
-                    
-                    <form onSubmit={handleBookingSubmit}>
-                      <FormControl fullWidth sx={{ mb: 3 }}>
-                        <InputLabel id="car-select-label">Select Car</InputLabel>
-                        <Select
-                          labelId="car-select-label"
-                          id="selectedCar"
-                          name="selectedCar"
-                          value={bookingFormData.selectedCar}
-                          onChange={handleBookingChange}
-                          label="Select Car"
-                          required
-                        >
-                          <MenuItem value="" disabled>Choose a hypercar</MenuItem>
-                          {availableCars.map((car) => (
-                            <MenuItem key={car.id} value={car.id}>{car.name}</MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                      
-                      <TextField
-                        fullWidth
-                        label="Pickup Date"
-                        type="date"
-                        name="pickupDate"
-                        value={bookingFormData.pickupDate}
-                        onChange={handleBookingChange}
-                        InputLabelProps={{ shrink: true }}
-                        sx={{ mb: 3 }}
-                        required
-                      />
-                      
-                      <TextField
-                        fullWidth
-                        label="Return Date"
-                        type="date"
-                        name="returnDate"
-                        value={bookingFormData.returnDate}
-                        onChange={handleBookingChange}
-                        InputLabelProps={{ shrink: true }}
-                        sx={{ mb: 3 }}
-                        required
-                      />
-                      
-                      <TextField
-                        fullWidth
-                        label="Full Name"
-                        name="fullName"
-                        value={bookingFormData.fullName}
-                        onChange={handleBookingChange}
-                        placeholder="Enter your full name"
-                        sx={{ mb: 3 }}
-                        required
-                      />
-                      
-                      <TextField
-                        fullWidth
-                        label="Email"
-                        type="email"
-                        name="email"
-                        value={bookingFormData.email}
-                        onChange={handleBookingChange}
-                        placeholder="Enter your email"
-                        sx={{ mb: 3 }}
-                        required
-                      />
-                      
-                      <TextField
-                        fullWidth
-                        label="Phone"
-                        type="tel"
-                        name="phone"
-                        value={bookingFormData.phone}
-                        onChange={handleBookingChange}
-                        placeholder="Enter your phone number"
-                        sx={{ mb: 4 }}
-                        required
-                      />
-                      
-                      <Button 
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                        size="large"
-                        sx={{ py: 1.5 }}
-                      >
-                        Complete Reservation
-                      </Button>
-                    </form>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
-
-      {/* =============== TESTIMONIALS SECTION =============== */}
-      <Box
-        id="testimonials"
-        component="section"
-        sx={{
-          py: { xs: 8, md: 12 },
-          backgroundColor: 'background.default'
-        }}
-      >
-        <Container>
-          <motion.div
-            variants={titleVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-          >
-            <Box sx={{ textAlign: 'center', mb: 8, position: 'relative' }}>
-              <Typography 
-                variant="h2" 
-                component="h2"
-                sx={{
-                  fontWeight: 700,
-                  mb: 2,
-                  '& .highlight': { color: 'primary.main' }
+                animate="visible"
+                style={{
+                  borderRadius: 16,
+                  overflow: 'hidden',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
                 }}
               >
-                CLIENT <span className="highlight">EXPERIENCES</span>
-              </Typography>
-              <Box 
-                sx={{ 
-                  width: 80, 
-                  height: 4, 
-                  bgcolor: 'primary.main', 
-                  mx: 'auto',
-                  mt: 2
-                }} 
-              />
-            </Box>
-          </motion.div>
-          
-          <Box 
-            sx={{ 
-              maxWidth: 900, 
-              mx: 'auto', 
-              overflow: 'hidden',
-              position: 'relative'
+                <img
+                  src="https://images.unsplash.com/photo-1503376780353-727e2fca6a27?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
+                  alt="About Legendary Motorsports"
+                  style={{ width: '100%', height: 'auto', display: 'block' }}
+                />
+              </motion.div>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* BOOKING SECTION */}
+      <Box id="booking" sx={{ py: 10, bgcolor: '#f9f9f9' }}>
+        <Container maxWidth="md">
+          <Typography variant="h4" fontWeight={700} mb={3} align="center" color="#222" letterSpacing="0.05em">
+            Book Your Dream Car
+          </Typography>
+          <Divider
+            sx={{
+              width: 80,
+              height: 4,
+              backgroundColor: primaryColour,
+              mx: 'auto',
+              mb: 6,
+              borderRadius: 2,
+            }}
+          />
+          <Box
+            component="form"
+            onSubmit={handleBookingSubmit}
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: 3,
+              flexWrap: 'wrap',
+              justifyContent: 'center',
             }}
           >
-            <AnimatePresence custom={direction} mode="wait">
+            <FormControl fullWidth sx={{ minWidth: 220 }}>
+              <InputLabel id="select-car-label">Select Car</InputLabel>
+              <Select
+                labelId="select-car-label"
+                id="selectedCar"
+                name="selectedCar"
+                value={bookingFormData.selectedCar}
+                label="Select Car"
+                onChange={handleBookingChange}
+                required
+              >
+                {carsData.map((car) => (
+                  <MenuItem key={car.id} value={car.name}>
+                    {car.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <TextField
+              id="pickupDate"
+              name="pickupDate"
+              label="Pickup Date"
+              type="date"
+              value={bookingFormData.pickupDate}
+              onChange={handleBookingChange}
+              InputLabelProps={{ shrink: true }}
+              required
+              sx={{ minWidth: 160 }}
+            />
+            <TextField
+              id="returnDate"
+              name="returnDate"
+              label="Return Date"
+              type="date"
+              value={bookingFormData.returnDate}
+              onChange={handleBookingChange}
+              InputLabelProps={{ shrink: true }}
+              required
+              sx={{ minWidth: 160 }}
+            />
+            <TextField
+              id="fullName"
+              name="fullName"
+              label="Full Name"
+              value={bookingFormData.fullName}
+              onChange={handleBookingChange}
+              required
+              sx={{ minWidth: 220 }}
+            />
+            <TextField
+              id="email"
+              name="email"
+              label="Email"
+              type="email"
+              value={bookingFormData.email}
+              onChange={handleBookingChange}
+              required
+              sx={{ minWidth: 220 }}
+            />
+            <TextField
+              id="phone"
+              name="phone"
+              label="Phone Number"
+              type="tel"
+              value={bookingFormData.phone}
+              onChange={handleBookingChange}
+              required
+              sx={{ minWidth: 220 }}
+            />
+            <Box sx={{ width: '100%', textAlign: 'center', mt: 2 }}>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                size="large"
+                sx={{
+                  px: 6,
+                  py: 1.5,
+                  fontWeight: 700,
+                  borderRadius: 3,
+                  boxShadow: `0 0 12px ${primaryColour}`,
+                  '&:hover': {
+                    boxShadow: `0 0 20px ${primaryColour}`,
+                    backgroundColor: primaryColour,
+                    color: '#040430',
+                  },
+                }}
+              >
+                Submit Booking
+              </Button>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
+
+      {/* TESTIMONIALS SECTION */}
+      <Box id="testimonials" sx={{ py: 10 }}>
+        <Container maxWidth="md" sx={{ position: 'relative', minHeight: 280 }}>
+          <Typography variant="h4" fontWeight={700} mb={6} align="center" color="#222" letterSpacing="0.05em">
+            What Our Clients Say
+          </Typography>
+          <Box sx={{ position: 'relative', minHeight: 220 }}>
+            <AnimatePresence initial={false} custom={direction}>
               <motion.div
-                key={currentTestimonial}
+                key={testimonials[currentTestimonial].id}
                 custom={direction}
                 variants={slideVariants}
                 initial="enter"
                 animate="center"
                 exit="exit"
+                style={{
+                  position: 'absolute',
+                  width: '100%',
+                  left: 0,
+                  top: 0,
+                }}
               >
-                <Box sx={{ px: { xs: 2, md: 4 }, textAlign: 'center' }}>
-                  <Card 
-                    sx={{ 
-                      bgcolor: 'background.paper',
-                      boxShadow: '0 15px 30px rgba(0, 0, 0, 0.3)',
-                      mb: 4,
-                      position: 'relative',
-                      '&::after': {
-                        content: '""',
-                        position: 'absolute',
-                        bottom: -20,
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        width: 0,
-                        height: 0,
-                        borderLeft: '20px solid transparent',
-                        borderRight: '20px solid transparent',
-                        borderTop: '20px solid',
-                        borderTopColor: 'background.paper'
-                      }
-                    }}
-                  >
-                    <CardContent sx={{ p: 4 }}>
-                      <Typography variant="body1" sx={{ fontSize: { xs: '1rem', md: '1.1rem' } }}>
-                        "{testimonials[currentTestimonial].content}"
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                  
-                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <Avatar
-                      src={testimonials[currentTestimonial].author.image}
-                      alt={testimonials[currentTestimonial].author.name}
-                      sx={{ 
-                        width: 80, 
-                        height: 80, 
-                        mb: 2,
-                        border: 3,
-                        borderColor: 'primary.main'
-                      }}
-                    />
-                    <Typography variant="h6" component="h4" sx={{ fontWeight: 600 }}>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontStyle: 'italic',
+                    fontSize: '1.2rem',
+                    color: '#555',
+                    mb: 4,
+                    minHeight: 120,
+                  }}
+                >
+                  "{testimonials[currentTestimonial].content}"
+                </Typography>
+                <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
+                  <Avatar
+                    src={testimonials[currentTestimonial].author.image}
+                    alt={testimonials[currentTestimonial].author.name}
+                    sx={{ width: 64, height: 64, border: `2px solid ${primaryColour}` }}
+                  />
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight={700} color="#222">
                       {testimonials[currentTestimonial].author.name}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                    <Typography variant="caption" color="text.secondary">
                       {testimonials[currentTestimonial].author.location}
                     </Typography>
                   </Box>
-                </Box>
+                </Stack>
               </motion.div>
             </AnimatePresence>
-            
-            <Stack 
-              direction="row" 
-              spacing={2} 
-              justifyContent="center"
-              sx={{ mt: 4 }}
+            <IconButton
+              onClick={handlePrev}
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                left: 0,
+                transform: 'translateY(-50%)',
+                color: primaryColour,
+                backgroundColor: 'rgba(0,0,0,0.1)',
+                '&:hover': { backgroundColor: 'rgba(0,0,0,0.2)' },
+                zIndex: 2,
+              }}
+              aria-label="Previous testimonial"
             >
-              <IconButton 
-                onClick={handlePrev}
-                sx={{ 
-                  bgcolor: 'rgba(255, 255, 255, 0.1)',
-                  color: 'text.primary',
-                  '&:hover': {
-                    bgcolor: 'primary.main',
-                    color: 'background.dark'
-                  }
-                }}
-              >
-                <ArrowBackIcon />
-              </IconButton>
-              <IconButton 
-                onClick={handleNext}
-                sx={{ 
-                  bgcolor: 'rgba(255, 255, 255, 0.1)',
-                  color: 'text.primary',
-                  '&:hover': {
-                    bgcolor: 'primary.main',
-                    color: 'background.dark'
-                  }
-                }}
-              >
-                <ArrowForwardIcon />
-              </IconButton>
-            </Stack>
-            
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-              {testimonials.map((_, index) => (
-                <Box
-                  key={index}
-                  component={motion.div}
-                  whileHover={{ scale: 1.2 }}
-                  onClick={() => {
-                    clearTimeout(timerRef.current);
-                    setDirection(index > currentTestimonial ? 1 : -1);
-                    setCurrentTestimonial(index);
-                  }}
-                  sx={{
-                    width: 12,
-                    height: 12,
-                    mx: 0.5,
-                    borderRadius: '50%',
-                    cursor: 'pointer',
-                    bgcolor: index === currentTestimonial ? 'primary.main' : 'rgba(255, 255, 255, 0.3)',
-                    transition: 'all 0.3s ease'
-                  }}
-                />
-              ))}
-            </Box>
+              <ArrowBackIcon />
+            </IconButton>
+            <IconButton
+              onClick={handleNext}
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                right: 0,
+                transform: 'translateY(-50%)',
+                color: primaryColour,
+                backgroundColor: 'rgba(0,0,0,0.1)',
+                '&:hover': { backgroundColor: 'rgba(0,0,0,0.2)' },
+                zIndex: 2,
+              }}
+              aria-label="Next testimonial"
+            >
+              <ArrowForwardIcon />
+            </IconButton>
           </Box>
         </Container>
       </Box>
 
-      {/* =============== CONTACT SECTION =============== */}
-      <Box
-        id="contact"
-        component="section"
-        sx={{
-          py: { xs: 8, md: 12 },
-          background: 'linear-gradient(to left, rgba(57, 0, 153, 1), rgba(33, 33, 33, 0.9))'
-        }}
-      >
-        <Container>
-          <motion.div
-            variants={contactContainerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
+
+      {/* HOW IT WORKS SECTION */}
+      <Box id="how-it-works" sx={{ py: 10, bgcolor: '#fff' }}>
+        <Container maxWidth="md">
+          <Typography
+            variant="h4"
+            fontWeight={700}
+            mb={6}
+            align="center"
+            color="#222"
+            letterSpacing="0.05em"
           >
-            <motion.div variants={contactItemVariants}>
-              <Box sx={{ textAlign: 'center', mb: 8, position: 'relative' }}>
-                <Typography 
-                  variant="h2" 
-                  component="h2"
-                  sx={{
-                    fontWeight: 700,
-                    mb: 2,
-                    '& .highlight': { color: 'primary.main' }
-                  }}
-                >
-                  GET IN <span className="highlight">TOUCH</span>
-                </Typography>
-                <Box 
-                  sx={{ 
-                    width: 80, 
-                    height: 4, 
-                    bgcolor: 'primary.main', 
-                    mx: 'auto',
-                    mt: 2
-                  }} 
-                />
-              </Box>
-            </motion.div>
-            
-            <Grid container spacing={6}>
-              {/* Contact Info Column */}
-              <Grid  xs={12} md={6}>
-                <motion.div variants={contactItemVariants}>
-                  <Typography variant="body1" paragraph>
-                    Have questions about our hypercar collection or booking process? Our team of automotive experts 
-                    is here to assist you and ensure your experience exceeds expectations.
-                  </Typography>
-                </motion.div>
-                
-                <Stack spacing={4} sx={{ mt: 6 }}>
-                  <motion.div variants={contactItemVariants}>
-                    <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
-                      <Box 
-                        sx={{ 
-                          mr: 2,
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          width: 50,
-                          height: 50,
-                          borderRadius: '50%',
-                          bgcolor: 'rgba(255, 189, 0, 0.1)',
-                          flexShrink: 0
-                        }}
-                      >
-                        <LocationIcon sx={{ color: 'primary.main', fontSize: 28 }} />
-                      </Box>
-                      <Box>
-                        <Typography variant="h6" component="h4" sx={{ mb: 1 }}>
-                          Our Location
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                          8800 Sunset Boulevard, West Hollywood, CA 90069
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </motion.div>
-                  
-                  <motion.div variants={contactItemVariants}>
-                    <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
-                      <Box 
-                        sx={{ 
-                          mr: 2,
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          width: 50,
-                          height: 50,
-                          borderRadius: '50%',
-                          bgcolor: 'rgba(255, 189, 0, 0.1)',
-                          flexShrink: 0
-                        }}
-                      >
-                        <PhoneIcon sx={{ color: 'primary.main', fontSize: 28 }} />
-                      </Box>
-                      <Box>
-                        <Typography variant="h6" component="h4" sx={{ mb: 1 }}>
-                          Phone
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                          +1 (800) LEGENDARY
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                          +1 (800) 534-3633
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </motion.div>
-                  
-                  <motion.div variants={contactItemVariants}>
-                    <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
-                      <Box 
-                        sx={{ 
-                          mr: 2,
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          width: 50,
-                          height: 50,
-                          borderRadius: '50%',
-                          bgcolor: 'rgba(255, 189, 0, 0.1)',
-                          flexShrink: 0
-                        }}
-                      >
-                        <EmailIcon sx={{ color: 'primary.main', fontSize: 28 }} />
-                      </Box>
-                      <Box>
-                        <Typography variant="h6" component="h4" sx={{ mb: 1 }}>
-                          Email
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                          info@legendarymotorsports.com
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                          bookings@legendarymotorsports.com
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </motion.div>
-                </Stack>
-                
-                <motion.div variants={contactItemVariants} whileHover={{ scale: 1.02 }}>
-                  <Box 
-                    sx={{ 
-                      mt: 6, 
-                      height: 300,
-                      borderRadius: 2,
-                      overflow: 'hidden',
-                      bgcolor: 'rgba(255, 255, 255, 0.1)',
+            How It Works
+          </Typography>
+          <Stack spacing={4}>
+            {processSteps.map(({ number, title, description, icon }) => (
+              <Box
+                key={number}
+                sx={{
+                  width: '100%',
+                  minHeight: 180,
+                  maxWidth: 700,
+                  mx: 'auto',
+                  bgcolor: '#f9f9f9',
+                  borderRadius: 3,
+                  boxShadow: '0 5px 15px rgba(0,0,0,0.08)',
+                  p: 4,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 3,
+                  transition: 'transform 0.3s',
+                  '&:hover': { transform: 'translateY(-4px)' },
+                }}
+              >
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 72 }}>
+                  <Box
+                    sx={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: '50%',
+                      backgroundColor: primaryColour,
+                      color: '#fff',
+                      fontWeight: 700,
+                      fontSize: '1.15rem',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                      mb: 1,
+                      boxShadow: `0 0 8px ${primaryColour}`,
                     }}
                   >
-                    {/* This would be a Google Maps embed in a real app */}
-                    <Typography variant="body1">Google Maps Integration</Typography>
+                    {number}
                   </Box>
-                </motion.div>
-              </Grid>
-              
-              {/* Contact Form Column */}
-              <Grid  xs={12} md={6}>
-                <motion.div
-                  initial={{ opacity: 0, y: 50 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.7, ease: "easeOut" }}
-                  viewport={{ once: true, amount: 0.3 }}
-                >
-                  <Card 
-                    sx={{ 
-                      boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
-                      bgcolor: 'background.paper',
-                      borderRadius: 2
-                    }}
-                  >
-                    <CardContent sx={{ p: 4 }}>
-                      <Typography 
-                        variant="h5" 
-                        component="h3" 
-                        sx={{ mb: 3, fontWeight: 600 }}
-                      >
-                        Send Us a Message
-                      </Typography
-                      >
-                      
-                      <form onSubmit={handleContactSubmit}>
-                        <TextField
-                          fullWidth
-                          label="Name"
-                          name="name"
-                          value={contactFormData.name}
-                          onChange={handleContactChange}
-                          placeholder="Your name"
-                          sx={{ mb: 3 }}
-                          required
-                        />
-                        
-                        <TextField
-                          fullWidth
-                          label="Email"
-                          type="email"
-                          name="email"
-                          value={contactFormData.email}
-                          onChange={handleContactChange}
-                          placeholder="Your email"
-                          sx={{ mb: 3 }}
-                          required
-                        />
-                        
-                        <TextField
-                          fullWidth
-                          label="Subject"
-                          name="subject"
-                          value={contactFormData.subject}
-                          onChange={handleContactChange}
-                          placeholder="Message subject"
-                          sx={{ mb: 3 }}
-                          required
-                        />
-                        
-                        <TextField
-                          fullWidth
-                          label="Message"
-                          name="message"
-                          value={contactFormData.message}
-                          onChange={handleContactChange}
-                          placeholder="Your message"
-                          multiline
-                          rows={5}
-                          sx={{ mb: 4 }}
-                          required
-                        />
-                        
-                        <Button 
-                          type="submit"
-                          variant="contained"
-                          color="primary"
-                          fullWidth
-                          size="large"
-                          sx={{ py: 1.5 }}
-                        >
-                          Send Message
-                        </Button>
-                      </form>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </Grid>
-            </Grid>
-          </motion.div>
+                  <Box>{icon}</Box>
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="h6" fontWeight={700} sx={{ mb: 1 }}>
+                    {title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {description}
+                  </Typography>
+                </Box>
+              </Box>
+            ))}
+          </Stack>
         </Container>
       </Box>
 
-      {/* =============== FOOTER SECTION =============== */}
-      <Box
-        component="footer"
+
+      {/* FOOTER */}
+      <Footer
         sx={{
-          bgcolor: '#212121',
-          pt: { xs: 8, md: 10 },
-          pb: 4
+          backgroundColor: '#040430',
+          color: '#fff',
+          mt: 10,
+          pt: 6,
+          pb: 4,
         }}
       >
-        <Container>
-          <motion.div
-            variants={footerContainerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.1 }}
-          >
-            <Grid container spacing={4} sx={{ mb: 6 }}>
-              {/* Company Information */}
-              <Grid  xs={12} sm={6} md={3}>
-                <motion.div variants={footerItemVariants}>
-                  <Typography 
-                    variant="h4" 
-                    component={motion.div}
-                    whileHover={{ scale: 1.05 }}
-                    sx={{ 
-                      fontWeight: 800, 
-                      letterSpacing: 1,
-                      color: 'primary.main',
-                      mb: 2,
-                      cursor: 'pointer'
-                    }}
-                    onClick={() => scrollToSection('hero')}
-                  >
-                    LEGENDARY MOTORSPORTS
-                  </Typography>
-                  <Typography variant="body2" sx={{ mb: 3, color: 'text.secondary' }}>
-                    Experience the pinnacle of automotive engineering with our exclusive hypercar rental service, 
-                    designed for those who demand nothing less than extraordinary.
-                  </Typography>
-                  <Box sx={{ display: 'flex', mt: 2 }}>
-                    <IconButton 
-                      component={motion.button}
-                      whileHover={{ y: -5, color: '#FFBD00' }}
-                      transition={{ duration: 0.2 }}
-                      sx={{ 
-                        bgcolor: 'rgba(255, 255, 255, 0.1)', 
-                        mr: 1,
-                        '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.15)' }
-                      }}
-                    >
-                      <FacebookIcon />
-                    </IconButton>
-                    <IconButton 
-                      component={motion.button}
-                      whileHover={{ y: -5, color: '#FFBD00' }}
-                      transition={{ duration: 0.2 }}
-                      sx={{ 
-                        bgcolor: 'rgba(255, 255, 255, 0.1)', 
-                        mr: 1,
-                        '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.15)' }
-                      }}
-                    >
-                      <InstagramIcon />
-                    </IconButton>
-                    <IconButton 
-                      component={motion.button}
-                      whileHover={{ y: -5, color: '#FFBD00' }}
-                      transition={{ duration: 0.2 }}
-                      sx={{ 
-                        bgcolor: 'rgba(255, 255, 255, 0.1)', 
-                        mr: 1,
-                        '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.15)' }
-                      }}
-                    >
-                      <TwitterIcon />
-                    </IconButton>
-                    <IconButton 
-                      component={motion.button}
-                      whileHover={{ y: -5, color: '#FFBD00' }}
-                      transition={{ duration: 0.2 }}
-                      sx={{ 
-                        bgcolor: 'rgba(255, 255, 255, 0.1)',
-                        '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.15)' }
-                      }}
-                    >
-                      <YouTubeIcon />
-                    </IconButton>
-                  </Box>
-                </motion.div>
-              </Grid>
-              
-              {/* Quick Links */}
-              <Grid  xs={12} sm={6} md={3}>
-                <motion.div variants={footerItemVariants}>
-                  <Typography 
-                    variant="h6" 
-                    sx={{ 
-                      mb: 3, 
-                      position: 'relative',
-                      '&::after': {
-                        content: '""',
-                        position: 'absolute',
-                        bottom: -10,
-                        left: 0,
-                        width: 50,
-                        height: 3,
-                        bgcolor: 'primary.main'
-                      }
-                    }}
-                  >
-                    Quick Links
-                  </Typography>
-                  <List disablePadding>
-                    {quickLinks.map((link) => (
-                      <ListItem 
-                        key={link.name} 
-                        disablePadding 
-                        sx={{ mb: 1 }}
-                        component={motion.li}
-                        whileHover={{ x: 10 }}
-                      >
-                        <ListItemText>
-                          <Link 
-                            href={link.href}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              const id = link.href.substring(1);
-                              scrollToSection(id);
-                            }}
-                            sx={{ 
-                              color: 'text.secondary',
-                              textDecoration: 'none',
-                              transition: 'all 0.3s ease',
-                              '&:hover': {
-                                color: 'primary.main'
-                              }
-                            }}
-                          >
-                            {link.name}
-                          </Link>
-                        </ListItemText>
-                      </ListItem>
-                    ))}
-                  </List>
-                </motion.div>
-              </Grid>
-              
-              {/* Our Services */}
-              <Grid  xs={12} sm={6} md={3}>
-                <motion.div variants={footerItemVariants}>
-                  <Typography 
-                    variant="h6" 
-                    sx={{ 
-                      mb: 3, 
-                      position: 'relative',
-                      '&::after': {
-                        content: '""',
-                        position: 'absolute',
-                        bottom: -10,
-                        left: 0,
-                        width: 50,
-                        height: 3,
-                        bgcolor: 'primary.main'
-                      }
-                    }}
-                  >
-                    Our Services
-                  </Typography>
-                  <List disablePadding>
-                    {serviceLinks.map((link) => (
-                      <ListItem 
-                        key={link.name} 
-                        disablePadding 
-                        sx={{ mb: 1 }}
-                        component={motion.li}
-                        whileHover={{ x: 10 }}
-                      >
-                        <ListItemText>
-                          <Link 
-                            href={link.href}
-                            sx={{ 
-                              color: 'text.secondary',
-                              textDecoration: 'none',
-                              transition: 'all 0.3s ease',
-                              '&:hover': {
-                                color: 'primary.main'
-                              }
-                            }}
-                          >
-                            {link.name}
-                          </Link>
-                        </ListItemText>
-                      </ListItem>
-                    ))}
-                  </List>
-                </motion.div>
-              </Grid>
-              
-              {/* Legal */}
-              <Grid  xs={12} sm={6} md={3}>
-                <motion.div variants={footerItemVariants}>
-                  <Typography 
-                    variant="h6" 
-                    sx={{ 
-                      mb: 3, 
-                      position: 'relative',
-                      '&::after': {
-                        content: '""',
-                        position: 'absolute',
-                        bottom: -10,
-                        left: 0,
-                        width: 50,
-                        height: 3,
-                        bgcolor: 'primary.main'
-                      }
-                    }}
-                  >
-                    Legal
-                  </Typography>
-                  <List disablePadding>
-                    {legalLinks.map((link) => (
-                      <ListItem 
-                        key={link.name} 
-                        disablePadding 
-                        sx={{ mb: 1 }}
-                        component={motion.li}
-                        whileHover={{ x: 10 }}
-                      >
-                        <ListItemText>
-                          <Link 
-                            href={link.href}
-                            sx={{ 
-                              color: 'text.secondary',
-                              textDecoration: 'none',
-                              transition: 'all 0.3s ease',
-                              '&:hover': {
-                                color: 'primary.main'
-                              }
-                            }}
-                          >
-                            {link.name}
-                          </Link>
-                        </ListItemText>
-                      </ListItem>
-                    ))}
-                  </List>
-                </motion.div>
-              </Grid>
-            </Grid>
-          </motion.div>
-          
-          {/* Copyright Section */}
-          <Box 
-            sx={{ 
-              borderTop: 1, 
-              borderColor: 'rgba(255, 255, 255, 0.1)', 
-              pt: 3,
-              textAlign: 'center'
-            }}
-          >
-            <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.9rem' }}>
-              &copy; {new Date().getFullYear()} Legendary Motorsports. All rights reserved.
+        <Container maxWidth="lg" sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+          <Box sx={{ mb: 3, minWidth: 200 }}>
+            <Typography variant="h6" fontWeight={700} gutterBottom>
+              Legendary Motorsports
             </Typography>
+            <Typography variant="body2" sx={{ maxWidth: 280, mb: 2 }}>
+              The premier luxury car rental service offering the most exclusive hypercars worldwide.
+            </Typography>
+            <Stack direction="row" spacing={1}>
+              <IconButton aria-label="Facebook" href="#" sx={{ color: '#ffd633' }}>
+                <FacebookIcon />
+              </IconButton>
+              <IconButton aria-label="Instagram" href="#" sx={{ color: '#ffd633' }}>
+                <InstagramIcon />
+              </IconButton>
+              <IconButton aria-label="Twitter" href="#" sx={{ color: '#ffd633' }}>
+                <TwitterIcon />
+              </IconButton>
+              <IconButton aria-label="YouTube" href="#" sx={{ color: '#ffd633' }}>
+                <YouTubeIcon />
+              </IconButton>
+            </Stack>
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <Box>
+              <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+                Quick Links
+              </Typography>
+              <Stack spacing={1}>
+                {['Home', 'Our Fleet', 'About Us', 'Book Now', 'Testimonials', 'Contact'].map((link) => (
+                  <Link
+                    key={link}
+                    href={`#${link.toLowerCase().replace(/\s/g, '-')}`}
+                    underline="hover"
+                    color="inherit"
+                    sx={{ cursor: 'pointer' }}
+                  >
+                    {link}
+                  </Link>
+                ))}
+              </Stack>
+            </Box>
+            <Box>
+              <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+                Services
+              </Typography>
+              <Stack spacing={1}>
+                {[
+                  'Hypercar Rentals',
+                  'Chauffeur Services',
+                  'Track Day Experiences',
+                  'Custom Road Trips',
+                  'Special Event Rentals',
+                  'Corporate Packages',
+                ].map((service) => (
+                  <Link key={service} href="#" underline="hover" color="inherit" sx={{ cursor: 'pointer' }}>
+                    {service}
+                  </Link>
+                ))}
+              </Stack>
+            </Box>
+            <Box>
+              <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+                Legal
+              </Typography>
+              <Stack spacing={1}>
+                {[
+                  'Terms & Conditions',
+                  'Privacy Policy',
+                  'Rental Agreement',
+                  'Insurance Policy',
+                  'Cancellation Policy',
+                  'FAQ',
+                ].map((legal) => (
+                  <Link key={legal} href="#" underline="hover" color="inherit" sx={{ cursor: 'pointer' }}>
+                    {legal}
+                  </Link>
+                ))}
+              </Stack>
+            </Box>
           </Box>
         </Container>
-      </Box>
-    </>
+        <Box sx={{ textAlign: 'center', mt: 4, fontSize: 14, color: '#bbb' }}>
+          &copy; {new Date().getFullYear()} Legendary Motorsports. All rights reserved.
+        </Box>
+      </Footer>
+    </Box>
   );
 };
 

@@ -9,6 +9,8 @@ import Services from './components/Services';
 import AboutUs from "./components/AboutUs"
 import CarInventory from './CarInventory';
 import AccountSettings from './components/AccountSettings';
+import BookingHistory from './components/BookingHistory';
+import CarDetail from './CarDetail';
 
 function App() {
   return (
@@ -22,6 +24,9 @@ function App() {
           <Route path="/aboutus" element={<AboutUs/>}/>
           <Route path="/CarInventory" element={<CarInventory/>}/>
           <Route path="/settings" element={<AccountSettings/>}/>
+          <Route path="/booking-history" element={<BookingHistory/>}/>
+          <Route path="/car" element={<CarDetail/>}/>
+
           
           <Route
             path="/dashboard"
