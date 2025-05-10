@@ -1,8 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const userRoutes = require('./routes/userRoutes');
-const carRoutes = require('./routes/carRoutes');
+const userRoutes = require('./routes/authRoutes');
+const carRoutes = require('./routes/carRoute');
 const bookingRoutes = require('./routes/bookingRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 
@@ -13,9 +13,11 @@ app.use(cors());
 app.use(express.json());
 
 // Database connection
-mongoose.connect('mongodb://localhost:27017/legendary_motorsports', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+require('dotenv').config();
+console.log(process.env.MONGO_URI);
+mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/legendary_motorsports', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
 })
 .then(() => console.log('MongoDB connected'))
 .catch(err => console.log(err));

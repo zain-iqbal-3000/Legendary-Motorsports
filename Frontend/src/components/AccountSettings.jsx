@@ -1,1264 +1,1436 @@
-import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
-import { FiUser, FiCreditCard, FiFileText, FiClock, FiEdit, FiCheck, FiUpload, FiAlertCircle, FiPlus, FiTrash2 } from 'react-icons/fi';
-import { format } from 'date-fns';
+import { useState } from "react";
 import {
+  Box,
   Container,
   Typography,
-  Box,
   Paper,
-  Button,
-  Grid,
   TextField,
-  Divider,
-  CircularProgress,
-  Chip,
+  Button,
+  Avatar,
+  Grid,
+  IconButton,
+  Tabs,
   Tab,
-  Tabs
-} from '@mui/material';
+  Divider,
+  Switch,
+  FormControlLabel,
+  InputAdornment,
+  List,
+  ListItem,
+  ListItemText,
+  Alert,
+  Snackbar,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  useMediaQuery,
+  useTheme,
+  alpha,
+  Card,
+  CardContent,
+} from "@mui/material";
+import {
+  PhotoCamera,
+  Save,
+  Edit,
+  Security,
+  Notifications,
+  CreditCard,
+  Delete,
+  AddCircleOutline,
+  Visibility,
+  VisibilityOff,
+  Warning,
+  Check,
+  AccountCircle,
+  Email,
+  Phone,
+  Home,
+  LocationCity,
+  Public,
+} from "@mui/icons-material";
+import { motion } from "framer-motion";
+import { useAuth } from "../context/AuthContext";
+import Header from "./Header";
+import Footer from "./Footer";
 
 const AccountSettings = () => {
-  // State for tabs
-  const [activeTab, setActiveTab] = useState(0);
-  
-  // State for personal information
-  const [personalInfo, setPersonalInfo] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-  });
-  const [isEditingPersonal, setIsEditingPersonal] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // State for license information
-  const [licenseInfo, setLicenseInfo] = useState({
-    frontImage: null,
-    backImage: null,
-    status: 'NOT_UPLOADED', // NOT_UPLOADED, PENDING, APPROVED, REJECTED
-    rejectionReason: '',
-  });
-  const [frontImagePreview, setFrontImagePreview] = useState(null);
-  const [backImagePreview, setBackImagePreview] = useState(null);
-
-  // State for payment methods
-  const [paymentMethods, setPaymentMethods] = useState([]);
-  const [showAddCardForm, setShowAddCardForm] = useState(false);
-  const [newCardData, setNewCardData] = useState({
-    cardNumber: '',
-    cardHolder: '',
-    expiryDate: '',
-    cvv: '',
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const { currentUser } = useAuth();
+  const [tabValue, setTabValue] = useState(0);
+  const [editing, setEditing] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userData, setUserData] = useState({
+    displayName: currentUser?.displayName || "",
+    email: currentUser?.email || "",
+    phoneNumber: currentUser?.phoneNumber || "",
+    address: "",
+    city: "",
+    country: "",
+    profileImage: currentUser?.photoURL || "",
+    emailNotifications: true,
+    smsNotifications: false,
+    twoFactorAuth: false,
   });
 
-  // State for activity history
-  const [bookings, setBookings] = useState([]);
-  const [bookingsLoading, setBookingsLoading] = useState(false);
-  const [filters, setFilters] = useState({
-    dateRange: 'all',
-    carType: 'all',
-  });
-  
-  // Fetch user data on component mount
-  useEffect(() => {
-    const fetchUserData = async () => {
-      setIsLoading(true);
-      try {
-        // Replace with your actual API call
-        const response = await fetch('/api/user/profile');
-        const userData = await response.json();
-        
-        setPersonalInfo({
-          fullName: userData.fullName || '',
-          email: userData.email || '',
-          phone: userData.phone || '',
-        });
-        
-        // Set license info if available
-        if (userData.license) {
-          setLicenseInfo({
-            frontImage: userData.license.frontImage || null,
-            backImage: userData.license.backImage || null,
-            status: userData.license.status || 'NOT_UPLOADED',
-            rejectionReason: userData.license.rejectionReason || '',
-          });
-          
-          // Set preview images if available
-          if (userData.license.frontImage) {
-            setFrontImagePreview(`/api/documents/${userData.license.frontImage}`);
-          }
-          if (userData.license.backImage) {
-            setBackImagePreview(`/api/documents/${userData.license.backImage}`);
-          }
-        }
+  // Colors from theme
+  const primaryColour = theme.palette.primary.main; // '#ffd633'
+  const secondaryColour = theme.palette.secondary.main; // '#390099'
+  const darkBlueColor = theme.palette.primary.blue; // '#040430'
 
-        // Fetch payment methods
-        const paymentResponse = await fetch('/api/user/payment-methods');
-        const paymentData = await paymentResponse.json();
-        setPaymentMethods(paymentData || []);
-      } catch (error) {
-        console.error('Failed to fetch user data:', error);
-        toast.error('Failed to load your profile information');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // Mock payment methods
+  const paymentMethods = [
+    { id: 1, cardType: "Visa", last4: "4242", expiry: "12/24" },
+    { id: 2, cardType: "Mastercard", last4: "8888", expiry: "06/25" },
+  ];
 
-    fetchUserData();
-  }, []);
-
-  // Fetch booking history
-  useEffect(() => {
-    const fetchBookingHistory = async () => {
-      setBookingsLoading(true);
-      try {
-        // Replace with your actual API call
-        const url = new URL('/api/bookings/history', window.location.origin);
-        
-        // Add filters if they're active
-        if (filters.dateRange !== 'all') {
-          url.searchParams.append('dateRange', filters.dateRange);
-        }
-        if (filters.carType !== 'all') {
-          url.searchParams.append('carType', filters.carType);
-        }
-        
-        const response = await fetch(url);
-        const data = await response.json();
-        setBookings(data || []);
-      } catch (error) {
-        console.error('Failed to fetch booking history:', error);
-        toast.error('Failed to load your booking history');
-      } finally {
-        setBookingsLoading(false);
-      }
-    };
-    
-    fetchBookingHistory();
-  }, [filters]);
-  
-  const handlePersonalInfoChange = (e) => {
-    const { name, value } = e.target;
-    setPersonalInfo(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
   };
 
-  const savePersonalInfo = async () => {
-    setIsLoading(true);
-    try {
-      // Replace with your actual API call
-      await fetch('/api/user/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(personalInfo),
-      });
-      
-      setIsEditingPersonal(false);
-      toast.success('Personal information updated successfully!');
-    } catch (error) {
-      console.error('Failed to update personal info:', error);
-      toast.error('Failed to update your information');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleLicenseImageChange = (side) => (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      
-      // Check file type
-      const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-      if (!validTypes.includes(file.type)) {
-        toast.error('Only JPG, PNG, and PDF files are accepted');
-        return;
-      }
-      
-      // Check file size (5MB max)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('File size should not exceed 5MB');
-        return;
-      }
-      
-      // Update state for the specific side
-      if (side === 'front') {
-        setLicenseInfo(prev => ({ ...prev, frontImage: file }));
-        
-        // Create preview for image types
-        if (file.type.startsWith('image/')) {
-          const reader = new FileReader();
-          reader.onload = (e) => setFrontImagePreview(e.target.result);
-          reader.readAsDataURL(file);
-        } else {
-          // For PDF, just show a placeholder
-          setFrontImagePreview('/images/pdf-placeholder.png');
-        }
-      } else {
-        setLicenseInfo(prev => ({ ...prev, backImage: file }));
-        
-        // Create preview for image types
-        if (file.type.startsWith('image/')) {
-          const reader = new FileReader();
-          reader.onload = (e) => setBackImagePreview(e.target.result);
-          reader.readAsDataURL(file);
-        } else {
-          // For PDF, just show a placeholder
-          setBackImagePreview('/images/pdf-placeholder.png');
-        }
-      }
-    }
-  };
-
-  const uploadLicenseImages = async () => {
-    if (!licenseInfo.frontImage || !licenseInfo.backImage) {
-      toast.error('Please upload both front and back images of your license');
-      return;
-    }
-    
-    setIsLoading(true);
-    const formData = new FormData();
-    formData.append('frontImage', licenseInfo.frontImage);
-    formData.append('backImage', licenseInfo.backImage);
-    
-    try {
-      // Replace with your actual API call
-      const response = await fetch('/api/user/license', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to upload license');
-      }
-      
-      setLicenseInfo(prev => ({ ...prev, status: 'PENDING' }));
-      toast.success('License uploaded successfully! It will be reviewed shortly.');
-    } catch (error) {
-      console.error('Failed to upload license:', error);
-      toast.error('Failed to upload license');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const getStatusBadge = () => {
-    switch (licenseInfo.status) {
-      case 'PENDING':
-        return <Chip label="Pending Review" color="warning" />;
-      case 'APPROVED':
-        return <Chip label="Approved" color="success" />;
-      case 'REJECTED':
-        return <Chip label="Rejected" color="error" />;
-      default:
-        return <Chip label="Not Uploaded" color="default" />;
-    }
-  };
-
-  const handleNewCardChange = (e) => {
-    const { name, value } = e.target;
-    setNewCardData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const addNewCard = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    try {
-      // Replace with your actual API call
-      const response = await fetch('/api/user/payment-methods', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newCardData),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to add payment method');
-      }
-      
-      const addedCard = await response.json();
-      setPaymentMethods(prev => [...prev, addedCard]);
-      
-      // Reset form
-      setNewCardData({
-        cardNumber: '',
-        cardHolder: '',
-        expiryDate: '',
-        cvv: '',
-      });
-      setShowAddCardForm(false);
-      
-      toast.success('Payment method added successfully!');
-    } catch (error) {
-      console.error('Failed to add payment method:', error);
-      toast.error('Failed to add payment method');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const removeCard = async (cardId) => {
-    if (!window.confirm('Are you sure you want to remove this payment method?')) {
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    try {
-      // Replace with your actual API call
-      await fetch(`/api/user/payment-methods/${cardId}`, {
-        method: 'DELETE',
-      });
-      
-      setPaymentMethods(prev => prev.filter(card => card.id !== cardId));
-      toast.success('Payment method removed successfully!');
-    } catch (error) {
-      console.error('Failed to remove payment method:', error);
-      toast.error('Failed to remove payment method');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Handler for filter changes
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilters(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  // Function to format the booking duration as a string
-  const formatBookingDuration = (startDate, endDate) => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-    return `${days} ${days === 1 ? 'day' : 'days'}`;
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
   const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
+    setTabValue(newValue);
+  };
+
+  const handleProfileEdit = () => {
+    setEditing(!editing);
+  };
+
+  const handleProfileSave = () => {
+    // In a real app, we would save the changes to the backend here
+    setEditing(false);
+    setShowSuccess(true);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value, checked } = e.target;
+    setUserData({
+      ...userData,
+      [name]: e.target.type === "checkbox" ? checked : value,
+    });
+  };
+
+  const handlePasswordChange = () => {
+    // In a real app, we would handle password change here
+    setShowSuccess(true);
+  };
+
+  const handleSaveNotifications = () => {
+    // In a real app, we would save notification preferences here
+    setShowSuccess(true);
+  };
+
+  const handleDeleteAccount = () => {
+    // In a real app, we would handle account deletion here
+    setDeleteDialogOpen(false);
+    setShowError(true);
+  };
+
+  const handleAddPaymentMethod = () => {
+    // In a real app, we would handle adding a new payment method here
+    setShowSuccess(true);
+  };
+
+  // Enhanced profile tab content
+  const renderProfileTab = () => {
+    return (
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <Grid container spacing={4}>
+          {/* Profile Card */}
+          <Grid item xs={12} md={4}>
+            <Card
+              elevation={3}
+              component={motion.div}
+              variants={itemVariants}
+              sx={{
+                p: 0,
+                borderRadius: 4,
+                bgcolor: "white",
+                textAlign: "center",
+                height: "100%",
+                overflow: "hidden",
+                boxShadow: `0 8px 32px ${alpha(darkBlueColor, 0.15)}`,
+              }}
+            >
+              {/* Header banner */}
+              <Box
+                sx={{
+                  height: 100,
+                  width: "100%",
+                  background: `linear-gradient(135deg, ${secondaryColour} 0%, ${alpha(
+                    darkBlueColor,
+                    0.8
+                  )} 100%)`,
+                  position: "relative",
+                }}
+              />
+
+              {/* Avatar */}
+              <Box sx={{ position: "relative", mt: -8, mb: 2 }}>
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Avatar
+                    src={userData.profileImage}
+                    alt={userData.displayName || "User"}
+                    sx={{
+                      width: 140,
+                      height: 140,
+                      mx: "auto",
+                      border: `5px solid white`,
+                      boxShadow: `0 8px 24px ${alpha(darkBlueColor, 0.3)}`,
+                      fontSize: "4rem",
+                      bgcolor: primaryColour,
+                      color: darkBlueColor,
+                    }}
+                  >
+                    {userData.displayName
+                      ? userData.displayName[0].toUpperCase()
+                      : "U"}
+                  </Avatar>
+
+                  {/* Camera Icon overlay */}
+                  <label htmlFor="profile-image-upload">
+                    <IconButton
+                      component="span"
+                      sx={{
+                        position: "absolute",
+                        bottom: 5,
+                        right: "50%",
+                        transform: "translateX(50px)",
+                        bgcolor: primaryColour,
+                        color: darkBlueColor,
+                        "&:hover": {
+                          bgcolor: alpha(primaryColour, 0.9),
+                        },
+                      }}
+                    >
+                      <PhotoCamera />
+                    </IconButton>
+                  </label>
+                  <input
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    id="profile-image-upload"
+                    type="file"
+                    onChange={(e) => {
+                      console.log(e.target.files[0]);
+                    }}
+                  />
+                </motion.div>
+              </Box>
+
+              <CardContent sx={{ pt: 0, pb: 4 }}>
+                <Typography
+                  variant="h5"
+                  fontWeight={800}
+                  gutterBottom
+                  sx={{ color: darkBlueColor }}
+                >
+                  {userData.displayName || "New User"}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 3, fontWeight: 500 }}
+                >
+                  {userData.email}
+                </Typography>
+
+                <Divider sx={{ mb: 3, mx: -2 }} />
+
+                {/* Quick Info */}
+                <Box sx={{ textAlign: "left", px: 1 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      mb: 1.5,
+                    }}
+                  >
+                    <Email
+                      sx={{
+                        color: alpha(secondaryColour, 0.8),
+                        mr: 2,
+                        fontSize: 20,
+                      }}
+                    />
+                    <Typography variant="body2" color="text.secondary">
+                      {userData.email || "No email provided"}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      mb: 1.5,
+                    }}
+                  >
+                    <Phone
+                      sx={{
+                        color: alpha(secondaryColour, 0.8),
+                        mr: 2,
+                        fontSize: 20,
+                      }}
+                    />
+                    <Typography variant="body2" color="text.secondary">
+                      {userData.phoneNumber || "No phone provided"}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      mb: 1.5,
+                    }}
+                  >
+                    <LocationCity
+                      sx={{
+                        color: alpha(secondaryColour, 0.8),
+                        mr: 2,
+                        fontSize: 20,
+                      }}
+                    />
+                    <Typography variant="body2" color="text.secondary">
+                      {userData.city || "No city provided"}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <Public
+                      sx={{
+                        color: alpha(secondaryColour, 0.8),
+                        mr: 2,
+                        fontSize: 20,
+                      }}
+                    />
+                    <Typography variant="body2" color="text.secondary">
+                      {userData.country || "No country provided"}
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Personal Details Section */}
+          <Grid item xs={12} md={8}>
+            <Card
+              elevation={3}
+              component={motion.div}
+              variants={itemVariants}
+              sx={{
+                borderRadius: 4,
+                bgcolor: "white",
+                height: "100%",
+                overflow: "hidden",
+                boxShadow: `0 8px 32px ${alpha(darkBlueColor, 0.15)}`,
+              }}
+            >
+              <Box
+                sx={{
+                  p: 3,
+                  background: `linear-gradient(135deg, ${alpha(
+                    primaryColour,
+                    0.2
+                  )} 0%, ${alpha(secondaryColour, 0.1)} 100%)`,
+                  borderBottom: `1px solid ${alpha(darkBlueColor, 0.1)}`,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Typography
+                  variant="h5"
+                  fontWeight={800}
+                  sx={{ color: darkBlueColor }}
+                >
+                  Personal Information
+                </Typography>
+                <Button
+                  variant={editing ? "contained" : "outlined"}
+                  startIcon={editing ? <Save /> : <Edit />}
+                  onClick={editing ? handleProfileSave : handleProfileEdit}
+                  sx={{
+                    borderRadius: 2,
+                    px: 3,
+                    bgcolor: editing ? primaryColour : "transparent",
+                    color: editing ? darkBlueColor : darkBlueColor,
+                    borderColor: editing ? "transparent" : primaryColour,
+                    "&:hover": {
+                      bgcolor: editing
+                        ? alpha(primaryColour, 0.9)
+                        : alpha(primaryColour, 0.1),
+                      borderColor: editing ? "transparent" : alpha(primaryColour, 0.7),
+                    },
+                    fontWeight: 600,
+                    boxShadow:
+                      editing && `0 4px 14px ${alpha(primaryColour, 0.4)}`,
+                  }}
+                >
+                  {editing ? "Save Changes" : "Edit Profile"}
+                </Button>
+              </Box>
+
+              <CardContent sx={{ p: 4 }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    mb: 3,
+                    color: alpha(darkBlueColor, 0.7),
+                    fontStyle: "italic",
+                  }}
+                >
+                  Update your personal details to enhance your car rental
+                  experience. Your information helps us provide you with
+                  personalized service.
+                </Typography>
+
+                <Grid container spacing={3}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Full Name"
+                      name="displayName"
+                      value={userData.displayName}
+                      onChange={handleInputChange}
+                      disabled={!editing}
+                      sx={{
+                        mb: 1,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                          bgcolor: editing ? "white" : alpha(darkBlueColor, 0.02),
+                        },
+                      }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <AccountCircle
+                              sx={{
+                                color: editing
+                                  ? primaryColour
+                                  : alpha(darkBlueColor, 0.5),
+                              }}
+                            />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Email Address"
+                      name="email"
+                      type="email"
+                      value={userData.email}
+                      onChange={handleInputChange}
+                      disabled={!editing}
+                      sx={{
+                        mb: 1,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                          bgcolor: editing ? "white" : alpha(darkBlueColor, 0.02),
+                        },
+                      }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Email
+                              sx={{
+                                color: editing
+                                  ? primaryColour
+                                  : alpha(darkBlueColor, 0.5),
+                              }}
+                            />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Phone Number"
+                      name="phoneNumber"
+                      value={userData.phoneNumber}
+                      onChange={handleInputChange}
+                      disabled={!editing}
+                      sx={{
+                        mb: 1,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                          bgcolor: editing ? "white" : alpha(darkBlueColor, 0.02),
+                        },
+                      }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Phone
+                              sx={{
+                                color: editing
+                                  ? primaryColour
+                                  : alpha(darkBlueColor, 0.5),
+                              }}
+                            />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Country"
+                      name="country"
+                      value={userData.country}
+                      onChange={handleInputChange}
+                      disabled={!editing}
+                      sx={{
+                        mb: 1,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                          bgcolor: editing ? "white" : alpha(darkBlueColor, 0.02),
+                        },
+                      }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Public
+                              sx={{
+                                color: editing
+                                  ? primaryColour
+                                  : alpha(darkBlueColor, 0.5),
+                              }}
+                            />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="City"
+                      name="city"
+                      value={userData.city}
+                      onChange={handleInputChange}
+                      disabled={!editing}
+                      sx={{
+                        mb: 1,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                          bgcolor: editing ? "white" : alpha(darkBlueColor, 0.02),
+                        },
+                      }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <LocationCity
+                              sx={{
+                                color: editing
+                                  ? primaryColour
+                                  : alpha(darkBlueColor, 0.5),
+                              }}
+                            />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Address"
+                      name="address"
+                      value={userData.address}
+                      onChange={handleInputChange}
+                      disabled={!editing}
+                      sx={{
+                        mb: 1,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 2,
+                          bgcolor: editing ? "white" : alpha(darkBlueColor, 0.02),
+                        },
+                      }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Home
+                              sx={{
+                                color: editing
+                                  ? primaryColour
+                                  : alpha(darkBlueColor, 0.5),
+                              }}
+                            />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    {editing && (
+                      <Box sx={{ mt: 2 }}>
+                        <Alert
+                          severity="info"
+                          icon={false}
+                          sx={{
+                            borderRadius: 2,
+                            bgcolor: alpha(primaryColour, 0.1),
+                            color: darkBlueColor,
+                            border: `1px solid ${alpha(primaryColour, 0.3)}`,
+                          }}
+                        >
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                            Click "Save Changes" to update your information
+                          </Typography>
+                        </Alert>
+                      </Box>
+                    )}
+                  </Grid>
+                </Grid>
+
+                <Box
+                  sx={{
+                    mt: 4,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    Last updated: {new Date().toLocaleDateString()}
+                  </Typography>
+                  {editing && (
+                    <Button
+                      variant="contained"
+                      onClick={handleProfileSave}
+                      sx={{
+                        borderRadius: 2,
+                        px: 4,
+                        py: 1.2,
+                        bgcolor: primaryColour,
+                        color: darkBlueColor,
+                        fontWeight: 700,
+                        "&:hover": {
+                          bgcolor: alpha(primaryColour, 0.9),
+                          boxShadow: `0 6px 20px ${alpha(primaryColour, 0.4)}`,
+                        },
+                        boxShadow: `0 4px 14px ${alpha(primaryColour, 0.4)}`,
+                      }}
+                    >
+                      Save Changes
+                    </Button>
+                  )}
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </motion.div>
+    );
+  };
+
+  // Updated renderTabContent function
+  const renderTabContent = () => {
+    switch (tabValue) {
+      case 0: // Profile
+        return renderProfileTab();
+      case 1: // Security
+        return (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <Grid container spacing={4}>
+              {/* Password Change Section */}
+              <Grid item xs={12} md={6}>
+                <Card
+                  elevation={2}
+                  component={motion.div}
+                  variants={itemVariants}
+                  sx={{
+                    p: 3,
+                    borderRadius: 3,
+                    bgcolor: "white",
+                    height: "100%",
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <Typography variant="h6" fontWeight={700} mb={3}>
+                    Change Password
+                  </Typography>
+
+                  <TextField
+                    fullWidth
+                    margin="normal"
+                    label="Current Password"
+                    type={showPassword ? "text" : "password"}
+                    sx={{
+                      mb: 2,
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 2,
+                      },
+                    }}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword(!showPassword)}
+                            edge="end"
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                  <TextField
+                    fullWidth
+                    margin="normal"
+                    label="New Password"
+                    type={showPassword ? "text" : "password"}
+                    sx={{
+                      mb: 2,
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 2,
+                      },
+                    }}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword(!showPassword)}
+                            edge="end"
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                  <TextField
+                    fullWidth
+                    margin="normal"
+                    label="Confirm New Password"
+                    type={showPassword ? "text" : "password"}
+                    sx={{
+                      mb: 3,
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 2,
+                      },
+                    }}
+                  />
+
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    onClick={handlePasswordChange}
+                    sx={{
+                      py: 1.5,
+                      borderRadius: 8,
+                      bgcolor: primaryColour,
+                      color: darkBlueColor,
+                      fontWeight: 600,
+                      "&:hover": {
+                        bgcolor: alpha(primaryColour, 0.9),
+                      },
+                    }}
+                  >
+                    Update Password
+                  </Button>
+                </Card>
+              </Grid>
+
+              {/* Two-Factor Authentication Section */}
+              <Grid item xs={12} md={6}>
+                <Card
+                  elevation={2}
+                  component={motion.div}
+                  variants={itemVariants}
+                  sx={{
+                    p: 3,
+                    borderRadius: 3,
+                    bgcolor: "white",
+                    height: "100%",
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <Typography variant="h6" fontWeight={700} mb={3}>
+                    Two-Factor Authentication
+                  </Typography>
+
+                  <Box
+                    sx={{
+                      bgcolor: alpha(primaryColour, 0.1),
+                      p: 2,
+                      borderRadius: 2,
+                      mb: 3,
+                      border: `1px solid ${alpha(primaryColour, 0.3)}`,
+                    }}
+                  >
+                    <Typography variant="body2" mb={2}>
+                      Enable two-factor authentication for an extra layer of
+                      security. We'll send a verification code to your phone each
+                      time you sign in.
+                    </Typography>
+
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={userData.twoFactorAuth}
+                          onChange={handleInputChange}
+                          name="twoFactorAuth"
+                          color="primary"
+                        />
+                      }
+                      label={
+                        <Typography fontWeight={600}>
+                          {userData.twoFactorAuth ? "Enabled" : "Disabled"}
+                        </Typography>
+                      }
+                    />
+                  </Box>
+
+                  <Divider sx={{ my: 3 }} />
+
+                  <Typography variant="h6" fontWeight={700} mb={3}>
+                    Danger Zone
+                  </Typography>
+
+                  <Box
+                    sx={{
+                      bgcolor: alpha("#f44336", 0.05),
+                      p: 2,
+                      borderRadius: 2,
+                      border: `1px solid ${alpha("#f44336", 0.2)}`,
+                    }}
+                  >
+                    <Typography variant="body2" mb={2}>
+                      Once you delete your account, there is no going back.
+                      Please be certain.
+                    </Typography>
+
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={<Delete />}
+                      onClick={() => setDeleteDialogOpen(true)}
+                      sx={{
+                        borderRadius: 8,
+                      }}
+                    >
+                      Delete Account
+                    </Button>
+                  </Box>
+                </Card>
+              </Grid>
+            </Grid>
+          </motion.div>
+        );
+
+      case 2: // Payment Methods
+        return (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <Grid container spacing={4}>
+              {/* Existing Payment Methods */}
+              <Grid item xs={12} md={7}>
+                <Card
+                  elevation={2}
+                  component={motion.div}
+                  variants={itemVariants}
+                  sx={{
+                    p: 3,
+                    borderRadius: 3,
+                    bgcolor: "white",
+                    height: "100%",
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <Typography variant="h6" fontWeight={700} mb={3}>
+                    Payment Methods
+                  </Typography>
+
+                  {paymentMethods.map((method) => (
+                    <Paper
+                      key={method.id}
+                      elevation={0}
+                      sx={{
+                        p: 2,
+                        mb: 2,
+                        borderRadius: 2,
+                        border: `1px solid ${alpha(darkBlueColor, 0.1)}`,
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        "&:hover": {
+                          boxShadow: `0 5px 15px ${alpha(darkBlueColor, 0.1)}`,
+                        },
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <Box
+                          sx={{
+                            width: 45,
+                            height: 30,
+                            borderRadius: 1,
+                            bgcolor:
+                              method.cardType === "Visa"
+                                ? "#172B85"
+                                : "#EB001B",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            mr: 2,
+                            color: "white",
+                            fontWeight: "bold",
+                            fontSize: "0.7rem",
+                          }}
+                        >
+                          {method.cardType === "Visa" ? "VISA" : "MC"}
+                        </Box>
+                        <Box>
+                          <Typography variant="body1" fontWeight={600}>
+                            **** **** **** {method.last4}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Expires: {method.expiry}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Button
+                        size="small"
+                        color="error"
+                        sx={{
+                          minWidth: "auto",
+                          textTransform: "none",
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    </Paper>
+                  ))}
+
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    startIcon={<AddCircleOutline />}
+                    onClick={handleAddPaymentMethod}
+                    sx={{
+                      mt: 2,
+                      py: 1.5,
+                      borderRadius: 8,
+                      color: darkBlueColor,
+                      borderColor: alpha(darkBlueColor, 0.3),
+                      "&:hover": {
+                        borderColor: darkBlueColor,
+                        bgcolor: alpha(darkBlueColor, 0.05),
+                      },
+                    }}
+                  >
+                    Add Payment Method
+                  </Button>
+                </Card>
+              </Grid>
+
+              {/* Billing Address */}
+              <Grid item xs={12} md={5}>
+                <Card
+                  elevation={2}
+                  component={motion.div}
+                  variants={itemVariants}
+                  sx={{
+                    p: 3,
+                    borderRadius: 3,
+                    bgcolor: "white",
+                    height: "100%",
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <Typography variant="h6" fontWeight={700} mb={3}>
+                    Billing Address
+                  </Typography>
+
+                  <TextField
+                    fullWidth
+                    label="Full Name"
+                    defaultValue={userData.displayName}
+                    sx={{
+                      mb: 2,
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 2,
+                      },
+                    }}
+                  />
+                  <TextField
+                    fullWidth
+                    label="Address Line"
+                    defaultValue={userData.address}
+                    sx={{
+                      mb: 2,
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 2,
+                      },
+                    }}
+                  />
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="City"
+                        defaultValue={userData.city}
+                        sx={{
+                          mb: 2,
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 2,
+                          },
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Postal Code"
+                        sx={{
+                          mb: 2,
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: 2,
+                          },
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                  <TextField
+                    fullWidth
+                    label="Country"
+                    defaultValue={userData.country}
+                    sx={{
+                      mb: 3,
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 2,
+                      },
+                    }}
+                  />
+
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    sx={{
+                      py: 1.5,
+                      borderRadius: 8,
+                      bgcolor: primaryColour,
+                      color: darkBlueColor,
+                      fontWeight: 600,
+                      "&:hover": {
+                        bgcolor: alpha(primaryColour, 0.9),
+                      },
+                    }}
+                  >
+                    Save Billing Address
+                  </Button>
+                </Card>
+              </Grid>
+            </Grid>
+          </motion.div>
+        );
+
+      case 3: // Notifications
+        return (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <Card
+              elevation={2}
+              component={motion.div}
+              variants={itemVariants}
+              sx={{
+                p: 3,
+                borderRadius: 3,
+                bgcolor: "white",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
+              }}
+            >
+              <Typography variant="h6" fontWeight={700} mb={3}>
+                Notification Preferences
+              </Typography>
+
+              <List>
+                <ListItem
+                  sx={{
+                    px: 3,
+                    py: 2,
+                    borderRadius: 2,
+                    mb: 2,
+                    bgcolor: alpha(darkBlueColor, 0.03),
+                  }}
+                >
+                  <ListItemText
+                    primary="Email Notifications"
+                    secondary="Receive booking confirmations, updates, and promotional offers by email"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={userData.emailNotifications}
+                        onChange={handleInputChange}
+                        name="emailNotifications"
+                        color="primary"
+                      />
+                    }
+                    label=""
+                  />
+                </ListItem>
+
+                <ListItem
+                  sx={{
+                    px: 3,
+                    py: 2,
+                    borderRadius: 2,
+                    mb: 2,
+                    bgcolor: alpha(darkBlueColor, 0.03),
+                  }}
+                >
+                  <ListItemText
+                    primary="SMS Notifications"
+                    secondary="Receive booking reminders and updates by text message"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={userData.smsNotifications}
+                        onChange={handleInputChange}
+                        name="smsNotifications"
+                        color="primary"
+                      />
+                    }
+                    label=""
+                  />
+                </ListItem>
+
+                <ListItem
+                  sx={{
+                    px: 3,
+                    py: 2,
+                    borderRadius: 2,
+                    bgcolor: alpha(darkBlueColor, 0.03),
+                  }}
+                >
+                  <ListItemText
+                    primary="Marketing Communications"
+                    secondary="Receive special offers, discounts, and news about new vehicles"
+                  />
+                  <FormControlLabel
+                    control={<Switch color="primary" />}
+                    label=""
+                  />
+                </ListItem>
+              </List>
+
+              <Box sx={{ textAlign: "right", mt: 3 }}>
+                <Button
+                  variant="contained"
+                  onClick={handleSaveNotifications}
+                  sx={{
+                    py: 1.5,
+                    px: 4,
+                    borderRadius: 8,
+                    bgcolor: primaryColour,
+                    color: darkBlueColor,
+                    fontWeight: 600,
+                    "&:hover": {
+                      bgcolor: alpha(primaryColour, 0.9),
+                    },
+                  }}
+                >
+                  Save Preferences
+                </Button>
+              </Box>
+            </Card>
+          </motion.div>
+        );
+
+      default:
+        return null;
+    }
   };
 
   return (
-    <Box sx={{ 
-      py: { xs: 8, md: 12 }, 
-      background: 'linear-gradient(to right, rgba(57, 0, 153, 1), rgba(33, 33, 33, 0.9))',
-      minHeight: '100vh'
-    }}>
-      <Container maxWidth="lg">
-        <Typography 
-          variant="h2" 
-          component="h1" 
-          sx={{ 
-            mb: 6, 
-            fontWeight: 700, 
-            color: 'white',
-            '& .highlight': { color: '#ffbd00' }
-          }}
-        >
-          ACCOUNT <span className="highlight">SETTINGS</span>
-        </Typography>
-
-        <Box 
-          sx={{ 
-            width: '100%', 
-            bgcolor: 'background.paper',
-            mb: 4,
-            borderRadius: '8px',
-            overflow: 'hidden'
-          }}
-        >
-          <Tabs
-            value={activeTab}
-            onChange={handleTabChange}
-            variant="fullWidth"
-            sx={{
-              '& .MuiTab-root': {
-                fontWeight: 600,
-                py: 2,
-                fontSize: '1rem'
-              },
-              '& .Mui-selected': {
-                color: '#ffbd00',
-              },
-              '& .MuiTabs-indicator': {
-                backgroundColor: '#ffbd00',
-                height: 3
-              }
-            }}
+    <>
+      <Header />
+      <Box
+        sx={{
+          background: `linear-gradient(135deg, ${alpha(darkBlueColor, 0.05)} 0%, ${alpha(
+            secondaryColour,
+            0.08
+          )} 100%)`,
+          minHeight: "100vh",
+          py: { xs: 5, md: 8 },
+          pt: { xs: 12, md: 16 },
+        }}
+      >
+        <Container maxWidth="lg">
+          {/* Page Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
           >
-            <Tab icon={<FiUser />} label="Profile" iconPosition="start" />
-            <Tab icon={<FiFileText />} label="Documents" iconPosition="start" />
-            <Tab icon={<FiCreditCard />} label="Payment Methods" iconPosition="start" />
-            <Tab icon={<FiClock />} label="Activity History" iconPosition="start" />
-          </Tabs>
-        </Box>
-
-        {/* Personal Information Section */}
-        {activeTab === 0 && (
-          <Paper 
-            elevation={3}
-            sx={{
-              p: 4,
-              bgcolor: 'rgba(33, 33, 33, 0.95)',
-              color: 'white',
-              borderRadius: '8px',
-              border: '1px solid rgba(255, 255, 255, 0.1)'
-            }}
-          >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4, alignItems: 'center' }}>
-              <Typography variant="h4" component="h2" sx={{ fontWeight: 600 }}>
-                Personal Information
-              </Typography>
-              {!isEditingPersonal ? (
-                <Button
-                  onClick={() => setIsEditingPersonal(true)}
-                  variant="outlined"
-                  startIcon={<FiEdit />}
-                  sx={{ 
-                    color: '#ffbd00', 
-                    borderColor: '#ffbd00',
-                    '&:hover': {
-                      borderColor: '#ffbd00',
-                      bgcolor: 'rgba(255, 189, 0, 0.1)'
-                    }
-                  }}
-                >
-                  Edit
-                </Button>
-              ) : (
-                <Button
-                  onClick={savePersonalInfo}
-                  variant="contained"
-                  startIcon={<FiCheck />}
-                  disabled={isLoading}
-                  sx={{ 
-                    bgcolor: '#ffbd00', 
-                    color: '#390099',
-                    '&:hover': {
-                      bgcolor: '#d9a000'
-                    },
-                    '&.Mui-disabled': {
-                      bgcolor: 'rgba(255, 189, 0, 0.4)'
-                    }
-                  }}
-                >
-                  {isLoading ? 'Saving...' : 'Save'}
-                </Button>
-              )}
-            </Box>
-
-            <Grid container spacing={4}>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500 }}>
-                  Full Name
-                </Typography>
-                {isEditingPersonal ? (
-                  <TextField
-                    fullWidth
-                    name="fullName"
-                    value={personalInfo.fullName}
-                    onChange={handlePersonalInfoChange}
-                    variant="outlined"
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        bgcolor: 'rgba(255, 255, 255, 0.05)',
-                        '& fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.2)',
-                        },
-                        '&:hover fieldset': {
-                          borderColor: '#ffbd00',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#ffbd00',
-                        },
-                      },
-                      '& .MuiInputBase-input': {
-                        color: 'white',
-                      },
-                      '& .MuiInputLabel-root': {
-                        color: 'rgba(255, 255, 255, 0.7)',
-                      },
-                    }}
-                  />
-                ) : (
-                  <Box sx={{ p: 2, bgcolor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1 }}>
-                    <Typography>{personalInfo.fullName || 'Not provided'}</Typography>
-                  </Box>
-                )}
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500 }}>
-                  Email Address
-                </Typography>
-                <Box sx={{ p: 2, bgcolor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1 }}>
-                  <Typography>{personalInfo.email || 'Not provided'}</Typography>
-                </Box>
-                <Typography variant="caption" sx={{ mt: 1, display: 'block', color: 'rgba(255, 255, 255, 0.5)' }}>
-                  Email cannot be changed
-                </Typography>
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500 }}>
-                  Phone Number
-                </Typography>
-                {isEditingPersonal ? (
-                  <TextField
-                    fullWidth
-                    name="phone"
-                    value={personalInfo.phone}
-                    onChange={handlePersonalInfoChange}
-                    variant="outlined"
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        bgcolor: 'rgba(255, 255, 255, 0.05)',
-                        '& fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.2)',
-                        },
-                        '&:hover fieldset': {
-                          borderColor: '#ffbd00',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#ffbd00',
-                        },
-                      },
-                      '& .MuiInputBase-input': {
-                        color: 'white',
-                      },
-                      '& .MuiInputLabel-root': {
-                        color: 'rgba(255, 255, 255, 0.7)',
-                      },
-                    }}
-                  />
-                ) : (
-                  <Box sx={{ p: 2, bgcolor: 'rgba(255, 255, 255, 0.05)', borderRadius: 1 }}>
-                    <Typography>{personalInfo.phone || 'Not provided'}</Typography>
-                  </Box>
-                )}
-              </Grid>
-            </Grid>
-          </Paper>
-        )}
-
-        {/* Driver's License Section */}
-        {activeTab === 1 && (
-          <Paper 
-            elevation={3}
-            sx={{
-              p: 4,
-              bgcolor: 'rgba(33, 33, 33, 0.95)',
-              color: 'white',
-              borderRadius: '8px',
-              border: '1px solid rgba(255, 255, 255, 0.1)'
-            }}
-          >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4, alignItems: 'center' }}>
-              <Typography variant="h4" component="h2" sx={{ fontWeight: 600 }}>
-                Driver's License
-              </Typography>
-              {getStatusBadge()}
-            </Box>
-            
-            {licenseInfo.status === 'REJECTED' && (
-              <Box sx={{ 
-                mb: 4, 
-                p: 3, 
-                bgcolor: 'rgba(244, 67, 54, 0.1)', 
-                borderLeft: '4px solid #f44336',
-                borderRadius: '4px',
-                display: 'flex',
-                alignItems: 'flex-start'
-              }}>
-                <FiAlertCircle style={{ marginRight: 16, marginTop: 4, color: '#f44336' }} />
-                <Typography>
-                  Your license was rejected: {licenseInfo.rejectionReason}
-                </Typography>
-              </Box>
-            )}
-
-            <Grid container spacing={4} sx={{ mb: 4 }}>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 500 }}>
-                  Front of License
-                </Typography>
-                <Box 
-                  sx={{ 
-                    border: '2px dashed rgba(255, 189, 0, 0.4)', 
-                    borderRadius: 2, 
-                    p: 3, 
-                    textAlign: 'center',
-                    bgcolor: 'rgba(255, 255, 255, 0.05)',
-                    height: 250,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center'
-                  }}
-                >
-                  {frontImagePreview ? (
-                    <Box>
-                      <img 
-                        src={frontImagePreview} 
-                        alt="License Front Preview" 
-                        style={{ maxWidth: '100%', maxHeight: 180, objectFit: 'contain', marginBottom: 16 }}
-                      />
-                      <Button 
-                        onClick={() => {
-                          setFrontImagePreview(null);
-                          setLicenseInfo(prev => ({ ...prev, frontImage: null }));
-                        }}
-                        color="error"
-                        variant="text"
-                        disabled={licenseInfo.status === 'PENDING' || licenseInfo.status === 'APPROVED'}
-                        sx={{ textTransform: 'none' }}
-                      >
-                        Remove
-                      </Button>
-                    </Box>
-                  ) : (
-                    <label style={{ width: '100%', height: '100%', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                      <input
-                        type="file"
-                        accept=".jpg,.jpeg,.png,.pdf"
-                        style={{ display: 'none' }}
-                        onChange={handleLicenseImageChange('front')}
-                        disabled={licenseInfo.status === 'PENDING' || licenseInfo.status === 'APPROVED'}
-                      />
-                      <FiUpload style={{ fontSize: 48, margin: '0 auto 16px', color: 'rgba(255, 189, 0, 0.6)' }} />
-                      <Typography sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>Click to upload front of license</Typography>
-                      <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.5)', mt: 1 }}>
-                        JPG, PNG or PDF, max 5MB
-                      </Typography>
-                    </label>
-                  )}
-                </Box>
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 500 }}>
-                  Back of License
-                </Typography>
-                <Box 
-                  sx={{ 
-                    border: '2px dashed rgba(255, 189, 0, 0.4)', 
-                    borderRadius: 2, 
-                    p: 3, 
-                    textAlign: 'center',
-                    bgcolor: 'rgba(255, 255, 255, 0.05)',
-                    height: 250,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center'
-                  }}
-                >
-                  {backImagePreview ? (
-                    <Box>
-                      <img 
-                        src={backImagePreview} 
-                        alt="License Back Preview" 
-                        style={{ maxWidth: '100%', maxHeight: 180, objectFit: 'contain', marginBottom: 16 }}
-                      />
-                      <Button 
-                        onClick={() => {
-                          setBackImagePreview(null);
-                          setLicenseInfo(prev => ({ ...prev, backImage: null }));
-                        }}
-                        color="error"
-                        variant="text"
-                        disabled={licenseInfo.status === 'PENDING' || licenseInfo.status === 'APPROVED'}
-                        sx={{ textTransform: 'none' }}
-                      >
-                        Remove
-                      </Button>
-                    </Box>
-                  ) : (
-                    <label style={{ width: '100%', height: '100%', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                      <input
-                        type="file"
-                        accept=".jpg,.jpeg,.png,.pdf"
-                        style={{ display: 'none' }}
-                        onChange={handleLicenseImageChange('back')}
-                        disabled={licenseInfo.status === 'PENDING' || licenseInfo.status === 'APPROVED'}
-                      />
-                      <FiUpload style={{ fontSize: 48, margin: '0 auto 16px', color: 'rgba(255, 189, 0, 0.6)' }} />
-                      <Typography sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>Click to upload back of license</Typography>
-                      <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.5)', mt: 1 }}>
-                        JPG, PNG or PDF, max 5MB
-                      </Typography>
-                    </label>
-                  )}
-                </Box>
-              </Grid>
-            </Grid>
-
-            {(licenseInfo.status === 'NOT_UPLOADED' || licenseInfo.status === 'REJECTED') && (
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Button
-                  onClick={uploadLicenseImages}
-                  variant="contained"
-                  disabled={!licenseInfo.frontImage || !licenseInfo.backImage || isLoading}
-                  sx={{ 
-                    bgcolor: '#ffbd00', 
-                    color: '#390099',
-                    px: 4,
-                    py: 1.5,
-                    '&:hover': {
-                      bgcolor: '#d9a000'
-                    },
-                    '&.Mui-disabled': {
-                      bgcolor: 'rgba(255, 189, 0, 0.4)'
-                    }
-                  }}
-                >
-                  {isLoading ? 'Uploading...' : 'Upload License'}
-                </Button>
-              </Box>
-            )}
-            
-            {licenseInfo.status === 'APPROVED' && (
-              <Box sx={{ 
-                p: 3, 
-                bgcolor: 'rgba(76, 175, 80, 0.1)', 
-                borderRadius: 2,
-                textAlign: 'center',
-                border: '1px solid rgba(76, 175, 80, 0.3)'
-              }}>
-                <Typography sx={{ color: '#81c784' }}>
-                  Your driver's license has been verified. You're ready to rent luxury vehicles!
-                </Typography>
-              </Box>
-            )}
-            
-            {licenseInfo.status === 'PENDING' && (
-              <Box sx={{ 
-                p: 3, 
-                bgcolor: 'rgba(255, 193, 7, 0.1)', 
-                borderRadius: 2,
-                textAlign: 'center',
-                border: '1px solid rgba(255, 193, 7, 0.3)'
-              }}>
-                <Typography sx={{ color: '#ffd54f' }}>
-                  Your license is currently being reviewed. This process typically takes 1-2 business days.
-                </Typography>
-              </Box>
-            )}
-          </Paper>
-        )}
-
-        {/* Payment Methods Section */}
-        {activeTab === 2 && (
-          <Paper 
-            elevation={3}
-            sx={{
-              p: 4,
-              bgcolor: 'rgba(33, 33, 33, 0.95)',
-              color: 'white',
-              borderRadius: '8px',
-              border: '1px solid rgba(255, 255, 255, 0.1)'
-            }}
-          >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4, alignItems: 'center' }}>
-              <Typography variant="h4" component="h2" sx={{ fontWeight: 600 }}>
-                Payment Methods
-              </Typography>
-              <Button
-                onClick={() => setShowAddCardForm(!showAddCardForm)}
-                variant="contained"
-                startIcon={<FiPlus />}
-                sx={{ 
-                  bgcolor: '#ffbd00', 
-                  color: '#390099',
-                  '&:hover': {
-                    bgcolor: '#d9a000'
-                  }
-                }}
-              >
-                Add New Card
-              </Button>
-            </Box>
-
-            {/* Add New Card Form */}
-            {showAddCardForm && (
-              <Box 
-                component="form" 
-                onSubmit={addNewCard} 
-                sx={{ 
-                  mb: 5, 
-                  bgcolor: 'rgba(255, 255, 255, 0.05)', 
-                  p: 4, 
-                  borderRadius: 2,
-                  border: '1px solid rgba(255, 255, 255, 0.1)'
-                }}
-              >
-                <Typography variant="h5" sx={{ mb: 3, fontWeight: 500 }}>Add New Payment Method</Typography>
-                <Grid container spacing={3}>
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>Card Number</Typography>
-                    <TextField
-                      fullWidth
-                      name="cardNumber"
-                      value={newCardData.cardNumber}
-                      onChange={handleNewCardChange}
-                      placeholder="1234 5678 9012 3456"
-                      required
-                      inputProps={{
-                        pattern: "[0-9\\s]{13,19}",
-                        maxLength: 19
-                      }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          bgcolor: 'rgba(255, 255, 255, 0.05)',
-                          '& fieldset': {
-                            borderColor: 'rgba(255, 255, 255, 0.2)',
-                          },
-                          '&:hover fieldset': {
-                            borderColor: '#ffbd00',
-                          },
-                          '&.Mui-focused fieldset': {
-                            borderColor: '#ffbd00',
-                          },
-                        },
-                        '& .MuiInputBase-input': {
-                          color: 'white',
-                        },
-                      }}
-                    />
-                  </Grid>
-                  
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>Card Holder Name</Typography>
-                    <TextField
-                      fullWidth
-                      name="cardHolder"
-                      value={newCardData.cardHolder}
-                      onChange={handleNewCardChange}
-                      placeholder="John Doe"
-                      required
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          bgcolor: 'rgba(255, 255, 255, 0.05)',
-                          '& fieldset': {
-                            borderColor: 'rgba(255, 255, 255, 0.2)',
-                          },
-                          '&:hover fieldset': {
-                            borderColor: '#ffbd00',
-                          },
-                          '&.Mui-focused fieldset': {
-                            borderColor: '#ffbd00',
-                          },
-                        },
-                        '& .MuiInputBase-input': {
-                          color: 'white',
-                        },
-                      }}
-                    />
-                  </Grid>
-                  
-                  <Grid item xs={12} md={3}>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>Expiry Date</Typography>
-                    <TextField
-                      fullWidth
-                      name="expiryDate"
-                      value={newCardData.expiryDate}
-                      onChange={handleNewCardChange}
-                      placeholder="MM/YY"
-                      required
-                      inputProps={{
-                        pattern: "(0[1-9]|1[0-2])\/([0-9]{2})",
-                        maxLength: 5
-                      }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          bgcolor: 'rgba(255, 255, 255, 0.05)',
-                          '& fieldset': {
-                            borderColor: 'rgba(255, 255, 255, 0.2)',
-                          },
-                          '&:hover fieldset': {
-                            borderColor: '#ffbd00',
-                          },
-                          '&.Mui-focused fieldset': {
-                            borderColor: '#ffbd00',
-                          },
-                        },
-                        '& .MuiInputBase-input': {
-                          color: 'white',
-                        },
-                      }}
-                    />
-                  </Grid>
-                  
-                  <Grid item xs={12} md={3}>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>CVV</Typography>
-                    <TextField
-                      fullWidth
-                      name="cvv"
-                      value={newCardData.cvv}
-                      onChange={handleNewCardChange}
-                      placeholder="123"
-                      required
-                      inputProps={{
-                        pattern: "[0-9]{3,4}",
-                        maxLength: 4
-                      }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          bgcolor: 'rgba(255, 255, 255, 0.05)',
-                          '& fieldset': {
-                            borderColor: 'rgba(255, 255, 255, 0.2)',
-                          },
-                          '&:hover fieldset': {
-                            borderColor: '#ffbd00',
-                          },
-                          '&.Mui-focused fieldset': {
-                            borderColor: '#ffbd00',
-                          },
-                        },
-                        '& .MuiInputBase-input': {
-                          color: 'white',
-                        },
-                      }}
-                    />
-                  </Grid>
-                </Grid>
-                
-                <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
-                  <Button
-                    type="button"
-                    onClick={() => setShowAddCardForm(false)}
-                    variant="outlined"
-                    sx={{ 
-                      mr: 2,
-                      color: 'white', 
-                      borderColor: 'rgba(255, 255, 255, 0.5)',
-                      '&:hover': {
-                        borderColor: 'white',
-                        bgcolor: 'rgba(255, 255, 255, 0.1)'
-                      }
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    disabled={isLoading}
-                    sx={{ 
-                      bgcolor: '#ffbd00', 
-                      color: '#390099',
-                      '&:hover': {
-                        bgcolor: '#d9a000'
-                      },
-                      '&.Mui-disabled': {
-                        bgcolor: 'rgba(255, 189, 0, 0.4)'
-                      }
-                    }}
-                  >
-                    {isLoading ? 'Adding...' : 'Add Card'}
-                  </Button>
-                </Box>
-              </Box>
-            )}
-
-            {/* Payment Methods List */}
-            {paymentMethods.length > 0 ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {paymentMethods.map(card => (
-                  <Box 
-                    key={card.id} 
-                    sx={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between', 
-                      alignItems: 'center',
-                      p: 3,
-                      bgcolor: 'rgba(255, 255, 255, 0.05)',
-                      borderRadius: 2,
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      '&:hover': {
-                        bgcolor: 'rgba(255, 255, 255, 0.08)',
-                      }
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Box sx={{ mr: 3, bgcolor: 'rgba(255, 255, 255, 0.1)', p: 1, borderRadius: 1 }}>
-                        {card.brand === 'visa' && <img src="/images/visa.svg" alt="Visa" style={{ height: 32 }} />}
-                        {card.brand === 'mastercard' && <img src="/images/mastercard.svg" alt="Mastercard" style={{ height: 32 }} />}
-                        {card.brand === 'amex' && <img src="/images/amex.svg" alt="American Express" style={{ height: 32 }} />}
-                        {(!card.brand || !['visa', 'mastercard', 'amex'].includes(card.brand)) && <FiCreditCard size={32} />}
-                      </Box>
-                      <Box>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>•••• •••• •••• {card.last4}</Typography>
-                        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
-                          Expires {card.expiryMonth}/{card.expiryYear}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <Button
-                      onClick={() => removeCard(card.id)}
-                      color="error"
-                      sx={{ minWidth: 'auto' }}
-                    >
-                      <FiTrash2 size={20} />
-                    </Button>
-                  </Box>
-                ))}
-              </Box>
-            ) : (
-              <Box sx={{ 
-                textAlign: 'center', 
-                py: 8, 
-                bgcolor: 'rgba(255, 255, 255, 0.05)', 
-                borderRadius: 2,
-                border: '1px solid rgba(255, 255, 255, 0.1)'
-              }}>
-                <FiCreditCard size={48} style={{ margin: '0 auto 16px', color: 'rgba(255, 255, 255, 0.3)' }} />
-                <Typography variant="h6" sx={{ mb: 1 }}>No payment methods found</Typography>
-                <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
-                  Add a credit or debit card to make booking easier.
-                </Typography>
-              </Box>
-            )}
-          </Paper>
-        )}
-
-        {/* Activity History Section */}
-        {activeTab === 3 && (
-          <Paper 
-            elevation={3}
-            sx={{
-              p: 4,
-              bgcolor: 'rgba(33, 33, 33, 0.95)',
-              color: 'white',
-              borderRadius: '8px',
-              border: '1px solid rgba(255, 255, 255, 0.1)'
-            }}
-          >
-            <Typography variant="h4" component="h2" sx={{ mb: 4, fontWeight: 600 }}>
-              Activity History
+            <Typography
+              variant="h3"
+              fontWeight={800}
+              sx={{
+                color: darkBlueColor,
+                mb: 1,
+                textAlign: "center",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              Account Settings
             </Typography>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                color: alpha(darkBlueColor, 0.7),
+                mb: 5,
+                textAlign: "center",
+                maxWidth: 700,
+                mx: "auto",
+                lineHeight: 1.6,
+              }}
+            >
+              Manage your profile details, security preferences, payment methods,
+              and notification settings
+            </Typography>
+          </motion.div>
 
-            {/* Filters */}
-            <Box sx={{ 
-              display: 'flex', 
-              flexWrap: 'wrap', 
-              gap: 3, 
-              mb: 4, 
-              pb: 4, 
-              borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-            }}>
-              <Box>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>Date Range</Typography>
-                <TextField
-                  select
-                  name="dateRange"
-                  value={filters.dateRange}
-                  onChange={handleFilterChange}
-                  SelectProps={{
-                    native: true,
-                  }}
-                  sx={{
-                    minWidth: 150,
-                    '& .MuiOutlinedInput-root': {
-                      bgcolor: 'rgba(255, 255, 255, 0.05)',
-                      '& fieldset': {
-                        borderColor: 'rgba(255, 255, 255, 0.2)',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: '#ffbd00',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#ffbd00',
-                      },
-                    },
-                    '& .MuiInputBase-input': {
-                      color: 'white',
-                    },
-                    '& .MuiSvgIcon-root': {
-                      color: 'white',
-                    },
-                  }}
-                >
-                  <option value="all">All Time</option>
-                  <option value="last30days">Last 30 Days</option>
-                  <option value="last6months">Last 6 Months</option>
-                  <option value="lastyear">Last Year</option>
-                </TextField>
-              </Box>
-              
-              <Box>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>Car Type</Typography>
-                <TextField
-                  select
-                  name="carType"
-                  value={filters.carType}
-                  onChange={handleFilterChange}
-                  SelectProps={{
-                    native: true,
-                  }}
-                  sx={{
-                    minWidth: 150,
-                    '& .MuiOutlinedInput-root': {
-                      bgcolor: 'rgba(255, 255, 255, 0.05)',
-                      '& fieldset': {
-                        borderColor: 'rgba(255, 255, 255, 0.2)',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: '#ffbd00',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#ffbd00',
-                      },
-                    },
-                    '& .MuiInputBase-input': {
-                      color: 'white',
-                    },
-                    '& .MuiSvgIcon-root': {
-                      color: 'white',
-                    },
-                  }}
-                >
-                  <option value="all">All Types</option>
-                  <option value="sports">Sports</option>
-                  <option value="luxury">Luxury</option>
-                  <option value="suv">SUV</option>
-                  <option value="convertible">Convertible</option>
-                </TextField>
-              </Box>
-            </Box>
-
-            {/* Bookings List */}
-            {bookingsLoading ? (
-              <Box sx={{ textAlign: 'center', py: 6 }}>
-                <CircularProgress sx={{ color: '#ffbd00' }} />
-                <Typography sx={{ mt: 2 }}>Loading booking history...</Typography>
-              </Box>
-            ) : bookings.length > 0 ? (
-              <Box sx={{ overflow: 'auto' }}>
-                <Box 
-                  sx={{ 
-                    minWidth: 700,
-                    '& .header-cell': {
-                      bgcolor: 'rgba(255, 255, 255, 0.08)',
-                      color: 'rgba(255, 255, 255, 0.7)',
-                      fontWeight: 600,
-                      fontSize: '0.75rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      p: 2,
-                    },
-                    '& .table-cell': {
-                      p: 2,
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-                    },
-                    '& .table-row': {
-                      '&:hover': {
-                        bgcolor: 'rgba(255, 255, 255, 0.03)',
-                      },
-                    },
-                  }}
-                >
-                  <Box sx={{ display: 'flex', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                    <Box className="header-cell" sx={{ flex: '3 1 0%' }}>Car</Box>
-                    <Box className="header-cell" sx={{ flex: '2 1 0%' }}>Start Date</Box>
-                    <Box className="header-cell" sx={{ flex: '1 1 0%' }}>Duration</Box>
-                    <Box className="header-cell" sx={{ flex: '1 1 0%' }}>Total</Box>
-                    <Box className="header-cell" sx={{ flex: '1 1 0%' }}>Status</Box>
-                  </Box>
-                  
-                  {bookings.map(booking => (
-                    <Box 
-                      key={booking.id} 
-                      className="table-row"
-                      sx={{ display: 'flex' }}
-                    >
-                      <Box className="table-cell" sx={{ flex: '3 1 0%' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          {booking.carImage && (
-                            <Box 
-                              component="img"
-                              src={booking.carImage}
-                              alt={booking.carModel}
-                              sx={{ 
-                                width: 60, 
-                                height: 40, 
-                                objectFit: 'cover', 
-                                borderRadius: 1,
-                                mr: 2
-                              }}
-                            />
-                          )}
-                          <Box>
-                            <Typography sx={{ fontWeight: 500 }}>{booking.carModel}</Typography>
-                            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
-                              {booking.carType}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </Box>
-                      <Box className="table-cell" sx={{ flex: '2 1 0%' }}>
-                        {format(new Date(booking.startDate), 'MMM d, yyyy')}
-                      </Box>
-                      <Box className="table-cell" sx={{ flex: '1 1 0%' }}>
-                        {formatBookingDuration(booking.startDate, booking.endDate)}
-                      </Box>
-                      <Box className="table-cell" sx={{ flex: '1 1 0%', fontWeight: 600, color: '#ffbd00' }}>
-                        ${booking.totalAmount.toFixed(2)}
-                      </Box>
-                      <Box className="table-cell" sx={{ flex: '1 1 0%' }}>
-                        <Chip 
-                          label={booking.status} 
-                          size="small"
-                          sx={{
-                            bgcolor: booking.status === 'COMPLETED' ? 'rgba(76, 175, 80, 0.2)' : 
-                              booking.status === 'CANCELLED' ? 'rgba(244, 67, 54, 0.2)' : 
-                              booking.status === 'UPCOMING' ? 'rgba(33, 150, 243, 0.2)' : 
-                              'rgba(158, 158, 158, 0.2)',
-                            color: booking.status === 'COMPLETED' ? '#81c784' : 
-                              booking.status === 'CANCELLED' ? '#e57373' : 
-                              booking.status === 'UPCOMING' ? '#64b5f6' : 
-                              '#bdbdbd',
-                            borderRadius: '4px',
-                            '& .MuiChip-label': {
-                              px: 1,
-                            }
-                          }}
-                        />
-                      </Box>
-                    </Box>
-                  ))}
-                </Box>
-              </Box>
-            ) : (
-              <Box sx={{ 
-                textAlign: 'center', 
-                py: 8, 
-                bgcolor: 'rgba(255, 255, 255, 0.05)', 
-                borderRadius: 2,
-                border: '1px solid rgba(255, 255, 255, 0.1)'
-              }}>
-                <FiClock size={48} style={{ margin: '0 auto 16px', color: 'rgba(255, 255, 255, 0.3)' }} />
-                <Typography variant="h6" sx={{ mb: 1 }}>No booking history found</Typography>
-                <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
-                  You haven't made any bookings yet. When you do, they'll appear here.
-                </Typography>
-              </Box>
-            )}
+          {/* Tabs Section */}
+          <Paper
+            elevation={3}
+            sx={{
+              borderRadius: 4,
+              mb: 4,
+              overflow: "hidden",
+              bgcolor: "white",
+              boxShadow: `0 8px 32px ${alpha(darkBlueColor, 0.15)}`,
+              border: `1px solid ${alpha(primaryColour, 0.2)}`,
+            }}
+          >
+            <Tabs
+              value={tabValue}
+              onChange={handleTabChange}
+              variant={isMobile ? "scrollable" : "fullWidth"}
+              scrollButtons={isMobile ? "auto" : false}
+              aria-label="account settings tabs"
+              sx={{
+                "& .MuiTabs-flexContainer": {
+                  justifyContent: "center",
+                },
+                "& .MuiTab-root": {
+                  py: 2.5,
+                  fontSize: { xs: "0.8rem", sm: "0.9rem" },
+                  fontWeight: 700,
+                  color: alpha(darkBlueColor, 0.6),
+                  "&.Mui-selected": {
+                    color: darkBlueColor,
+                  },
+                  "&:hover": {
+                    backgroundColor: alpha(primaryColour, 0.05),
+                  },
+                  transition: "all 0.2s",
+                },
+                "& .MuiTabs-indicator": {
+                  backgroundColor: primaryColour,
+                  height: 4,
+                  borderRadius: "2px 2px 0 0",
+                },
+                borderBottom: `1px solid ${alpha(darkBlueColor, 0.1)}`,
+              }}
+            >
+              <Tab
+                icon={<AccountCircleIcon />}
+                iconPosition="start"
+                label="Profile"
+                id="tab-0"
+                aria-controls="tabpanel-0"
+              />
+              <Tab
+                icon={<SecurityIcon />}
+                iconPosition="start"
+                label="Security"
+                id="tab-1"
+                aria-controls="tabpanel-1"
+              />
+              <Tab
+                icon={<CreditCardIcon />}
+                iconPosition="start"
+                label="Payment Methods"
+                id="tab-2"
+                aria-controls="tabpanel-2"
+              />
+              <Tab
+                icon={<NotificationsIcon />}
+                iconPosition="start"
+                label="Notifications"
+                id="tab-3"
+                aria-controls="tabpanel-3"
+              />
+            </Tabs>
           </Paper>
-        )}
-      </Container>
-    </Box>
+
+          {/* Tab Content */}
+          <Box
+            role="tabpanel"
+            id={`tabpanel-${tabValue}`}
+            aria-labelledby={`tab-${tabValue}`}
+          >
+            {renderTabContent()}
+          </Box>
+        </Container>
+      </Box>
+      <Footer />
+
+      {/* Delete Account Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+        PaperProps={{
+          elevation: 5,
+          sx: { borderRadius: 3 },
+        }}
+      >
+        <DialogTitle id="alert-dialog-title" sx={{ pb: 1 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              color: "error.main",
+            }}
+          >
+            <Warning sx={{ mr: 1 }} />
+            Are you sure you want to delete your account?
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            This action cannot be undone. All your personal information, booking
+            history, and settings will be permanently deleted.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button
+            onClick={() => setDeleteDialogOpen(false)}
+            sx={{
+              borderRadius: 8,
+              px: 3,
+              color: "text.primary",
+              "&:hover": { bgcolor: alpha(darkBlueColor, 0.05) },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteAccount}
+            color="error"
+            variant="contained"
+            sx={{
+              borderRadius: 8,
+              px: 3,
+            }}
+          >
+            Delete My Account
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={showSuccess}
+        autoHideDuration={5000}
+        onClose={() => setShowSuccess(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setShowSuccess(false)}
+          severity="success"
+          variant="filled"
+          icon={<Check fontSize="inherit" />}
+          sx={{
+            width: "100%",
+            borderRadius: 8,
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+          }}
+        >
+          Your changes have been saved successfully!
+        </Alert>
+      </Snackbar>
+
+      {/* Error Snackbar */}
+      <Snackbar
+        open={showError}
+        autoHideDuration={5000}
+        onClose={() => setShowError(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setShowError(false)}
+          severity="error"
+          variant="filled"
+          sx={{
+            width: "100%",
+            borderRadius: 8,
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+          }}
+        >
+          An error occurred. Please try again.
+        </Alert>
+      </Snackbar>
+    </>
   );
 };
 
 export default AccountSettings;
+
+// Helper icon components for tabs
+function AccountCircleIcon() {
+  return <AccountCircle sx={{ fontSize: 20, mr: 1 }} />;
+}
+
+function SecurityIcon() {
+  return <Security sx={{ fontSize: 20, mr: 1 }} />;
+}
+
+function CreditCardIcon() {
+  return <CreditCard sx={{ fontSize: 20, mr: 1 }} />;
+}
+
+function NotificationsIcon() {
+  return <Notifications sx={{ fontSize: 20, mr: 1 }} />;
+}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Box, Grid, Card, CardMedia, CardContent, Typography, Chip, Button, Container, Skeleton, Alert } from '@mui/material';
 import { Speed, DirectionsCar, AttachMoney } from '@mui/icons-material';
 import { motion } from 'framer-motion';
@@ -202,6 +203,8 @@ export default function CarInventory() {
                           </Typography>
                         </Box>
                         <Button
+                          component={Link}
+                          to={`/cardetail/${car._id}`}
                           variant="contained"
                           fullWidth
                           size="large"
@@ -214,7 +217,7 @@ export default function CarInventory() {
                           }}
                           disabled={!car.availability?.isAvailable}
                         >
-                          {car.availability?.isAvailable ? 'Book Now' : 'Unavailable'}
+                          {car.availability?.isAvailable ? 'View Details' : 'Unavailable'}
                         </Button>
                       </Box>
                     </CardContent>

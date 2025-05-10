@@ -10,6 +10,7 @@ import AboutUs from "./components/AboutUs"
 import CarInventory from './CarInventory';
 import AccountSettings from './components/AccountSettings';
 import BookingHistory from './components/BookingHistory';
+import BookingPage from './components/BookingPage';
 import CarDetail from './CarDetail';
 
 function App() {
@@ -22,10 +23,11 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/services" element={<Services/>}/>
           <Route path="/aboutus" element={<AboutUs/>}/>
-          <Route path="/CarInventory" element={<CarInventory/>}/>
+          <Route path="/carinventory" element={<CarInventory/>}/>
+          <Route path="/cardetail/:carId" element={<CarDetail/>}/>
           <Route path="/settings" element={<AccountSettings/>}/>
           <Route path="/booking-history" element={<BookingHistory/>}/>
-          <Route path="/car" element={<CarDetail/>}/>
+          <Route path="/booking/:carId" element={<BookingPage/>}/>
 
           
           <Route
