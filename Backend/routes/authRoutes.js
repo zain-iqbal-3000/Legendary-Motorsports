@@ -1,22 +1,163 @@
 const express = require('express');
-const { registerUser, loginUser, getAuthenticatedUser } = require('../controllers/authController');
-const auth = require('../middleware/auth');
-
 const router = express.Router();
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const auth = require('../middleware/auth');
+const User = require('../models/userSchema'); // Adjust the path as necessary
+require('dotenv').config();
 
-// @route   POST /api/auth/register
-// @desc    Register a new user
+// @route   GET api/users/test-connection
+// @desc    Test endpoint to check connectivity
 // @access  Public
-router.post('/register', registerUser);
+router.get('/test-connection', (req, res) => {
+  res.json({ success: true, message: 'API is connected successfully' });
+});
 
-// @route   POST /api/auth/login
-// @desc    Login user and get token
+// @route   POST api/users/register
+// @desc    Register user
 // @access  Public
-router.post('/login', loginUser);
+router.post('/register', async (req, res) => {
+  try {
+    console.log('Registering user');
+    console.log('Registration request received:', req.body);
 
-// @route   GET /api/auth/user
-// @desc    Get authenticated user
+    // Use correct field names
+    const { firstName, lastName, email, password, phoneNumber } = req.body;
+
+    // Basic validation
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({ message: 'Please provide first name, last name, email, and password' });
+    }
+
+    // Check if user already exists
+    let user = await User.findOne({ email });
+    if (user) {
+      console.log(`User with email ${email} already exists`);
+      return res.status(400).json({ message: 'User already exists with this email address' });
+    }
+
+    // Create new user with plain password - let the schema middleware handle hashing
+    user = new User({
+      firstName,
+      lastName,
+      email,
+      password, // IMPORTANT: Don't hash here, let schema middleware do it
+      phoneNumber: phoneNumber || '',
+    });
+
+    await user.save();
+    console.log('User registered successfully:', user.id);
+
+    // Create JWT payload
+    const payload = {
+      user: {
+        id: user.id
+      }
+    };
+
+    // Sign token
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET || 'defaultsecret',
+      { expiresIn: '5d' },
+      (err, token) => {
+        if (err) throw err;
+        res.status(201).json({
+          token,
+          user: {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            phoneNumber: user.phoneNumber
+          }
+        });
+      }
+    );
+  } catch (err) {
+    console.error('Registration error:', err.message);
+    res.status(500).json({ message: 'Server error during registration' });
+  }
+});
+
+// @route   POST api/users/login
+// @desc    Authenticate user & get token
+// @access  Public
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    console.log('Login attempt for:', email);
+
+    // Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      console.log('User not found with email:', email);
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+    console.log(`User found: ${user.firstName} ${user.lastName}`);
+    
+    // Add debug logging to see password details
+    console.log('Stored hashed password length:', user.password.length);
+    console.log('Password from request length:', password.length);
+    
+    // Try using the schema method first
+    let isMatch = false;
+    if (typeof user.comparePassword === 'function') {
+      console.log('Using schema comparePassword method');
+      isMatch = await user.comparePassword(password);
+    } else {
+      console.log('Using direct bcrypt.compare');
+      isMatch = await bcrypt.compare(password, user.password);
+    }
+    
+    console.log('Password verification result:', isMatch ? 'match' : 'no match');
+
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    // At this point password matched
+    console.log('Authentication successful for user:', user.email);
+
+    // Create token payload
+    const payload = {
+      user: {
+        id: user.id
+      }
+    };
+
+    // Generate token
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5d' });
+
+    // Create a user object without the password to return to client
+    const userToReturn = {
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      role: user.role
+    };
+
+    res.json({ token, user: userToReturn });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+// @route   GET api/users/me
+// @desc    Get current user
 // @access  Private
-router.get('/user', auth, getAuthenticatedUser);
+router.get('/me', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    res.json(user);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
 
+// Export router
 module.exports = router;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Container,
@@ -30,6 +30,7 @@ import {
   alpha,
   Card,
   CardContent,
+  CircularProgress,
 } from "@mui/material";
 import {
   PhotoCamera,
@@ -55,17 +56,23 @@ import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import Header from "./Header";
 import Footer from "./Footer";
+import axios from "axios"; // Added axios for API calls
 
 const AccountSettings = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
   const [tabValue, setTabValue] = useState(0);
   const [editing, setEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState(
+    "Your changes have been saved successfully!"
+  );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [userData, setUserData] = useState({
     displayName: currentUser?.displayName || "",
     email: currentUser?.email || "",
@@ -84,11 +91,91 @@ const AccountSettings = () => {
   const secondaryColour = theme.palette.secondary.main; // '#390099'
   const darkBlueColor = theme.palette.primary.blue; // '#040430'
 
-  // Mock payment methods
-  const paymentMethods = [
-    { id: 1, cardType: "Visa", last4: "4242", expiry: "12/24" },
-    { id: 2, cardType: "Mastercard", last4: "8888", expiry: "06/25" },
-  ];
+  // Payment methods state
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(false);
+
+  // Password fields
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
+  // Handle password input change
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData({
+      ...passwordData,
+      [name]: value,
+    });
+  };
+
+  // Fetch user data from backend on component mount
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!currentUser) return;
+
+      setIsLoading(true);
+      try {
+        const response = await axios.get(`/api/users/${currentUser.uid}`, {
+          headers: {
+            Authorization: `Bearer ${await currentUser.getIdToken()}`,
+          },
+        });
+
+        const userDataFromBackend = response.data;
+        setUserData({
+          ...userData,
+          ...userDataFromBackend,
+          displayName: userDataFromBackend.displayName || currentUser.displayName || "",
+          email: userDataFromBackend.email || currentUser.email || "",
+          phoneNumber: userDataFromBackend.phoneNumber || currentUser.phoneNumber || "",
+          profileImage: userDataFromBackend.profileImage || currentUser.photoURL || "",
+        });
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setErrorMessage("Failed to load user data. Please try again.");
+        setShowError(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [currentUser]);
+
+  // Fetch payment methods
+  useEffect(() => {
+    const fetchPaymentMethods = async () => {
+      if (!currentUser) return;
+
+      setLoadingPaymentMethods(true);
+      try {
+        const response = await axios.get(
+          `/api/users/${currentUser.uid}/payment-methods`,
+          {
+            headers: {
+              Authorization: `Bearer ${await currentUser.getIdToken()}`,
+            },
+          }
+        );
+
+        setPaymentMethods(response.data || []);
+      } catch (error) {
+        console.error("Error fetching payment methods:", error);
+        // Fallback to mock data if API fails
+        setPaymentMethods([
+          { id: 1, cardType: "Visa", last4: "4242", expiry: "12/24" },
+          { id: 2, cardType: "Mastercard", last4: "8888", expiry: "06/25" },
+        ]);
+      } finally {
+        setLoadingPaymentMethods(false);
+      }
+    };
+
+    fetchPaymentMethods();
+  }, [currentUser]);
 
   // Animation variants
   const containerVariants = {
@@ -109,10 +196,32 @@ const AccountSettings = () => {
     setEditing(!editing);
   };
 
-  const handleProfileSave = () => {
-    // In a real app, we would save the changes to the backend here
-    setEditing(false);
-    setShowSuccess(true);
+  const handleProfileSave = async () => {
+    if (!currentUser) {
+      setErrorMessage("You need to be logged in to update your profile");
+      setShowError(true);
+      return;
+    }
+
+    try {
+      const response = await axios.put(
+        `/api/users/${currentUser.uid}`,
+        userData,
+        {
+          headers: {
+            Authorization: `Bearer ${await currentUser.getIdToken()}`,
+          },
+        }
+      );
+
+      setEditing(false);
+      setSuccessMessage("Profile updated successfully!");
+      setShowSuccess(true);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      setErrorMessage("Failed to update profile. Please try again.");
+      setShowError(true);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -123,25 +232,163 @@ const AccountSettings = () => {
     });
   };
 
-  const handlePasswordChange = () => {
-    // In a real app, we would handle password change here
+  const handleUpdatePassword = async () => {
+    // Validate passwords
+    if (!passwordData.currentPassword) {
+      setErrorMessage("Current password is required");
+      setShowError(true);
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setErrorMessage("New password and confirmation do not match");
+      setShowError(true);
+      return;
+    }
+
+    try {
+      await axios.put(
+        `/api/users/${currentUser.uid}/password`,
+        {
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${await currentUser.getIdToken()}`,
+          },
+        }
+      );
+
+      // Reset password fields
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+
+      setSuccessMessage("Password updated successfully!");
+      setShowSuccess(true);
+    } catch (error) {
+      console.error("Error updating password:", error);
+      setErrorMessage(
+        error.response?.data?.message || "Failed to update password. Please try again."
+      );
+      setShowError(true);
+    }
+  };
+
+  const handleSaveNotifications = async () => {
+    try {
+      await axios.put(
+        `/api/users/${currentUser.uid}/notifications`,
+        {
+          emailNotifications: userData.emailNotifications,
+          smsNotifications: userData.smsNotifications,
+          marketingCommunications: userData.marketingCommunications,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${await currentUser.getIdToken()}`,
+          },
+        }
+      );
+
+      setSuccessMessage("Notification preferences updated successfully!");
+      setShowSuccess(true);
+    } catch (error) {
+      console.error("Error updating notifications:", error);
+      setErrorMessage("Failed to update notification preferences. Please try again.");
+      setShowError(true);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      await axios.delete(`/api/users/${currentUser.uid}`, {
+        headers: {
+          Authorization: `Bearer ${await currentUser.getIdToken()}`,
+        },
+      });
+
+      setDeleteDialogOpen(false);
+
+      // Sign user out
+      await logout();
+
+      // Navigate to home page or display a message
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      setErrorMessage("Failed to delete account. Please try again.");
+      setShowError(true);
+      setDeleteDialogOpen(false);
+    }
+  };
+
+  const handleAddPaymentMethod = async () => {
+    // This would typically redirect to a payment provider form
+    // For now, we'll just show a success message
+    setSuccessMessage("Payment method would be added via secure payment provider");
     setShowSuccess(true);
   };
 
-  const handleSaveNotifications = () => {
-    // In a real app, we would save notification preferences here
-    setShowSuccess(true);
+  const handleRemovePaymentMethod = async (paymentMethodId) => {
+    try {
+      await axios.delete(
+        `/api/users/${currentUser.uid}/payment-methods/${paymentMethodId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${await currentUser.getIdToken()}`,
+          },
+        }
+      );
+
+      // Update the state to remove this payment method
+      setPaymentMethods(paymentMethods.filter((method) => method.id !== paymentMethodId));
+
+      setSuccessMessage("Payment method removed successfully!");
+      setShowSuccess(true);
+    } catch (error) {
+      console.error("Error removing payment method:", error);
+      setErrorMessage("Failed to remove payment method. Please try again.");
+      setShowError(true);
+    }
   };
 
-  const handleDeleteAccount = () => {
-    // In a real app, we would handle account deletion here
-    setDeleteDialogOpen(false);
-    setShowError(true);
-  };
+  const handleProfileImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  const handleAddPaymentMethod = () => {
-    // In a real app, we would handle adding a new payment method here
-    setShowSuccess(true);
+    // Create FormData for file upload
+    const formData = new FormData();
+    formData.append("profileImage", file);
+
+    try {
+      const response = await axios.post(
+        `/api/users/${currentUser.uid}/profile-image`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${await currentUser.getIdToken()}`,
+          },
+        }
+      );
+
+      // Update user data with new image URL
+      setUserData({
+        ...userData,
+        profileImage: response.data.imageUrl,
+      });
+
+      setSuccessMessage("Profile picture updated successfully!");
+      setShowSuccess(true);
+    } catch (error) {
+      console.error("Error uploading profile image:", error);
+      setErrorMessage("Failed to upload profile image. Please try again.");
+      setShowError(true);
+    }
   };
 
   // Enhanced profile tab content
@@ -232,9 +479,7 @@ const AccountSettings = () => {
                     style={{ display: "none" }}
                     id="profile-image-upload"
                     type="file"
-                    onChange={(e) => {
-                      console.log(e.target.files[0]);
-                    }}
+                    onChange={handleProfileImageUpload}
                   />
                 </motion.div>
               </Box>
@@ -684,6 +929,9 @@ const AccountSettings = () => {
                     fullWidth
                     margin="normal"
                     label="Current Password"
+                    name="currentPassword"
+                    value={passwordData.currentPassword}
+                    onChange={handlePasswordChange}
                     type={showPassword ? "text" : "password"}
                     sx={{
                       mb: 2,
@@ -708,6 +956,9 @@ const AccountSettings = () => {
                     fullWidth
                     margin="normal"
                     label="New Password"
+                    name="newPassword"
+                    value={passwordData.newPassword}
+                    onChange={handlePasswordChange}
                     type={showPassword ? "text" : "password"}
                     sx={{
                       mb: 2,
@@ -732,6 +983,9 @@ const AccountSettings = () => {
                     fullWidth
                     margin="normal"
                     label="Confirm New Password"
+                    name="confirmPassword"
+                    value={passwordData.confirmPassword}
+                    onChange={handlePasswordChange}
                     type={showPassword ? "text" : "password"}
                     sx={{
                       mb: 3,
@@ -744,7 +998,7 @@ const AccountSettings = () => {
                   <Button
                     variant="contained"
                     fullWidth
-                    onClick={handlePasswordChange}
+                    onClick={handleUpdatePassword}
                     sx={{
                       py: 1.5,
                       borderRadius: 8,
@@ -925,6 +1179,7 @@ const AccountSettings = () => {
                       <Button
                         size="small"
                         color="error"
+                        onClick={() => handleRemovePaymentMethod(method.id)}
                         sx={{
                           minWidth: "auto",
                           textTransform: "none",
@@ -1229,88 +1484,97 @@ const AccountSettings = () => {
             </Typography>
           </motion.div>
 
-          {/* Tabs Section */}
-          <Paper
-            elevation={3}
-            sx={{
-              borderRadius: 4,
-              mb: 4,
-              overflow: "hidden",
-              bgcolor: "white",
-              boxShadow: `0 8px 32px ${alpha(darkBlueColor, 0.15)}`,
-              border: `1px solid ${alpha(primaryColour, 0.2)}`,
-            }}
-          >
-            <Tabs
-              value={tabValue}
-              onChange={handleTabChange}
-              variant={isMobile ? "scrollable" : "fullWidth"}
-              scrollButtons={isMobile ? "auto" : false}
-              aria-label="account settings tabs"
-              sx={{
-                "& .MuiTabs-flexContainer": {
-                  justifyContent: "center",
-                },
-                "& .MuiTab-root": {
-                  py: 2.5,
-                  fontSize: { xs: "0.8rem", sm: "0.9rem" },
-                  fontWeight: 700,
-                  color: alpha(darkBlueColor, 0.6),
-                  "&.Mui-selected": {
-                    color: darkBlueColor,
-                  },
-                  "&:hover": {
-                    backgroundColor: alpha(primaryColour, 0.05),
-                  },
-                  transition: "all 0.2s",
-                },
-                "& .MuiTabs-indicator": {
-                  backgroundColor: primaryColour,
-                  height: 4,
-                  borderRadius: "2px 2px 0 0",
-                },
-                borderBottom: `1px solid ${alpha(darkBlueColor, 0.1)}`,
-              }}
-            >
-              <Tab
-                icon={<AccountCircleIcon />}
-                iconPosition="start"
-                label="Profile"
-                id="tab-0"
-                aria-controls="tabpanel-0"
-              />
-              <Tab
-                icon={<SecurityIcon />}
-                iconPosition="start"
-                label="Security"
-                id="tab-1"
-                aria-controls="tabpanel-1"
-              />
-              <Tab
-                icon={<CreditCardIcon />}
-                iconPosition="start"
-                label="Payment Methods"
-                id="tab-2"
-                aria-controls="tabpanel-2"
-              />
-              <Tab
-                icon={<NotificationsIcon />}
-                iconPosition="start"
-                label="Notifications"
-                id="tab-3"
-                aria-controls="tabpanel-3"
-              />
-            </Tabs>
-          </Paper>
+          {/* Loading State */}
+          {isLoading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", my: 5 }}>
+              <CircularProgress sx={{ color: primaryColour }} />
+            </Box>
+          ) : (
+            <>
+              {/* Tabs Section */}
+              <Paper
+                elevation={3}
+                sx={{
+                  borderRadius: 4,
+                  mb: 4,
+                  overflow: "hidden",
+                  bgcolor: "white",
+                  boxShadow: `0 8px 32px ${alpha(darkBlueColor, 0.15)}`,
+                  border: `1px solid ${alpha(primaryColour, 0.2)}`,
+                }}
+              >
+                <Tabs
+                  value={tabValue}
+                  onChange={handleTabChange}
+                  variant={isMobile ? "scrollable" : "fullWidth"}
+                  scrollButtons={isMobile ? "auto" : false}
+                  aria-label="account settings tabs"
+                  sx={{
+                    "& .MuiTabs-flexContainer": {
+                      justifyContent: "center",
+                    },
+                    "& .MuiTab-root": {
+                      py: 2.5,
+                      fontSize: { xs: "0.8rem", sm: "0.9rem" },
+                      fontWeight: 700,
+                      color: alpha(darkBlueColor, 0.6),
+                      "&.Mui-selected": {
+                        color: darkBlueColor,
+                      },
+                      "&:hover": {
+                        backgroundColor: alpha(primaryColour, 0.05),
+                      },
+                      transition: "all 0.2s",
+                    },
+                    "& .MuiTabs-indicator": {
+                      backgroundColor: primaryColour,
+                      height: 4,
+                      borderRadius: "2px 2px 0 0",
+                    },
+                    borderBottom: `1px solid ${alpha(darkBlueColor, 0.1)}`,
+                  }}
+                >
+                  <Tab
+                    icon={<AccountCircleIcon />}
+                    iconPosition="start"
+                    label="Profile"
+                    id="tab-0"
+                    aria-controls="tabpanel-0"
+                  />
+                  <Tab
+                    icon={<SecurityIcon />}
+                    iconPosition="start"
+                    label="Security"
+                    id="tab-1"
+                    aria-controls="tabpanel-1"
+                  />
+                  <Tab
+                    icon={<CreditCardIcon />}
+                    iconPosition="start"
+                    label="Payment Methods"
+                    id="tab-2"
+                    aria-controls="tabpanel-2"
+                  />
+                  <Tab
+                    icon={<NotificationsIcon />}
+                    iconPosition="start"
+                    label="Notifications"
+                    id="tab-3"
+                    aria-controls="tabpanel-3"
+                  />
+                </Tabs>
+              </Paper>
 
-          {/* Tab Content */}
-          <Box
-            role="tabpanel"
-            id={`tabpanel-${tabValue}`}
-            aria-labelledby={`tab-${tabValue}`}
-          >
-            {renderTabContent()}
-          </Box>
+              {/* Tab Content */}
+              <Box
+                role="tabpanel"
+                id={`tabpanel-${tabValue}`}
+                aria-labelledby={`tab-${tabValue}`}
+              >
+                {renderTabContent()}
+              </Box>
+            </>
+          )}
         </Container>
       </Box>
       <Footer />
@@ -1388,7 +1652,7 @@ const AccountSettings = () => {
             boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
           }}
         >
-          Your changes have been saved successfully!
+          {successMessage}
         </Alert>
       </Snackbar>
 
@@ -1409,7 +1673,7 @@ const AccountSettings = () => {
             boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
           }}
         >
-          An error occurred. Please try again.
+          {errorMessage}
         </Alert>
       </Snackbar>
     </>

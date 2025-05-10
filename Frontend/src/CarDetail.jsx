@@ -23,7 +23,7 @@ import {
   LocationOn,
 } from '@mui/icons-material';
 import { motion, useAnimation } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 
 // Mock car data
 const mockCarData = {
@@ -110,7 +110,9 @@ const FeatureChip = ({ icon: Icon, label }) => (
   />
 );
 
-const CarDetail = ({ onBack }) => {
+const CarDetail = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(0);
   const controls = useAnimation();
   const car = mockCarData;
@@ -118,6 +120,10 @@ const CarDetail = ({ onBack }) => {
   useEffect(() => {
     controls.start({ opacity: 1, y: 0 });
   }, [controls]);
+
+  const handleBack = () => {
+    navigate('/carinventory');
+  };
 
   return (
     <Box sx={{
@@ -130,7 +136,7 @@ const CarDetail = ({ onBack }) => {
       <Container maxWidth="lg">
         <Button
           startIcon={<ArrowBack />}
-          onClick={onBack}
+          onClick={handleBack}
           sx={{
             mb: 3,
             color: '#ffd633',

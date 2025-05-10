@@ -88,9 +88,13 @@ const Login = () => {
         severity: 'success'
       });
       
+      // Get intended path or default to home page
+      const intendedPath = sessionStorage.getItem('intendedPath') || '/';
+      sessionStorage.removeItem('intendedPath');
+      
       // Give a moment to see the success message
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate(intendedPath);
       }, 1000);
       
     } catch (err) {
