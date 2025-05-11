@@ -6,6 +6,8 @@ import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme.jsx';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { Provider as ReduxProvider } from 'react-redux';
+import store from './redux/store';
 import axios from 'axios';
 
 // Configure Axios for debugging
@@ -53,12 +55,14 @@ axios.interceptors.response.use(
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <ThemeProvider theme={theme}>
-      <BrowserRouter>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </BrowserRouter>
-    </ThemeProvider>
+    <ReduxProvider store={store}>
+      <ThemeProvider theme={theme}>
+        <BrowserRouter>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </BrowserRouter>
+      </ThemeProvider>
+    </ReduxProvider>
   </React.StrictMode>,
 );

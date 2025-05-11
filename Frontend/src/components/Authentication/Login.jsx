@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { login, clearAuthError } from '../../redux/authSlice';
 import { Link,useNavigate } from 'react-router-dom';
 import { 
   Box, 
@@ -29,7 +31,11 @@ import { useAuth } from '../../context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, loading, error } = useAuth();
+
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector(state=>state.auth);
+
+  // const { login, loading, error } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -58,6 +64,41 @@ const Login = () => {
       }));
     }
   };
+  const handleLogin = async (e) => {
+  e.preventDefault();
+  
+  if (!validateForm()) return;
+  
+  try {
+    // Use formData values instead of undefined email/password
+    await dispatch(login({ 
+      email: formData.email, 
+      password: formData.password 
+    })).unwrap(); // Use unwrap to properly handle promise
+    
+    setSnackbar({
+      open: true,
+      message: 'Login successful!',
+      severity: 'success'
+    });
+    
+    // Get intended path or default to home page
+    const intendedPath = sessionStorage.getItem('intendedPath') || '/';
+    sessionStorage.removeItem('intendedPath');
+    
+    // Give a moment to see the success message
+    setTimeout(() => {
+      navigate(intendedPath);
+    }, 1000);
+    
+  } catch (err) {
+    setSnackbar({
+      open: true,
+      message: err.message || 'Login failed. Please try again.',
+      severity: 'error'
+    });
+  }
+};
 
   const validateForm = () => {
     const errors = {};
@@ -220,7 +261,7 @@ const Login = () => {
                   </Alert>
                 )}
 
-                <Box component="form" onSubmit={handleSubmit} noValidate>
+                <Box component="form" onSubmit={handleLogin} noValidate>
                   <TextField
                     margin="normal"
                     required

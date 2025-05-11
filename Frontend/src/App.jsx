@@ -14,8 +14,28 @@ import BookingHistory from './components/BookingHistory';
 import BookingPage from './components/BookingPage';
 import CarDetail from './CarDetail';
 import ContactUs from './components/ContactUs';
+import { useDispatch, useSelector } from 'react-redux';
+import { Snackbar, Alert } from '@mui/material';
+import { hideNotification } from './redux/uiSlice';
+import { fetchCurrentUser } from './redux/authSlice';
+
+
 
 function App() {
+
+  const dispatch = useDispatch();
+  const { notification } = useSelector(state => state.ui);
+
+  useEffect(() => {
+  if (localStorage.getItem('token')) {
+    dispatch(fetchCurrentUser());
+  }
+}, [dispatch]);
+  
+  const handleCloseNotification = () => {
+    dispatch(hideNotification());
+  };
+
   return (
     <AuthProvider>
       <>
@@ -26,7 +46,7 @@ function App() {
           <Route path="/services" element={<Services/>}/>
           <Route path="/aboutus" element={<AboutUs/>}/>
           <Route path="/carinventory" element={<CarInventory/>}/>
-          <Route path="/cardetail/:id" element={<CarDetail/>}/>
+          <Route path="/cardetail/:carId" element={<CarDetail/>}/>
           <Route path="/contact" element={<ContactUs/>}/>
           
           {/* Protected Routes */}
@@ -63,6 +83,21 @@ function App() {
             }
           />
         </Routes>
+        {/* Global notification */}
+        <Snackbar
+          open={notification.open}
+          autoHideDuration={6000}
+          onClose={handleCloseNotification}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert 
+            onClose={handleCloseNotification} 
+            severity={notification.type} 
+            sx={{ width: '100%' }}
+          >
+            {notification.message}
+          </Alert>
+        </Snackbar>
       </>
     </AuthProvider>
   );

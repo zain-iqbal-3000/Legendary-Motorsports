@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Box, Grid, Card, CardMedia, CardContent, Typography, Chip, Button, Container, Skeleton, Alert } from '@mui/material';
 import { Speed, DirectionsCar, AttachMoney, ElectricBolt, AltRoute, Engineering } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchAllCars } from './redux/carsSlice'
 import axios from 'axios';
 
 // Dark theme colors
@@ -41,27 +43,15 @@ const cardVariants = {
 };
 
 export default function CarInventory() {
-  const [cars, setCars] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  
+  const dispatch = useDispatch();
+  const { cars, loading, error } = useSelector(state => state.cars);
   const [hovered, setHovered] = useState(null);
 
   useEffect(() => {
-    const fetchCars = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get('/api/cars');
-        setCars(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching car data:', error);
-        setError('Failed to load car inventory. Please try again later.');
-        setLoading(false);
-      }
-    };
-
-    fetchCars();
-  }, []);
+  // Use Redux dispatch to fetch cars
+  dispatch(fetchAllCars());
+}, [dispatch]);
 
   return (
     <Box 

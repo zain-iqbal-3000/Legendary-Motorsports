@@ -1,126 +1,74 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { login as reduxLogin, register, logout as reduxLogout, getCurrentUser } from '../redux/authSlice';
 import axios from 'axios';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  
+  // Get auth state from Redux
+  const { user, isAuthenticated, loading } = useSelector(state => state.auth);
 
+  // Configure axios base URL
   axios.defaults.baseURL = 'http://localhost:5000';
 
-  // Check if user is already logged in (from localStorage)
+  // Set up token on axios when app loads
   useEffect(() => {
-    const checkLoggedIn = async () => {
-      try {
-        const token = localStorage.getItem('authToken');
-        if (token) {
-          // Set axios default headers for all requests
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          
-          // Fetch user data with the token
-          const res = await axios.get('/api/users/me');
-          setCurrentUser(res.data);
-        }
-      } catch (err) {
-        console.error("Error checking authentication:", err);
-        // If token is invalid or expired, clear it
-        localStorage.removeItem('authToken');
-        delete axios.defaults.headers.common['Authorization'];
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    checkLoggedIn();
-  }, []);
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      dispatch(getCurrentUser());
+    }
+  }, [dispatch]);
 
+  // Login function - delegates to Redux
   const login = async (email, password) => {
     try {
       setError(null);
-      const res = await axios.post('/api/users/login', { email, password });
-      
-      // Store token in localStorage
-      localStorage.setItem('authToken', res.data.token);
-      
-      // Set axios default header
-      axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
-      
-      // Set user data - make sure we store the complete user object
-      const userData = {
-        _id: res.data.user._id,
-        firstName: res.data.user.firstName,
-        lastName: res.data.user.lastName,
-        email: res.data.user.email,
-        phoneNumber: res.data.user.phoneNumber,
-        role: res.data.user.role
-      };
-      
-      setCurrentUser(userData);
-      
+      await dispatch(reduxLogin({ email, password })).unwrap();
       return true;
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      setError(err.message || 'Login failed. Please check your credentials.');
       return false;
     }
   };
 
+  // Signup function - delegates to Redux
   const signup = async (userData) => {
     try {
-      // The issue is here: userData has firstName and lastName fields
-      // but the server expects 'name' instead
       console.log("AuthContext - Signup data being sent:", userData);
-      
-      // Add explicit mapping to match backend expectations
-      const response = await axios.post('/api/users/register', {
-        firstName: userData.firstName,  
+      await dispatch(register({
+        firstName: userData.firstName,
         lastName: userData.lastName,
         email: userData.email,
         password: userData.password,
         phoneNumber: userData.phoneNumber || ''
-      });
-
-      // Store the token
-      localStorage.setItem('authToken', response.data.token);
-      
-      // Set the auth headers for future requests
-      axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
-      
-      // Update currentUser state
-      if (response.data.user) {
-        setCurrentUser(response.data.user);
-      } else {
-        // If user data not returned with token, fetch it
-        const userResponse = await axios.get('/api/users/me');
-        setCurrentUser(userResponse.data);
-      }
+      })).unwrap();
       
       return true;
     } catch (error) {
-      console.error('Signup error details:', error.response?.data || error.message);
+      console.error('Signup error details:', error);
       throw error;
     }
   };
 
+  // Logout function - delegates to Redux
   const logout = () => {
-    // Clear token from localStorage
-    localStorage.removeItem('authToken');
-    
-    // Remove axios default header
-    delete axios.defaults.headers.common['Authorization'];
-    
-    // Clear user data
-    setCurrentUser(null);
+    dispatch(reduxLogout());
   };
 
   const clearError = () => {
     setError(null);
   };
 
+  // Create the auth context value
   const value = {
-    currentUser,
+    currentUser: user,
     loading,
+    isAuthenticated,
     error,
     login,
     signup,

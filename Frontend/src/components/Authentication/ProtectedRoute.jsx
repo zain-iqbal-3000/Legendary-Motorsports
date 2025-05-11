@@ -1,9 +1,12 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Box, CircularProgress } from '@mui/material';
+import { useSelector } from 'react-redux';
 
 const ProtectedRoute = ({ children, redirectPath = '/login' }) => {
-  const { currentUser, loading } = useAuth();
+  // const { currentUser, loading } = useAuth();
+  const location = useLocation();
+  const { isAuthenticated, loading } = useSelector(state => state.auth);
 
   if (loading) {
     return (
@@ -21,7 +24,7 @@ const ProtectedRoute = ({ children, redirectPath = '/login' }) => {
   }
 
   // Store the intended URL before redirecting
-  if (!currentUser) {
+  if (!isAuthenticated) {  // Changed from currentUser to isAuthenticated
     const currentPath = window.location.pathname;
     sessionStorage.setItem('intendedPath', currentPath);
     return <Navigate to={redirectPath} replace />;

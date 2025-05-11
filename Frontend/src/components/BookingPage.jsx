@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchCarById } from '../redux/carsSlice';
+import { createBooking } from '../redux/bookingsSlice';
 import {
   Box,
   Container,
@@ -105,13 +108,15 @@ const locations = [
 const BookingPage = () => {
   const navigate = useNavigate();
   const { carId } = useParams();
+  const dispatch = useDispatch();
+  const { currentCar, loading: carLoading } = useSelector(state=> state.cars);
   
   // State variables
   const [activeStep, setActiveStep] = useState(0);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
-  const [car, setCar] = useState(null);
+  // const [car, setCar] = useState(null);
   const [bookingReference, setBookingReference] = useState(null);
   const [bookingData, setBookingData] = useState({
     startDate: null,
@@ -132,30 +137,18 @@ const BookingPage = () => {
 
   // Fetch car data when component mounts
   useEffect(() => {
-    const fetchCarData = async () => {
-      try {
-        setLoading(true);
-        
-        if (!carId) {
-          setError("No car selected. Please choose a car from our inventory.");
-          setLoading(false);
-          return;
-        }
+      dispatch(fetchCarById(carId));
+    }, [dispatch, carId]);
 
-        // Real API call to get specific car details from backend
-        const response = await axios.get(`http://localhost:5000/api/cars/${carId}`);
-        setCar(response.data);
-        
-        setLoading(false);
+    // For form submission:
+    const handleSubmitBooking = async (bookingData) => {
+      try {
+        await dispatch(createBooking({...bookingData, carId})).unwrap();
+        // Success handling
       } catch (error) {
-        console.error("Error fetching car data:", error);
-        setError("Failed to load car details. Please try again.");
-        setLoading(false);
+        // Error handling
       }
     };
-
-    fetchCarData();
-  }, [carId]);
 
   // Handle form input changes
   const handleChange = (e) => {
@@ -192,7 +185,7 @@ const BookingPage = () => {
 
   // Calculate booking duration and price
   const calculateBookingDetails = () => {
-    if (!bookingData.startDate || !bookingData.endDate || !car) {
+    if (!bookingData.startDate || !bookingData.endDate || !currentCar) {
       return { days: 0, totalPrice: 0 };
     }
 
@@ -203,9 +196,9 @@ const BookingPage = () => {
     days = Math.max(days, 1); // Minimum 1 day rental
     
     // Use optional chaining and provide fallback values
-    const dailyRate = car.availability?.rentalPrice?.daily || 500; // Default $500/day
-    const weeklyRate = car.availability?.rentalPrice?.weekly || dailyRate * 7 * 0.9; // 10% discount for weekly
-    const monthlyRate = car.availability?.rentalPrice?.monthly || dailyRate * 30 * 0.8; // 20% discount for monthly
+    const dailyRate = currentCar.availability?.rentalPrice?.daily || 500; // Default $500/day
+    const weeklyRate = currentCar.availability?.rentalPrice?.weekly || dailyRate * 7 * 0.9; // 10% discount for weekly
+    const monthlyRate = currentCar.availability?.rentalPrice?.monthly || dailyRate * 30 * 0.8; // 20% discount for monthly
     
     let totalPrice;
     if (days >= 30) {
@@ -1134,7 +1127,7 @@ const handleSubmit = async () => {
     }
   };
 
-  if (loading) {
+  if (carLoading) {
     return (
       <>
         <Header />
@@ -1257,7 +1250,7 @@ const handleSubmit = async () => {
           </Typography>
 
           {/* Car Summary */}
-          {car && (
+          {currentCar && (
             <Paper
               elevation={0}
               sx={{
@@ -1273,8 +1266,8 @@ const handleSubmit = async () => {
                 <Grid size={{xs:12, sm:4, md:6}}>
                   <CardMedia
                     component="img"
-                    image={car.images?.[0] || "https://via.placeholder.com/300"}
-                    alt={`${car.make || 'Car'} ${car.model || ''}`}
+                    image={currentCar.images?.[0] || "https://via.placeholder.com/300"}
+                    alt={`${currentCar.make || 'Car'} ${currentCar.model || ''}`}
                     sx={{ 
                       borderRadius: 2, 
                       height: 140, 
@@ -1285,25 +1278,25 @@ const handleSubmit = async () => {
                 </Grid>
                 <Grid size={{xs:12,sm:8, md:6}}>
                   <Typography variant="h5" sx={{ fontWeight: 700, color: textPrimary }}>
-                    {car.make} {car.model}
+                    {currentCar.make} {currentCar.model}
                   </Typography>
                   <Typography variant="body2" color={textSecondary}>
-                    {car.year}
+                    {currentCar.year}
                   </Typography>
                   <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                     <Chip
                       size="small"
-                      label={`${car.specifications?.engine?.horsepower || 'N/A'} HP`}
+                      label={`${currentCar.specifications?.engine?.horsepower || 'N/A'} HP`}
                       sx={{ bgcolor: `${accentPrimary}20`, color: accentPrimary }}
                     />
                     <Chip
                       size="small"
-                      label={`${car.specifications?.performance?.topSpeed || 'N/A'} km/h`}
+                      label={`${currentCar.specifications?.performance?.topSpeed || 'N/A'} km/h`}
                       sx={{ bgcolor: `${accentSecondary}20`, color: accentSecondary }}
                     />
                     <Chip
                       size="small"
-                      label={`0-100: ${car.specifications?.performance?.zeroToSixty || 'N/A'}s`}
+                      label={`0-100: ${currentCar.specifications?.performance?.zeroToSixty || 'N/A'}s`}
                       sx={{ bgcolor: `${accentPrimary}20`, color: accentPrimary }}
                     />
                   </Stack>
@@ -1314,7 +1307,7 @@ const handleSubmit = async () => {
                       Starting from
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 700, color: accentPrimary }}>
-                      ${car?.availability?.rentalPrice?.daily?.toLocaleString() || 'N/A'}/day
+                      ${currentCar?.availability?.rentalPrice?.daily?.toLocaleString() || 'N/A'}/day
                     </Typography>
                     {days > 0 && (
                       <Typography variant="body1" sx={{ fontWeight: 700, color: accentSecondary }}>
@@ -1408,9 +1401,9 @@ const handleSubmit = async () => {
               sx={{
                 visibility: activeStep === 0 || activeStep === steps.length - 1 ? "hidden" : "visible",
                 color: accentPrimary,
-                borderColor: `${accentPrimary}60`,
-                visibility: activeStep === 0 || activeStep === steps.length - 1 ? "hidden" : "visible",
-                color: accentPrimary,
+                // borderColor: `${accentPrimary}60`,
+                // visibility: activeStep === 0 || activeStep === steps.length - 1 ? "hidden" : "visible",
+                // color: accentPrimary,
                 borderColor: `${accentPrimary}60`,
                 '&:hover': {
                   borderColor: accentPrimary,

@@ -1,35 +1,64 @@
 import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchCarById } from './redux/carsSlice';
+import { fetchCommentsByCar, addComment, clearCommentsError, clearSuccessMessage } from './redux/commentsSlice';
+import { showNotification } from './redux/uiSlice';
 import {
-  Box, Container, Typography, Button, Chip, Stack,
-  Grid, Card, CardContent, Avatar, Divider, TextField,
-  Rating, Alert, CardMedia, CircularProgress, IconButton,
-  Tabs, Tab, Backdrop, Fade
+  Box,
+  Container,
+  Typography,
+  Button,
+  Chip,
+  Stack,
+  Grid,
+  Card,
+  CardContent,
+  Avatar,
+  Divider,
+  TextField,
+  Rating,
+  Alert,
+  CardMedia,
+  CircularProgress,
+  IconButton,
+  Tabs,
+  Tab,
+  Paper
 } from '@mui/material';
 import {
-  ArrowBack, Speed, AttachMoney, FlashOn, 
-  TrackChanges, LocationOn, Send as SendIcon,
-  Star as StarIcon, LocalGasStation, Garage,
-  AltRoute, Engineering, ElectricBolt
+  ArrowBack,
+  Speed,
+  AttachMoney,
+  FlashOn,
+  TrackChanges,
+  LocationOn,
+  Send as SendIcon,
+  Star as StarIcon,
+  LocalGasStation,
+  Garage,
+  AltRoute,
+  Engineering,
+  ElectricBolt
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
-// Clean 3-color theme with dark background
-const darkBg = "#111517"; // Light black background
-const accentPrimary = "yellow"; // Main yellow accent
-const accentSecondary = "lime"; // Secondary lime accent
-const darkPanel = "rgba(25, 28, 32, 0.85)";
-const cardBg = "rgba(21, 24, 28, 0.95)";
-const gold = "#F9A825";
-const textPrimary = "#ffffff";
-const textSecondary = "#a0a9b6";
-const border = `1px solid ${accentPrimary}33`;
+// Theme colors - now using dark blues for a modern luxury feel
+// Theme colors - original dark theme
+const darkBg = "#111517"; // Dark background
+const accentPrimary = "#3498db"; // Main accent color
+const accentSecondary = "green"; // Secondary accent
+const darkPanel = "#1B2233"; // Panel background
+const cardBg = "#181F2A"; // Card background
+const textPrimary = "#FFFFFF"; // Primary text color
+const textSecondary = "#B0B0B0"; // Secondary text color
+const gold = "#FFD700"; // Gold for ratings
+const successGreen = "#4CAF50"; // Success indicator
+const errorRed = "#F44336"; // Error indicator
+const glowEffect = `0 0 15px ${accentPrimary}30`;
+const subtleShadow = '0 4px 20px rgba(0, 0, 0, 0.25)';
 
-// Clean subtle effects
-const glowEffect = `0 0 15px ${accentPrimary}40`;
-const subtleShadow = '0 8px 24px rgba(0, 0, 0, 0.3)';
-
+// Reusable feature chip component
 const FeatureChip = ({ icon: Icon, label }) => (
   <Chip
     icon={<Icon sx={{ color: accentPrimary }} />}
@@ -37,13 +66,13 @@ const FeatureChip = ({ icon: Icon, label }) => (
     sx={{
       m: 0.5,
       px: 2,
-      py: 0.8,
+      py: 1,
       borderRadius: 2,
-      bgcolor: `${accentPrimary}10`,
+      bgcolor: `${accentPrimary}15`,
       color: accentPrimary,
-      fontWeight: 600,
+      fontWeight: 700,
       fontSize: '0.9rem',
-      border: `1.5px solid ${accentPrimary}40`,
+      border: `1px solid ${accentPrimary}40`,
       transition: 'all 0.3s ease',
       '&:hover': {
         boxShadow: glowEffect,
@@ -53,218 +82,138 @@ const FeatureChip = ({ icon: Icon, label }) => (
   />
 );
 
+// Comment card component
 const CommentCard = ({ comment }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5 }}
   >
-    <Card
+    <Paper
+      elevation={2}
       sx={{
-        bgcolor: cardBg,
+        bgcolor: darkPanel,
         color: textPrimary,
         borderRadius: 3,
-        p: 0,
+        p: 3,
         mb: 3,
-        overflow: 'hidden',
+        borderLeft: `4px solid ${accentPrimary}`,
         boxShadow: subtleShadow,
-        border: `1px solid ${accentPrimary}20`,
-        position: 'relative',
-        '&::after': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '4px',
-          height: '100%',
-          background: accentPrimary,
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 2.5,
+        '&:hover': {
+          boxShadow: `0 10px 30px rgba(0, 0, 0, 0.4), 0 0 10px ${accentPrimary}20`,
         }
       }}
     >
-      <CardContent sx={{ display: 'flex', gap: 2.5, p: 3 }}>
-        <Avatar
-          src={comment.user?.profileImage || ''}
-          alt={comment.user?.firstName || 'User'}
-          sx={{ 
-            width: 60, 
-            height: 60, 
-            border: `2px solid ${accentPrimary}40`,
-          }}
-        />
-        <Box sx={{ flex: 1 }}>
-          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-            <Typography variant="subtitle1" fontWeight={700} color={accentPrimary}>
-              {comment.user?.firstName} {comment.user?.lastName || 'User'}
-            </Typography>
-            <Rating value={comment.rating} readOnly size="small" sx={{ color: gold }} />
-          </Stack>
-          <Typography variant="body1" sx={{ color: textPrimary, mb: 1.5 }}>
-            {comment.content}
+      <Avatar
+        src={comment.user?.profileImage || ''}
+        alt={comment.user?.firstName || 'User'}
+        sx={{
+          width: 60,
+          height: 60,
+          border: `2px solid ${accentPrimary}40`,
+          boxShadow: `0 0 10px ${accentPrimary}30`,
+        }}
+      />
+      <Box sx={{ flex: 1 }}>
+        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+          <Typography variant="subtitle1" fontWeight={700} color={accentPrimary}>
+            {comment.user?.firstName} {comment.user?.lastName || 'User'}
           </Typography>
-          <Typography variant="caption" sx={{ color: textSecondary }}>
-            {new Date(comment.createdAt).toLocaleDateString()}
-          </Typography>
-        </Box>
-      </CardContent>
-    </Card>
+          <Rating value={comment.rating} readOnly size="small" sx={{ color: gold }} />
+        </Stack>
+        <Typography variant="body1" sx={{ color: textPrimary, mb: 1.5, lineHeight: 1.7 }}>
+          {comment.content}
+        </Typography>
+        <Typography variant="caption" sx={{ color: textSecondary }}>
+          {new Date(comment.createdAt).toLocaleDateString()}
+        </Typography>
+      </Box>
+    </Paper>
   </motion.div>
 );
 
+// Main component
 const CarDetail = () => {
-  const { id } = useParams();
+  const { carId } = useParams();
   const navigate = useNavigate();
-
-  // Car data
-  const [car, setCar] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [imgError, setImgError] = useState(false);
-
-  // Comments
-  const [comments, setComments] = useState([]);
-  const [commentsLoading, setCommentsLoading] = useState(true);
-  const [commentsError, setCommentsError] = useState(null);
-
-  // Add comment
-  const [newComment, setNewComment] = useState({ rating: 5, content: '' });
-  const [addCommentLoading, setAddCommentLoading] = useState(false);
-  const [addCommentError, setAddCommentError] = useState(null);
-  const [addCommentSuccess, setAddCommentSuccess] = useState(null);
-
-  // User info (would come from your auth context/state)
-  const [userInfo, setUserInfo] = useState(null);
-
-  // Tabs
+  const dispatch = useDispatch();
+  
+  // Get data from redux
+  const { currentCar, loading: carLoading } = useSelector(state => state.cars);
+  const { comments, loading: commentsLoading, error: commentsError, successMessage } = useSelector(state => state.comments);
+  const { user, isAuthenticated } = useSelector(state => state.auth);
+  
+  // Local state
   const [tabValue, setTabValue] = useState(0);
+  const [newComment, setNewComment] = useState({ rating: 5, content: '' });
+  const [imgError, setImgError] = useState(false);
+  const [addCommentLoading, setAddCommentLoading] = useState(false);
 
   // Fetch car data
   useEffect(() => {
-    setLoading(true);
-    axios.get(`/api/cars/${id}`)
-      .then(res => {
-        setCar(res.data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [id]);
+    dispatch(fetchCarById(carId));
+  }, [dispatch, carId]);
 
-  // Fetch user info - you would implement this based on your auth system
+  // Fetch comments
   useEffect(() => {
-    // Check if user is logged in by looking for token
-    const token = localStorage.getItem('token');
-    if (token) {
-      // Fetch user info from your auth system or API
-      axios.get('/api/users/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      .then(res => {
-        setUserInfo(res.data);
-      })
-      .catch(err => {
-        console.error('Error fetching user info:', err);
-      });
+    dispatch(fetchCommentsByCar(carId));
+  }, [dispatch, carId]);
+
+  // Clear success message after it displays
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        dispatch(clearSuccessMessage());
+      }, 5000);
+      
+      return () => clearTimeout(timer);
     }
-  }, []);
+  }, [successMessage, dispatch]);
 
-  // Fetch comments with better error handling
-  useEffect(() => {
-    setCommentsLoading(true);
-    setCommentsError(null);
-    
-    axios.get(`/api/comments/car/${id}`)
-      .then(res => {
-        setComments(res.data || []);
-        setCommentsLoading(false);
-      })
-      .catch(err => {
-        console.error('Error fetching comments:', err);
-        // Only show error if it's not an auth error
-        if (err.response && err.response.status !== 401) {
-          setCommentsError("Failed to load reviews. Please try again later.");
-        }
-        setComments([]);
-        setCommentsLoading(false);
-      });
-  }, [id, addCommentSuccess]);
+  // Handle login redirect for comments
+  const handleLoginRedirect = () => {
+    localStorage.setItem('redirectAfterLogin', window.location.pathname);
+    navigate('/login');
+  };
 
-  // Add comment handler with proper API integration
+  // Handle adding a new comment
   const handleAddComment = async (e) => {
     e.preventDefault();
     setAddCommentLoading(true);
-    setAddCommentError(null);
-    setAddCommentSuccess(null);
-    
-    const token = localStorage.getItem('token');
-    
-    if (!token) {
-      setAddCommentError("Please log in to submit a review");
-      setAddCommentLoading(false);
-      return;
-    }
     
     try {
-      // Get user's active bookings to check if they can review
-      const bookingsResponse = await axios.get('/api/bookings/user', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      // For demo purposes, we're using a mock bookingId
+      // In production, you'd have a way to associate comments with real bookings
+      const mockBookingId = "663b1e7f8f8c8c001e3b2a1c";
       
-      // Find a completed booking for this car
-      const eligibleBooking = bookingsResponse.data.find(
-        booking => booking.car._id === id && booking.status === 'COMPLETED'
-      );
-      
-      if (!eligibleBooking) {
-        setAddCommentError("You must have completed a booking for this car to leave a review");
-        setAddCommentLoading(false);
-        return;
-      }
-      
-      // Submit the comment with the booking reference
-      const response = await axios.post('/api/comments', {
-        carId: id,
-        bookingId: eligibleBooking._id,
+      await dispatch(addComment({
+        userId: user?._id,
+        carId: carId,
+        bookingId: mockBookingId,
         rating: newComment.rating,
         content: newComment.content
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      })).unwrap();
       
-      setAddCommentSuccess("Review submitted successfully!");
       setNewComment({ rating: 5, content: '' });
-      
-      // Refresh comments list
-      const updatedComments = await axios.get(`/api/comments/car/${id}`);
-      setComments(updatedComments.data || []);
-      
-    } catch (err) {
-      console.error('Error submitting review:', err);
-      
-      if (err.response) {
-        // Handle specific error messages from the API
-        if (err.response.status === 400) {
-          setAddCommentError(err.response.data.message || "You've already reviewed this booking");
-        } else if (err.response.status === 401) {
-          setAddCommentError("Please log in to submit a review");
-        } else if (err.response.status === 403) {
-          setAddCommentError("You're not authorized to review this car");
-        } else {
-          setAddCommentError("Failed to submit review. Please try again.");
-        }
-      } else {
-        setAddCommentError("Network error. Please check your connection.");
-      }
+      dispatch(showNotification({
+        message: 'Your review has been added successfully!',
+        type: 'success'
+      }));
+    } catch (error) {
+      dispatch(showNotification({
+        message: error || 'Failed to add comment. Please try again.',
+        type: 'error'
+      }));
     }
     
     setAddCommentLoading(false);
   };
 
-  // Add the missing handleLoginRedirect function
-  const handleLoginRedirect = () => {
-    // Save current page URL to redirect back after login
-    localStorage.setItem('redirectAfterLogin', window.location.pathname);
-    navigate('/login');
-  };
-
-  if (loading) {
+  // Loading state
+  if (carLoading) {
     return (
       <Box sx={{ 
         minHeight: '100vh', 
@@ -276,10 +225,7 @@ const CarDetail = () => {
       }}>
         <Box sx={{ textAlign: 'center' }}>
           <CircularProgress 
-            sx={{ 
-              color: accentPrimary, 
-              mb: 3,
-            }} 
+            sx={{ color: accentPrimary, mb: 3 }} 
             size={60}
           />
           <Typography 
@@ -297,7 +243,8 @@ const CarDetail = () => {
     );
   }
 
-  if (!car) {
+  // Error state
+  if (!currentCar) {
     return (
       <Box sx={{ 
         minHeight: '100vh', 
@@ -307,32 +254,41 @@ const CarDetail = () => {
         alignItems: 'center', 
         justifyContent: 'center',
       }}>
-        <Typography 
-          variant="h4" 
-          sx={{
-            color: textPrimary,
-            fontWeight: 500,
-            letterSpacing: 1,
-          }}
-        >
-          Car Not Found
-        </Typography>
+        <Box sx={{ textAlign: 'center', maxWidth: 500, p: 3 }}>
+          <Typography variant="h4" color={errorRed} mb={2}>
+            Car Not Found
+          </Typography>
+          <Typography color={textSecondary} mb={4}>
+            We couldn't find the car you're looking for. It may have been removed or you may have followed an invalid link.
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<ArrowBack />}
+            onClick={() => navigate('/carinventory')}
+            sx={{
+              bgcolor: accentPrimary,
+              '&:hover': { bgcolor: accentSecondary },
+            }}
+          >
+            Return to Inventory
+          </Button>
+        </Box>
       </Box>
     );
   }
 
+  // Main render with data
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        bgcolor: darkBg,
-        color: textPrimary,
-        pt: 6,
-        pb: 10,
-        position: 'relative',
-      }}
-    >
-      {/* Subtle grid overlay */}
+    <Box sx={{
+      minHeight: '100vh',
+      bgcolor: darkBg,
+      color: textPrimary,
+      pt: 6,
+      pb: 10,
+      position: 'relative',
+      background: `radial-gradient(circle at top right, ${darkPanel}, ${darkBg} 70%)`,
+    }}>
+      {/* Background grid pattern */}
       <Box
         sx={{
           position: 'absolute',
@@ -373,7 +329,7 @@ const CarDetail = () => {
           Back to Fleet
         </Button>
 
-        {/* Hero Section */}
+        {/* Hero Section with Car Details */}
         <Card
           sx={{
             position: 'relative',
@@ -386,8 +342,8 @@ const CarDetail = () => {
           }}
         >
           <Grid container spacing={0}>
-            {/* Car Image */}
-            <Grid size={{xs:12, md:6, lg:7}} sx={{ 
+            {/* Car Image Section */}
+            <Grid size={{xs:12,md:6,lg:7}} sx={{ 
               position: 'relative',
               p: { xs: 3, md: 4 },
             }}>
@@ -407,11 +363,11 @@ const CarDetail = () => {
                   <CardMedia
                     component="img"
                     image={
-                      !imgError && car.images && car.images.length > 0 && car.images[0]
-                        ? car.images[0]
+                      !imgError && currentCar.images && currentCar.images.length > 0 && currentCar.images[0]
+                        ? currentCar.images[0]
                         : 'https://via.placeholder.com/800x500?text=No+Image'
                     }
-                    alt={`${car.make} ${car.model}`}
+                    alt={`${currentCar.make} ${currentCar.model}`}
                     onError={() => setImgError(true)}
                     sx={{
                       width: '100%',
@@ -425,7 +381,7 @@ const CarDetail = () => {
                   />
                 </Box>
 
-                {/* Stats overlay */}
+                {/* Car Specs Feature Box */}
                 <Box
                   sx={{
                     position: 'absolute',
@@ -456,10 +412,11 @@ const CarDetail = () => {
                         Power
                       </Typography>
                       <Typography variant="h6" color={accentPrimary} fontWeight="bold">
-                        {car.specifications?.engine?.horsepower || 'N/A'} HP
+                        {currentCar.specifications?.engine?.horsepower || 'N/A'} HP
                       </Typography>
                     </Grid>
-                    <Grid size={{xs:4}} sx={{ textAlign: 'center' }}>
+
+                    <Grid size={{xs:4}} sx={{ textAlign: 'center' }} >
                       <Box sx={{ color: accentSecondary, mb: 0.5 }}>
                         <Speed />
                       </Box>
@@ -467,9 +424,10 @@ const CarDetail = () => {
                         Top Speed
                       </Typography>
                       <Typography variant="h6" color={accentSecondary} fontWeight="bold">
-                        {car.specifications?.performance?.topSpeed || 'N/A'} kmh
+                        {currentCar.specifications?.performance?.topSpeed || 'N/A'} 
                       </Typography>
                     </Grid>
+                    
                     <Grid size={{xs:4}} sx={{ textAlign: 'center' }}>
                       <Box sx={{ color: accentPrimary, mb: 0.5 }}>
                         <AltRoute />
@@ -478,7 +436,7 @@ const CarDetail = () => {
                         0-100
                       </Typography>
                       <Typography variant="h6" color={accentPrimary} fontWeight="bold">
-                        {car.specifications?.performance?.zeroToSixty || 'N/A'}s
+                        {currentCar.specifications?.performance?.zeroToSixty || 'N/A'}s
                       </Typography>
                     </Grid>
                   </Grid>
@@ -486,8 +444,8 @@ const CarDetail = () => {
               </motion.div>
             </Grid>
 
-            {/* Car Details */}
-            <Grid size={{xs:12, md:6, lg:5}} sx={{ 
+            {/* Car Details Section */}
+            <Grid  size={{xs:12,md:6,lg:5}} sx={{ 
               p: { xs: 3, md: 4 },
               pt: { xs: 6, md: 4 },
               position: 'relative',
@@ -498,7 +456,19 @@ const CarDetail = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
               >
-                {/* Make & Model */}
+                {/* Car Availability Badge */}
+                <Chip
+                  label={currentCar.availability?.status || "Available"} 
+                  sx={{
+                    bgcolor: currentCar.availability?.status === "Booked" ? `${errorRed}20` : `${successGreen}20`,
+                    color: currentCar.availability?.status === "Booked" ? errorRed : successGreen,
+                    fontWeight: 600,
+                    borderRadius: '6px',
+                    mb: 2
+                  }}
+                />
+
+                {/* Car Name */}
                 <Typography 
                   variant="h2" 
                   sx={{
@@ -510,7 +480,7 @@ const CarDetail = () => {
                     lineHeight: 1.1
                   }}
                 >
-                  {car.make} <br/> {car.model}
+                  {currentCar.make} <br/> {currentCar.model}
                 </Typography>
 
                 {/* Year & Location */}
@@ -524,23 +494,23 @@ const CarDetail = () => {
                     alignItems: 'center'
                   }}
                 >
-                  {car.year} &bull; <LocationOn sx={{ ml: 1, mr: 0.5, color: accentSecondary, fontSize: 20 }} /> {car.availability?.location}
+                  {currentCar.year} &bull; <LocationOn sx={{ ml: 1, mr: 0.5, color: accentSecondary, fontSize: 20 }} /> {currentCar.availability?.location}
                 </Typography>
 
-                {/* Rating */}
-                {car.averageRating && (
+                {/* Car Rating */}
+                {currentCar.averageRating && (
                   <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 3 }}>
-                    <Rating value={car.averageRating} readOnly precision={0.5} sx={{ color: gold }} />
+                    <Rating value={currentCar.averageRating} readOnly precision={0.5} sx={{ color: gold }} />
                     <Typography variant="body1" sx={{ color: gold, fontWeight: 600 }}>
-                      {car.averageRating?.toFixed(1) || "N/A"}
+                      {currentCar.averageRating?.toFixed(1) || "N/A"}
                     </Typography>
                     <Typography variant="body2" sx={{ color: textSecondary }}>
-                      ({car.totalReviews || 0} reviews)
+                      ({currentCar.totalReviews || 0} reviews)
                     </Typography>
                   </Stack>
                 )}
                 
-                {/* Features */}
+                {/* Car Features */}
                 <Stack 
                   direction="row" 
                   flexWrap="wrap" 
@@ -548,19 +518,19 @@ const CarDetail = () => {
                 >
                   <FeatureChip 
                     icon={LocalGasStation} 
-                    label={car.specifications?.engine?.type || 'Engine'} 
+                    label={currentCar.specifications?.engine?.type || 'Engine'} 
                   />
                   <FeatureChip 
                     icon={Engineering} 
-                    label={car.specifications?.engine?.transmission || 'Transmission'} 
+                    label={currentCar.specifications?.engine?.transmission || 'Transmission'} 
                   />
                   <FeatureChip 
                     icon={Garage} 
-                    label={`${car.specifications?.dimensions?.weight || 'N/A'} kg`} 
+                    label={`${currentCar.specifications?.dimensions?.weight || 'N/A'} kg`} 
                   />
                 </Stack>
                 
-                {/* Description */}
+                {/* Car Description */}
                 <Typography 
                   variant="body1" 
                   sx={{
@@ -571,10 +541,10 @@ const CarDetail = () => {
                     maxWidth: '95%'
                   }}
                 >
-                  {car.description}
+                  {currentCar.description}
                 </Typography>
 
-                {/* Price Card */}
+                {/* Pricing Card */}
                 <Card
                   sx={{
                     bgcolor: darkPanel,
@@ -600,7 +570,7 @@ const CarDetail = () => {
                     </Typography>
 
                     <Grid container spacing={2}>
-                      {Object.entries(car.availability?.rentalPrice || {}).map(([period, price]) => (
+                      {Object.entries(currentCar.availability?.rentalPrice || {}).map(([period, price]) => (
                         <Grid size={{xs:6}} key={period}>
                           <Box sx={{ 
                             p: 1.5, 
@@ -622,7 +592,7 @@ const CarDetail = () => {
                   </CardContent>
                 </Card>
 
-                {/* Book Now Button */}
+                {/* Booking Button */}
                 <Button
                   variant="contained"
                   size="large"
@@ -642,7 +612,7 @@ const CarDetail = () => {
                       boxShadow: glowEffect
                     }
                   }}
-                  onClick={() => navigate(`/booking/${car._id}`)}
+                  onClick={() => navigate(`/booking/${currentCar._id}`)}
                 >
                   Book Now
                 </Button>
@@ -651,7 +621,7 @@ const CarDetail = () => {
           </Grid>
         </Card>
 
-        {/* Specifications Section */}
+        {/* Technical Specifications */}
         <Box sx={{ mb: 8 }}>
           <Typography
             variant="h4"
@@ -709,7 +679,7 @@ const CarDetail = () => {
             <Box sx={{ p: 3 }}>
               {tabValue === 0 && (
                 <Grid container spacing={2}>
-                  {Object.entries(car.specifications?.engine || {}).map(([key, value]) => (
+                  {Object.entries(currentCar.specifications?.engine || {}).map(([key, value]) => (
                     <Grid size={{xs:12, sm:6, md:4}} key={key}>
                       <Card
                         sx={{
@@ -747,8 +717,8 @@ const CarDetail = () => {
 
               {tabValue === 1 && (
                 <Grid container spacing={2}>
-                  {Object.entries(car.specifications?.performance || {}).map(([key, value]) => (
-                    <Grid size={{xs:12, sm:6, md:4}} key={key}>
+                  {Object.entries(currentCar.specifications?.performance || {}).map(([key, value]) => (
+                    <Grid size={{xs:12,sm:6,md:4}} key={key}>
                       <Card
                         sx={{
                           bgcolor: darkPanel,
@@ -785,8 +755,8 @@ const CarDetail = () => {
 
               {tabValue === 2 && (
                 <Grid container spacing={2}>
-                  {Object.entries(car.specifications?.dimensions || {}).map(([key, value]) => (
-                    <Grid size={{xs:12, sm:6, md:4}} key={key}>
+                  {Object.entries(currentCar.specifications?.dimensions || {}).map(([key, value]) => (
+                    <Grid size={{xs:12,sm:6,md:4}} key={key}>
                       <Card
                         sx={{
                           bgcolor: darkPanel,
@@ -849,6 +819,7 @@ const CarDetail = () => {
             Customer Reviews
           </Typography>
 
+          {/* Comments loading state */}
           {commentsLoading && (
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <CircularProgress size={24} sx={{ color: accentSecondary, mr: 2 }} />
@@ -856,10 +827,12 @@ const CarDetail = () => {
             </Box>
           )}
 
+          {/* Comments error state */}
           {commentsError && (
             <Alert severity="error" sx={{ mb: 2 }}>{commentsError}</Alert>
           )}
 
+          {/* Empty comments state */}
           {!commentsLoading && comments.length === 0 && (
             <Box 
               sx={{
@@ -877,11 +850,12 @@ const CarDetail = () => {
             </Box>
           )}
 
+          {/* Comments list */}
           {comments.map((comment) => (
             <CommentCard key={comment._id} comment={comment} />
           ))}
 
-          {/* Add Comment Card - Modify this section */}
+          {/* Add Comment Card */}
           <Card
             sx={{
               bgcolor: cardBg,
@@ -909,7 +883,8 @@ const CarDetail = () => {
                 Share Your Experience
               </Typography>
               
-              {!localStorage.getItem('token') ? (
+              {/* Not logged in state */}
+              {!isAuthenticated ? (
                 <Box sx={{ textAlign: 'center', py: 2 }}>
                   <Typography color={textSecondary} sx={{ mb: 2 }}>
                     Please log in to submit a review
@@ -930,6 +905,7 @@ const CarDetail = () => {
                   </Button>
                 </Box>
               ) : (
+                // Logged in comment form
                 <form onSubmit={handleAddComment}>
                   <Box sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
                     <Typography variant="body2" sx={{ mr: 2, color: textSecondary }}>
@@ -995,18 +971,6 @@ const CarDetail = () => {
                   >
                     {addCommentLoading ? "Submitting..." : "Submit Review"}
                   </Button>
-                  
-                  {addCommentError && (
-                    <Alert severity="error" sx={{ mt: 2 }}>
-                      {addCommentError}
-                    </Alert>
-                  )}
-                  
-                  {addCommentSuccess && (
-                    <Alert severity="success" sx={{ mt: 2 }}>
-                      {addCommentSuccess}
-                    </Alert>
-                  )}
                 </form>
               )}
             </CardContent>

@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../redux/authSlice';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   AppBar,
@@ -35,13 +37,19 @@ import { useAuth } from '../context/AuthContext';
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('');
   const [profileAnchorEl, setProfileAnchorEl] = useState(null);
   const isMobile = useMediaQuery('(max-width:768px)');
   const headerControls = useAnimation();
+
+  const { isAuthenticated, user } = useSelector(state => state.auth);
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    dispatch(logout());
+  };
 
   // Navigation links
   const navLinks = [
@@ -266,7 +274,7 @@ const Header = () => {
                     pl: 2,
                     height: '100%',
                     position: 'relative',
-                    '&::before': currentUser ? {
+                    '&::before': user ? {
                       content: '""',
                       position: 'absolute',
                       left: 0,
@@ -276,7 +284,7 @@ const Header = () => {
                       bgcolor: 'rgba(255, 255, 255, 0.2)',
                     } : {}
                   }}>
-                    {currentUser ? (
+                    {user ? (
                       <>
                         <IconButton 
                           onClick={handleOpenProfileMenu}
@@ -293,10 +301,10 @@ const Header = () => {
                             }
                           }}
                         >
-                          {currentUser.photoURL ? (
+                          {user.photoURL ? (
                             <Avatar 
-                              src={currentUser.photoURL}
-                              alt={currentUser.displayName || 'User'}
+                              src={user.photoURL}
+                              alt={user.displayName || 'User'}
                               sx={{ width: 36, height: 36 }}
                             />
                           ) : (
@@ -326,10 +334,10 @@ const Header = () => {
                         >
                           <Box sx={{ px: 3, py: 2 }}>
                             <Typography variant="body1" sx={{ fontWeight: 600, color: '#fff' }}>
-                              {currentUser.displayName || 'User'}
+                              {user.displayName || 'User'}
                             </Typography>
                             <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem' }}>
-                              {currentUser.email}
+                              {user.email}
                             </Typography>
                           </Box>
                           <Divider />
@@ -449,7 +457,7 @@ const Header = () => {
               {/* Mobile Menu Toggle - with improved spacing */}
               {isMobile && (
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  {currentUser && (
+                  {user && (
                     <IconButton 
                       onClick={handleOpenProfileMenu}
                       size="medium"
@@ -460,10 +468,10 @@ const Header = () => {
                         p: 0.8
                       }}
                     >
-                      {currentUser.photoURL ? (
+                      {user.photoURL ? (
                         <Avatar 
-                          src={currentUser.photoURL}
-                          alt={currentUser.displayName || 'User'}
+                          src={user.photoURL}
+                          alt={user.displayName || 'User'}
                           sx={{ width: 28, height: 28 }}
                         />
                       ) : (
@@ -499,10 +507,10 @@ const Header = () => {
                   >
                     <Box sx={{ px: 2, py: 2 }}>
                       <Typography variant="body1" sx={{ fontWeight: 600, color: '#fff' }}>
-                        {currentUser?.displayName || 'User'}
+                        {user?.displayName || 'User'}
                       </Typography>
                       <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem' }}>
-                        {currentUser?.email}
+                        {user?.email}
                       </Typography>
                     </Box>
                     <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)' }} />
@@ -584,7 +592,7 @@ const Header = () => {
         </Box>
         
         {/* User info in drawer for mobile */}
-        {currentUser ? (
+        {user ? (
           <Box sx={{ 
             px: 3, 
             py: 3, 
@@ -593,10 +601,10 @@ const Header = () => {
             bgcolor: 'rgba(255, 255, 255, 0.03)'
           }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              {currentUser.photoURL ? (
+              {user.photoURL ? (
                 <Avatar 
-                  src={currentUser.photoURL} 
-                  alt={currentUser.displayName || 'User'} 
+                  src={user.photoURL} 
+                  alt={user.displayName || 'User'} 
                   sx={{ width: 48, height: 48, mr: 2, border: '2px solid rgba(255, 189, 0, 0.7)' }}
                 />
               ) : (
@@ -610,15 +618,15 @@ const Header = () => {
                   fontSize: '1.2rem',
                   border: '2px solid rgba(255, 189, 0, 0.3)'
                 }}>
-                  {(currentUser.displayName || 'U').charAt(0).toUpperCase()}
+                  {(user.displayName || 'U').charAt(0).toUpperCase()}
                 </Avatar>
               )}
               <Box>
                 <Typography variant="body1" sx={{ fontWeight: 600, color: 'white' }}>
-                  {currentUser.displayName || 'User'}
+                  {user.displayName || 'User'}
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.75rem' }}>
-                  {currentUser.email}
+                  {user.email}
                 </Typography>
               </Box>
             </Box>
@@ -729,7 +737,7 @@ const Header = () => {
           })}
           
           {/* User account options in drawer for mobile */}
-          {currentUser && (
+          {user && (
             <>
               <Box sx={{ px: 3, pt: 3, pb: 1 }}>
                 <Typography variant="overline" sx={{ color: 'rgba(255, 255, 255, 0.7)', letterSpacing: 1 }}>

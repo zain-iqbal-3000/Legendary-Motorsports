@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchUserBookings } from '../redux/bookingsSlice';
 import {
   Box,
   Container,
@@ -102,9 +104,11 @@ function BookingHistory() {
   const [sortBy, setSortBy] = useState("date-desc");
   
   // Booking data state
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // const [bookings, setBookings] = useState([]);
+  // const [loading, setLoading] = useState(true);
+  // const [error, setError] = useState(null);
+ const dispatch = useDispatch();
+ const { useBookings, loading, error } = useSelector(state=> state.bookings);
   
   // Invoice modal state
   const [invoiceOpen, setInvoiceOpen] = useState(false);
@@ -126,8 +130,8 @@ function BookingHistory() {
 
   // Fetch bookings on component mount
   useEffect(() => {
-    fetchBookings();
-  }, [currentUser]);
+    dispatch(fetchUserBookings());
+  }, [dispatch]);
 
   // Fetch bookings from backend
   const fetchBookings = async () => {
@@ -250,7 +254,7 @@ function BookingHistory() {
       });
 
       // Update local state
-      setBookings(bookings.map(booking =>
+      setBookings(userBookings.map(booking =>
         booking.id === bookingId ? { ...booking, status: 'cancelled' } : booking
       ));
       
@@ -377,9 +381,9 @@ function BookingHistory() {
   // Filter and sort logic
   const filterBookings = (status) => {
     // Guard clause if bookings aren't loaded yet
-    if (!bookings.length) return [];
+    if (!userBookings.length) return [];
     
-    let filtered = bookings.filter((b) => {
+    let filtered = userBookings.filter((b) => {
       if (status === "Current") return b.status === "active";
       if (status === "Upcoming") return b.status === "upcoming";
       if (status === "Past") return b.status === "completed" || b.status === "cancelled";
@@ -400,7 +404,7 @@ function BookingHistory() {
   };
 
   // Get unique car types from the bookings for filtering
-  const carTypes = ["All", ...new Set(bookings.map(b => b.car.type))];
+  const carTypes = ["All", ...new Set(userBookings.map(b => b.car.type))];
 
   // Invoice Modal Component
   const InvoiceModal = () => {

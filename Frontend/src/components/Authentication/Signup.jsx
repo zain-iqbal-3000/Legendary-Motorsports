@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { register } from '../../redux/authSlice';
 import { 
   Box, 
   Container, 
@@ -31,9 +33,10 @@ import { useAuth } from '../../context/AuthContext';
 
 const Signup = () => {
   const navigate = useNavigate();
-  const { signup } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const { loading, error, registrationSuccess } = useSelector(state => state.auth);
+  
+ 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -106,16 +109,15 @@ const Signup = () => {
     e.preventDefault();
     
     if (!validateForm()) return;
-    setLoading(true);
-    setError(null);
+   
     try {
       console.log("Attempting to register with data:", formData);
-      await signup({
+      await dispatch(register({
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
         password: formData.password
-      });
+      })).unwrap();
       
       setSnackbar({
         open: true,
@@ -129,7 +131,7 @@ const Signup = () => {
       
       // Give a moment to see the success message
       setTimeout(() => {
-        navigate(intendedPath);
+        navigate('./login');
       }, 1000);
       
     } catch (err) {
@@ -140,7 +142,7 @@ const Signup = () => {
       );
       setSnackbar({
         open: true,
-        message: err?.response?.data?.message || 'Registration failed. Please try again.',
+        message: err.message || 'Registration failed. Please try again.',
         severity: 'error'
       });
     } finally {
