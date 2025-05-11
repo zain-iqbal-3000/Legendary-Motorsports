@@ -91,6 +91,15 @@ const statusIcons = {
 const tabLabels = ["Current Rentals", "Upcoming Reservations", "Past Rentals"];
 const tabStatuses = ["Current", "Upcoming", "Past"];
 
+// Add theme colors
+const darkBg = "#111517";
+const cardBg = "#181F2A";
+const textPrimary = "#FFFFFF";
+const textSecondary = "rgba(255, 255, 255, 0.7)";
+const accentPrimary = "#3498db";
+const accentSecondary = "#2ecc71";
+const darkPanel = "#1B2233";
+
 function BookingHistory() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -673,9 +682,14 @@ function BookingHistory() {
     </Dialog>
   );
 
+  // Add this helper function near the top of the component
+  const canReview = (booking) => {
+    return booking.status === 'completed' && !reviewedBookings.includes(booking.id);
+  };
+
   // Enhanced card layout
   const renderBookingCard = (booking, index) => {
-    const canReview = booking.status === "completed" && !reviewedBookings.includes(booking.id);
+    const canReview = canUserReview(booking);
     return (
       <Grid item xs={12} md={6} key={booking.id}>
         <motion.div
@@ -686,22 +700,23 @@ function BookingHistory() {
         >
           <Card
             sx={{
-              display: "flex",
-              flexDirection: { xs: "column", sm: "row" },
-              alignItems: "stretch",
-              borderRadius: 4,
-              boxShadow: "0 10px 28px rgba(57,0,153,0.1)",
-              mb: 3,
-              overflow: "hidden",
-              position: "relative",
-              bgcolor: "#fff",
-              transition: "all 0.2s ease-in-out",
-              "&:hover": {
-                transform: "translateY(-5px)",
-                boxShadow: `0 14px 34px ${alpha(darkBlueColor, 0.15)}`,
+              bgcolor: cardBg,
+              color: textPrimary,
+              borderRadius: 3,
+              overflow: 'hidden',
+              border: `1px solid ${accentPrimary}20`,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-5px)',
+                boxShadow: `0 8px 25px ${accentPrimary}20`
               },
+              '& .MuiTypography-root': {
+                color: textPrimary
+              },
+              '& .MuiTypography-secondary': {
+                color: textSecondary
+              }
             }}
-            aria-label={`Booking for ${booking.car.name}`}
           >
             {booking.status === "cancelled" && (
               <Box sx={{
@@ -1068,14 +1083,34 @@ function BookingHistory() {
       <Header />
       <Box 
         sx={{ 
-          background: `linear-gradient(to bottom, ${alpha(darkBlueColor, 0.03)}, ${alpha(darkBlueColor, 0.07)})`, 
-          minHeight: "100vh", 
-          py: { xs: 5, md: 8 },
+          minHeight: '100vh',
+          bgcolor: darkBg,
+          color: textPrimary,
           pt: { xs: 12, md: 16 },
-          mt: { xs: 0, md: 0 }
+          pb: 10,
+          position: 'relative',
+          background: `radial-gradient(circle at top right, ${darkPanel}, ${darkBg} 70%)`,
         }}
       >
-        <Container maxWidth="lg">
+        {/* Background grid pattern */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundImage: `
+              linear-gradient(to right, ${accentPrimary}08 1px, transparent 1px),
+              linear-gradient(to bottom, ${accentPrimary}08 1px, transparent 1px)
+            `,
+            backgroundSize: '40px 40px',
+            zIndex: 0,
+            opacity: 0.5
+          }}
+        />
+
+        <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1 }}>
           {/* Page Title Section */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -1083,40 +1118,39 @@ function BookingHistory() {
             transition={{ duration: 0.5 }}
           >
             <Typography
-              variant="h3"
-              fontWeight={800}
+              variant="h2"
               sx={{
-                color: darkBlueColor,
+                color: textPrimary,
+                fontWeight: 800,
+                textAlign: 'center',
                 mb: 1,
-                letterSpacing: "-0.02em",
-                textAlign: "center",
+                letterSpacing: '-0.02em'
               }}
             >
               My Rentals
             </Typography>
             <Typography
-              variant="subtitle1"
+              variant="h5"
               sx={{
-                color: "#555",
-                mb: 5,
-                textAlign: "center",
-                maxWidth: 600,
-                mx: "auto",
-                lineHeight: 1.5,
+                color: textSecondary,
+                textAlign: 'center',
+                mb: 6,
+                fontWeight: 400
               }}
             >
               View and manage your luxury car rental experience
             </Typography>
           </motion.div>
-          
-          {/* Tabs */}
-          <Box sx={{ mb: 4, display: "flex", justifyContent: "center" }}>
+
+          {/* Tabs Section */}
+          <Box sx={{ mb: 4 }}>
             <Paper
-              elevation={2}
+              elevation={0}
               sx={{
+                bgcolor: 'transparent',
                 borderRadius: 3,
-                overflow: "hidden",
-                p: 0.5,
+                overflow: 'hidden',
+                border: `1px solid ${accentPrimary}20`
               }}
             >
               <Tabs
@@ -1126,11 +1160,18 @@ function BookingHistory() {
                 textColor="primary"
                 indicatorColor="primary"
                 sx={{
-                  minWidth: { xs: 320, sm: 400 },
-                  "& .MuiTabs-indicator": {
-                    height: 3,
-                    borderRadius: 1.5,
-                    bgcolor: primaryColour,
+                  bgcolor: cardBg,
+                  '& .MuiTabs-indicator': {
+                    bgcolor: accentPrimary
+                  },
+                  '& .MuiTab-root': {
+                    color: textSecondary,
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    py: 2,
+                    '&.Mui-selected': {
+                      color: accentPrimary
+                    }
                   }
                 }}
               >
@@ -1156,157 +1197,410 @@ function BookingHistory() {
               </Tabs>
             </Paper>
           </Box>
-          
-          {/* Loading State */}
-          {loading ? (
-            <Box sx={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: 300,
-              py: 8
-            }}>
-              <CircularProgress sx={{ color: primaryColour, mb: 3 }} />
-              <Typography variant="h6" fontWeight={500} color="text.secondary">
-                Loading your bookings...
-              </Typography>
-            </Box>
-          ) : error ? (
-            <Alert 
-              severity="error" 
-              icon={<ErrorOutline />}
-              sx={{ 
-                mb: 4, 
-                borderRadius: 3,
-                boxShadow: `0 4px 12px ${alpha('#000', 0.05)}`
-              }}
-              action={
-                <Button color="inherit" onClick={() => dispatch(fetchUserBookings())}>
-                  Retry
-                </Button>
-              }
-            >
-              <Typography fontWeight={600}>{error}</Typography>
-            </Alert>
-          ) : (
-            <>
-              {/* Filters */}
-              <Paper 
-                elevation={0}
-                sx={{
-                  borderRadius: 3,
-                  bgcolor: alpha("#fff", 0.6),
-                  backdropFilter: "blur(10px)",
-                  p: 2,
-                  mb: 4,
-                  border: `1px solid ${alpha(darkBlueColor, 0.1)}`,
-                }}
-              >
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  spacing={2}
-                  alignItems={{ xs: "stretch", sm: "center" }}
-                  justifyContent="space-between"
+
+          {/* Filters Section */}
+          <Paper
+            elevation={0}
+            sx={{
+              bgcolor: cardBg,
+              borderRadius: 3,
+              p: 2,
+              mb: 4,
+              border: `1px solid ${accentPrimary}20`
+            }}
+          >
+            {/* ...existing filters content... */}
+          </Paper>
+
+          {/* Booking Cards Grid */}
+          <Grid container spacing={3}>
+            {filterBookings(tabStatuses[tab]).map((booking, index) => (
+              <Grid item xs={12} md={6} key={booking.id}>
+                <motion.div
+                  variants={cardVariants}
+                  initial="hidden"
+                  animate="visible"
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
-                  <Typography variant="subtitle2" fontWeight={600} color="text.secondary">
-                    {filterBookings(tabStatuses[tab]).length} {tabStatuses[tab].toLowerCase()} {filterBookings(tabStatuses[tab]).length === 1 ? 'rental' : 'rentals'} found
-                  </Typography>
-                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                    <FormControl 
-                      size="small" 
-                      sx={{ 
-                        minWidth: 140,
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: 2,
-                          borderColor: alpha(darkBlueColor, 0.2),
-                        },
-                        "& .MuiInputLabel-root": {
-                          color: alpha(darkBlueColor, 0.7),
-                        }
-                      }}
-                    >
-                      <InputLabel>Car Type</InputLabel>
-                      <Select
-                        value={filterType}
-                        label="Car Type"
-                        onChange={(e) => setFilterType(e.target.value)}
-                        aria-label="Filter by car type"
-                      >
-                        {carTypes.map((type, index) => (
-                          <MenuItem key={`type-${index}-${type}`} value={type}>
-                            {type}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                    <FormControl 
-                      size="small" 
-                      sx={{ 
-                        minWidth: 140,
-                        "& .MuiOutlinedInput-root": {
-                          borderRadius: 2,
-                          borderColor: alpha(darkBlueColor, 0.2),
-                        },
-                        "& .MuiInputLabel-root": {
-                          color: alpha(darkBlueColor, 0.7),
-                        }
-                      }}
-                    >
-                      <InputLabel>Sort By</InputLabel>
-                      <Select
-                        value={sortBy}
-                        label="Sort By"
-                        onChange={(e) => setSortBy(e.target.value)}
-                        aria-label="Sort by"
-                      >
-                        <MenuItem key="date-desc" value="date-desc">Newest First</MenuItem>
-                        <MenuItem key="date-asc" value="date-asc">Oldest First</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Stack>
-                </Stack>
-              </Paper>
-              
-              {/* Booking Cards */}
-              <Box
-                role="tabpanel"
-                id={`tabpanel-${tab}`}
-                aria-labelledby={`tab-${tab}`}
-                sx={{ width: "100%", minHeight: 200 }}
-              >
-                <Grid container spacing={3}>
-                  {filterBookings(tabStatuses[tab]).length === 0 ? (
-                    <Grid item xs={12}>
-                      <Paper
-                        elevation={0}
+                  <Card
+                    sx={{
+                      bgcolor: cardBg,
+                      color: textPrimary,
+                      borderRadius: 3,
+                      overflow: 'hidden',
+                      border: `1px solid ${accentPrimary}20`,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-5px)',
+                        boxShadow: `0 8px 25px ${accentPrimary}20`
+                      },
+                      '& .MuiTypography-root': {
+                        color: textPrimary
+                      },
+                      '& .MuiTypography-secondary': {
+                        color: textSecondary
+                      }
+                    }}
+                  >
+                    {booking.status === "cancelled" && (
+                      <Box sx={{
+                        position: "absolute",
+                        top: 20,
+                        left: -35,
+                        background: accentRedColor,
+                        color: "#fff",
+                        padding: "4px 40px",
+                        transform: "rotate(-45deg)",
+                        zIndex: 2,
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                        fontSize: "0.75rem",
+                        fontWeight: 600
+                      }}>CANCELLED</Box>
+                    )}
+                    
+                    {/* Upcoming pickup notification */}
+                    {booking.requiresAction && (
+                      <Box
                         sx={{
-                          bgcolor: alpha("#fff", 0.8),
-                          borderRadius: 4,
-                          p: 6,
-                          textAlign: "center",
-                          boxShadow: "0 2px 8px rgba(57,0,153,0.05)",
-                          border: `1px dashed ${alpha(darkBlueColor, 0.2)}`,
+                          position: "absolute",
+                          top: { xs: 10, sm: 10 },
+                          right: { xs: 10, sm: 10 },
+                          zIndex: 5,
+                          animation: "pulse 1.5s infinite",
+                          "@keyframes pulse": {
+                            "0%": { transform: "scale(1)" },
+                            "50%": { transform: "scale(1.05)" },
+                            "100%": { transform: "scale(1)" }
+                          },
                         }}
                       >
-                        <DirectionsCar sx={{ fontSize: 64, color: alpha(darkBlueColor, 0.2), mb: 2 }} />
-                        <Typography variant="h6" color="text.secondary" fontWeight={500}>
-                          No rentals found in this category
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                          Try changing your filters or check another tab
-                        </Typography>
-                      </Paper>
-                    </Grid>
-                  ) : (
-                    filterBookings(tabStatuses[tab]).map((booking, index) => 
-                      renderBookingCard(booking, index)
-                    )
-                  )}
-                </Grid>
-              </Box>
-            </>
-          )}
+                        <Paper
+                          elevation={3}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            bgcolor: 'rgba(255, 214, 51, 0.95)',
+                            color: darkBlueColor,
+                            px: 1.5,
+                            py: 0.7,
+                            borderRadius: 6,
+                            border: `1px solid ${primaryColour}`,
+                            boxShadow: `0 2px 12px ${alpha(primaryColour, 0.5)}`,
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              bgcolor: darkBlueColor,
+                              color: '#fff',
+                              width: 20,
+                              height: 20,
+                              borderRadius: '50%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 800,
+                              fontSize: '0.75rem',
+                              mr: 1
+                            }}
+                          >
+                            !
+                          </Box>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontWeight: 700,
+                              fontSize: '0.75rem',
+                            }}
+                          >
+                            UPCOMING PICKUP
+                          </Typography>
+                        </Paper>
+                      </Box>
+                    )}
+
+                    <Box sx={{ 
+                      width: { xs: "100%", sm: 240 }, 
+                      flexShrink: 0, 
+                      position: "relative",
+                      overflow: "hidden" 
+                    }}>
+                      <CardMedia
+                        component="img"
+                        image={booking.car.image}
+                        alt={booking.car.name}
+                        sx={{
+                          width: "100%",
+                          height: { xs: 200, sm: "100%" },
+                          objectFit: "cover",
+                          transition: "transform 0.4s ease",
+                          "&:hover": {
+                            transform: "scale(1.05)"
+                          }
+                        }}
+                      />
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          position: "absolute",
+                          top: 10,
+                          right: 10,
+                          background: alpha(darkBlueColor, 0.8),
+                          color: "#fff",
+                          fontWeight: 700,
+                          px: 1.5,
+                          py: 0.5,
+                          borderRadius: 5
+                        }}
+                      >
+                        {booking.car.year}
+                      </Typography>
+                    </Box>
+                    <CardContent
+                      sx={{
+                        flex: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        p: { xs: 2.5, sm: 3 },
+                        minWidth: 0,
+                      }}
+                    >
+                      <Box>
+                        <Stack direction="row" alignItems="center" spacing={1} mb={1.5}>
+                          <Typography 
+                            variant="h6" 
+                            fontWeight={800} 
+                            sx={{ 
+                              color: darkBlueColor,
+                              letterSpacing: "-0.025em"
+                            }}
+                          >
+                            {booking.car.name}
+                          </Typography>
+                          <Chip
+                            size="small"
+                            label={booking.car.type}
+                            sx={{
+                              ml: 1,
+                              bgcolor: alpha(primaryColour, 0.15),
+                              color: darkBlueColor,
+                              fontWeight: 600,
+                              fontSize: "0.75rem",
+                              height: 22,
+                            }}
+                          />
+                        </Stack>
+                        
+                        {/* Pickup and Dropoff Information */}
+                        <Paper 
+                          elevation={0} 
+                          sx={{
+                            borderRadius: 3,
+                            bgcolor: alpha(darkBlueColor, 0.03),
+                            p: 2,
+                            mb: 2
+                          }}
+                        >
+                          <Grid container spacing={3}>
+                            <Grid item xs={12} sm={6}>
+                              <Box>
+                                <Typography 
+                                  variant="caption" 
+                                  fontWeight={600}
+                                  color="text.secondary"
+                                  sx={{
+                                    display: "block",
+                                    mb: 0.5,
+                                    textTransform: "uppercase",
+                                    fontSize: "0.75rem"
+                                  }}
+                                >
+                                  Pickup
+                                </Typography>
+                                <Typography variant="body2" fontWeight={600}>
+                                  {booking.pickup.location}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  {new Date(booking.pickup.date).toLocaleDateString()} • {new Date(booking.pickup.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                </Typography>
+                              </Box>
+                            </Grid>
+                            <Grid item xs={12} sm={6} sx={{position: "relative"}}>
+                              {!isMobile && (
+                                <ArrowRightAlt sx={{ 
+                                  position: "absolute", 
+                                  left: -16, 
+                                  top: "50%", 
+                                  transform: "translateY(-50%)",
+                                  color: alpha(darkBlueColor, 0.6)
+                                }} />
+                              )}
+                              <Box>
+                                <Typography 
+                                  variant="caption" 
+                                  fontWeight={600}
+                                  color="text.secondary"
+                                  sx={{
+                                    display: "block",
+                                    mb: 0.5,
+                                    textTransform: "uppercase",
+                                    fontSize: "0.75rem"
+                                  }}
+                                >
+                                  Drop-off
+                                </Typography>
+                                <Typography variant="body2" fontWeight={600}>
+                                  {booking.dropoff.location}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  {new Date(booking.dropoff.date).toLocaleDateString()} • {new Date(booking.dropoff.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                </Typography>
+                              </Box>
+                            </Grid>
+                          </Grid>
+                        </Paper>
+                        
+                        <Box sx={{ 
+                          display: "flex", 
+                          alignItems: "center", 
+                          justifyContent: "space-between", 
+                          mb: 1.5
+                        }}>
+                          <Typography variant="body2" fontWeight={700} fontSize="1rem">
+                            <Box component="span" sx={{ color: "#666" }}>
+                              Total:
+                            </Box>
+                            <Box component="span" sx={{ color: darkBlueColor, ml: 1 }}>
+                              ${booking.price.toLocaleString()}
+                            </Box>
+                          </Typography>
+                          <Typography 
+                            variant="body2" 
+                            sx={{ 
+                              bgcolor: alpha(primaryColour, 0.2), 
+                              px: 1.5, 
+                              py: 0.5, 
+                              borderRadius: 5,
+                              fontWeight: 600,
+                              color: darkBlueColor
+                            }}
+                          >
+                            {booking.duration}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      
+                      <Box>
+                        <Divider sx={{ my: 2, opacity: 0.6 }} />
+                        <Stack 
+                          direction="row" 
+                          alignItems="center" 
+                          justifyContent="space-between" 
+                          spacing={2} 
+                          mb={2}
+                        >
+                          <Chip
+                            icon={statusIcons[booking.status]}
+                            label={booking.status}
+                            color={statusColors[booking.status]}
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: "0.9rem",
+                              px: 1.5,
+                              textTransform: "capitalize",
+                              bgcolor: statusColors[booking.status] === "primary" ? primaryColour : undefined,
+                              color: statusColors[booking.status] === "primary" ? darkBlueColor : undefined,
+                              "& .MuiChip-icon": { fontSize: "1.2rem" }
+                            }}
+                            aria-label={`Status: ${booking.status}`}
+                          />
+                        </Stack>
+                        {/* Action Buttons */}
+                        <Stack direction="row" spacing={2}>
+                          <Button
+                            variant="outlined"
+                            startIcon={<Receipt />}
+                            onClick={() => handleOpenInvoice(booking)}
+                            sx={{
+                              borderRadius: 2,
+                              borderColor: alpha(darkBlueColor, 0.5),
+                              color: darkBlueColor,
+                              fontWeight: 600,
+                              textTransform: "none",
+                              px: 2,
+                              "&:hover": { 
+                                bgcolor: alpha(darkBlueColor, 0.04), 
+                                borderColor: darkBlueColor 
+                              },
+                            }}
+                            aria-label="View Invoice"
+                          >
+                            View Invoice
+                          </Button>
+                          {booking.status === "upcoming" && (
+                            <Button
+                              variant="contained"
+                              startIcon={<Edit />}
+                              sx={{
+                                borderRadius: 2,
+                                bgcolor: primaryColour,
+                                color: darkBlueColor,
+                                fontWeight: 600,
+                                textTransform: "none",
+                                px: 2,
+                                boxShadow: `0 4px 14px ${alpha(primaryColour, 0.4)}`,
+                                "&:hover": { 
+                                  bgcolor: alpha(primaryColour, 0.9),
+                                  boxShadow: `0 6px 20px ${alpha(primaryColour, 0.5)}`,
+                                },
+                              }}
+                              aria-label="Modify Booking"
+                            >
+                              Modify Booking
+                            </Button>
+                          )}
+                          {(booking.status === "upcoming" || booking.status === "active") && (
+                            <Button
+                              variant="outlined" 
+                              color="error"
+                              disabled={actionLoading}
+                              onClick={() => handleCancelBooking(booking.id)}
+                              sx={{
+                                borderRadius: 2,
+                                fontWeight: 600,
+                                textTransform: "none",
+                                px: 2,
+                              }}
+                            >
+                              {actionLoading ? <CircularProgress size={20} /> : 'Cancel'}
+                            </Button>
+                          )}
+                          {canReview && (
+                            <Button
+                              variant="contained"
+                              color="secondary"
+                              startIcon={<StarIcon />}
+                              onClick={() => handleOpenReview(booking)}
+                              sx={{
+                                borderRadius: 2,
+                                fontWeight: 600,
+                                textTransform: "none",
+                                px: 2,
+                                bgcolor: secondaryColour,
+                                color: "#fff"
+                              }}
+                            >
+                              Leave a Review
+                            </Button>
+                          )}
+                        </Stack>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </Grid>
+            ))}
+          </Grid>
         </Container>
       </Box>
       <Footer />

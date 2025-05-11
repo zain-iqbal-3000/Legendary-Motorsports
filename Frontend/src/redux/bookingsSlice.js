@@ -17,6 +17,52 @@ export const createBooking = createAsyncThunk(
   }
 );
 
+// Add status mapping function
+const mapStatus = (status) => {
+  switch (status?.toUpperCase()) {
+    case 'COMPLETED':
+      return 'completed';
+    case 'PENDING':
+      return 'upcoming';
+    case 'CANCELLED':
+      return 'cancelled';
+    default:
+      return 'active';
+  }
+};
+
+const mapBookingData = (booking) => {
+  if (!booking || !booking.car) {
+    console.warn('Invalid booking data:', booking);
+    return null;
+  }
+
+  return {
+    id: booking._id,
+    carId: booking.car._id,
+    car: {
+      id: booking.car._id,
+      name: `${booking.car.make} ${booking.car.model}`,
+      year: booking.car.year,
+      image: booking.car.images?.[0] || '',
+      type: booking.car.specifications?.engine?.type || 'N/A'
+    },
+    pickup: {
+      location: booking.pickupLocation,
+      date: booking.startDate
+    },
+    dropoff: {
+      location: booking.dropoffLocation,
+      date: booking.endDate
+    },
+    price: booking.totalAmount,
+    duration: `${Math.ceil((new Date(booking.endDate) - new Date(booking.startDate)) / (1000 * 60 * 60 * 24))} days`,
+    status: mapStatus(booking.status),
+    requiresAction: booking.requiresAction,
+    createdAt: booking.createdAt
+  };
+};
+
 // Async action to fetch user bookings
 export const fetchUserBookings = createAsyncThunk(
   'bookings/fetchUserBookings',
@@ -24,11 +70,11 @@ export const fetchUserBookings = createAsyncThunk(
     try {
       const token = localStorage.getItem('token');
       const userId = localStorage.getItem('userId');
-      const response = await axios.get(`api/bookings/user/${userId}`, {
+      const response = await axios.get(`/api/bookings/user/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      return response.data;
+      return response.data.map(mapBookingData).filter(Boolean);
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch bookings');
     }
@@ -42,33 +88,6 @@ const initialState = {
   loading: false,
   error: null,
   success: false
-};
-
-const mapBookingData = (booking) => {
-  return {
-    id: booking._id,
-    carId: booking.car._id,
-    car: {
-      id: booking.car._id,
-      name: `${booking.car.make} ${booking.car.model}`,
-      year: booking.car.year,
-      image: booking.car.images[0],
-      type: booking.car.specifications?.engine?.type || 'N/A'
-    },
-    pickup: {
-      location: booking.pickupLocation,
-      date: booking.startDate
-    },
-    dropoff: {
-      location: booking.dropoffLocation,
-      date: booking.endDate
-    },
-    price: booking.totalAmount,
-    duration: `${Math.ceil((new Date(booking.endDate) - new Date(booking.startDate)) / (1000 * 60 * 60 * 24))} days`,
-    status: booking.status.toLowerCase(),
-    requiresAction: booking.requiresAction,
-    createdAt: booking.createdAt
-  };
 };
 
 // Create the bookings slice
@@ -106,7 +125,7 @@ const bookingsSlice = createSlice({
       })
       .addCase(fetchUserBookings.fulfilled, (state, action) => {
         state.loading = false;
-        state.bookings = action.payload.map(mapBookingData);
+        state.bookings = action.payload;
       })
       .addCase(fetchUserBookings.rejected, (state, action) => {
         state.loading = false;

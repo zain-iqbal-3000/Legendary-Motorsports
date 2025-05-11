@@ -204,7 +204,7 @@ const Header = () => {
                   fontWeight: 800, 
                   letterSpacing: { xs: 0, md: 1 },
                   fontSize: { xs: '1.5rem', sm: '1.8rem', md: '2rem' },
-                  color: 'primary.main',
+                  color: 'primary.main', // Keep logo color as primary (gold)
                   cursor: 'pointer',
                   flexShrink: 0
                 }}
@@ -237,7 +237,7 @@ const Header = () => {
                           mx: { sm: 0.8, md: 1.2, lg: 2 },
                           py: 1,
                           position: 'relative',
-                          color: 'text.primary',
+                          color: '#ffffff',
                           fontWeight: 500,
                           fontSize: { sm: '0.8rem', md: '0.9rem' },
                           letterSpacing: 0.5,

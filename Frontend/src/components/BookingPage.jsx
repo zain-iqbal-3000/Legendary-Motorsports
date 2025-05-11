@@ -53,16 +53,51 @@ import { motion } from "framer-motion";
 import Header from "./Header";
 import Footer from "./Footer";
 
-// Dark theme colors
-const darkBg = "#111517"; // Light black background
-const accentPrimary = "#3498db"; // Main blue accent
-const accentSecondary = "#f1c40f"; // Yellow accent
-const darkPanel = "rgba(25, 28, 32, 0.85)";
-const cardBg = "rgba(21, 24, 28, 0.95)";
-const gold = "#F9A825";
-const textPrimary = "#ffffff";
-const textSecondary = "#a0a9b6";
-const border = `1px solid ${accentPrimary}33`;
+// Update theme colors section
+const darkBg = "#111517";
+const cardBg = "#181F2A";
+const inputBg = "#1E2530";
+const darkPanel = "#1B2233"; // Add this line
+const textPrimary = "#FFFFFF";
+const textSecondary = "rgba(255, 255, 255, 0.7)";
+const accentPrimary = "#3498db";
+const accentSecondary = "#2ecc71";
+const border = `1px solid ${accentPrimary}20`; // Add this line
+
+// Common input styles for reuse
+const commonInputStyles = {
+  '& .MuiInputBase-root': {
+    bgcolor: inputBg,
+    color: textPrimary,
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: `${accentPrimary}40`,
+    },
+    '&:hover .MuiOutlinedInput-notchedOutline': {
+      borderColor: `${accentPrimary}80`,
+    },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: accentPrimary,
+    },
+    '& input': {
+      color: textPrimary,
+    },
+    '& textarea': {
+      color: textPrimary,
+    }
+  },
+  '& .MuiInputLabel-root': {
+    color: textSecondary,
+    '&.Mui-focused': {
+      color: accentPrimary,
+    }
+  },
+  '& .MuiFormHelperText-root': {
+    color: 'error.main',
+  },
+  '& .MuiSelect-icon': {
+    color: accentPrimary,
+  }
+};
 
 // Clean subtle effects
 const glowEffect = `0 0 15px ${accentPrimary}40`;
@@ -377,111 +412,30 @@ const handleSubmit = async () => {
                         value={bookingData.startDate}
                         onChange={(newValue) => handleDateTimeChange("startDate", newValue)}
                         disablePast
-                        sx={{ 
-                          width: "100%", 
+                        sx={{
+                          width: "100%",
                           mb: 2,
-                          '& .MuiInputBase-root': {
-                            bgcolor: darkPanel,
-                            color: textPrimary,
-                            '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: `${accentPrimary}40`,
-                            },
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: `${accentPrimary}80`,
-                            },
-                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                              borderColor: accentPrimary,
-                            },
-                             '& input': {
-                            color: textPrimary,
-                          },
-                          },
-                          '& .MuiInputLabel-root': {
-                            color: textSecondary,
-                          },
-                          '& .MuiIconButton-root': {
-                            color: accentPrimary,
-                          },
-                          '& .MuiSvgIcon-root': {
-                            color: accentPrimary,
-                          },
-                        }}
-                        slotProps={{
-                          textField: {
-                            helperText: validationErrors.startDate,
-                            error: !!validationErrors.startDate,
-                          },
+                          ...commonInputStyles
                         }}
                       />
                       <TimePicker
                         label="Pickup Time"
                         value={bookingData.pickupTime}
                         onChange={(newValue) => handleDateTimeChange("pickupTime", newValue)}
-                        sx={{ 
-                          width: "100%", 
+                        sx={{
+                          width: "100%",
                           mb: 2,
-                          '& .MuiInputBase-root': {
-                            bgcolor: darkPanel,
-                            color: textPrimary,
-                            '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: `${accentPrimary}40`,
-                            },
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: `${accentPrimary}80`,
-                            },
-                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                              borderColor: accentPrimary,
-                            },
-                             '& input': {
-                            color: textPrimary,
-                          },
-                          },
-                          '& .MuiInputLabel-root': {
-                            color: textSecondary,
-                          },
-                          '& .MuiIconButton-root': {
-                            color: accentPrimary,
-                          },
-                          '& .MuiSvgIcon-root': {
-                            color: accentPrimary,
-                          },
-                        }}
-                        slotProps={{
-                          textField: {
-                            helperText: validationErrors.pickupTime,
-                            error: !!validationErrors.pickupTime,
-                          },
+                          ...commonInputStyles
                         }}
                       />
                       <FormControl 
                         fullWidth 
                         error={!!validationErrors.pickupLocation} 
-                        sx={{ 
-                          '& .MuiInputBase-root': {
-                            bgcolor: darkPanel,
-                            color: textPrimary,
-                            '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: `${accentPrimary}40`,
-                            },
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: `${accentPrimary}80`,
-                            },
-                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                              borderColor: accentPrimary,
-                            },
-                             '& input': {
-                            color: textPrimary,
-                          },
-                          },
-                          '& .MuiInputLabel-root': {
-                            color: textSecondary,
-                          },
-                          '& .MuiSvgIcon-root': {
-                            color: accentPrimary,
-                          },
-                          '& .MuiFormHelperText-root': {
-                            color: 'error.main',
-                          },
+                        sx={{
+                          ...commonInputStyles,
+                          '& .MuiSelect-root': {
+                            bgcolor: inputBg,
+                          }
                         }}
                       >
                         <InputLabel>Pickup Location</InputLabel>
@@ -536,111 +490,30 @@ const handleSubmit = async () => {
                         value={bookingData.endDate}
                         onChange={(newValue) => handleDateTimeChange("endDate", newValue)}
                         disablePast
-                        sx={{ 
-                          width: "100%", 
+                        sx={{
+                          width: "100%",
                           mb: 2,
-                          '& .MuiInputBase-root': {
-                            bgcolor: darkPanel,
-                            color: textPrimary,
-                            '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: `${accentPrimary}40`,
-                            },
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: `${accentPrimary}80`,
-                            },
-                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                              borderColor: accentPrimary,
-                            },
-                             '& input': {
-                            color: textPrimary,
-                          },
-                          },
-                          '& .MuiInputLabel-root': {
-                            color: textSecondary,
-                          },
-                          '& .MuiIconButton-root': {
-                            color: accentPrimary,
-                          },
-                          '& .MuiSvgIcon-root': {
-                            color: accentPrimary,
-                          },
-                        }}
-                        slotProps={{
-                          textField: {
-                            helperText: validationErrors.endDate,
-                            error: !!validationErrors.endDate,
-                          },
+                          ...commonInputStyles
                         }}
                       />
                       <TimePicker
                         label="Return Time"
                         value={bookingData.dropoffTime}
                         onChange={(newValue) => handleDateTimeChange("dropoffTime", newValue)}
-                        sx={{ 
-                          width: "100%", 
+                        sx={{
+                          width: "100%",
                           mb: 2,
-                          '& .MuiInputBase-root': {
-                            bgcolor: darkPanel,
-                            color: textPrimary,
-                            '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: `${accentPrimary}40`,
-                            },
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: `${accentPrimary}80`,
-                            },
-                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                              borderColor: accentPrimary,
-                            },
-                             '& input': {
-                              color: textPrimary,
-                            },
-                          },
-                          '& .MuiInputLabel-root': {
-                            color: textSecondary,
-                          },
-                          '& .MuiIconButton-root': {
-                            color: accentPrimary,
-                          },
-                          '& .MuiSvgIcon-root': {
-                            color: accentPrimary,
-                          },
-                        }}
-                        slotProps={{
-                          textField: {
-                            helperText: validationErrors.dropoffTime,
-                            error: !!validationErrors.dropoffTime,
-                          },
+                          ...commonInputStyles
                         }}
                       />
                       <FormControl 
                         fullWidth 
                         error={!!validationErrors.dropoffLocation}
-                        sx={{ 
-                          '& .MuiInputBase-root': {
-                            bgcolor: darkPanel,
-                            color: textPrimary,
-                            '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: `${accentPrimary}40`,
-                            },
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: `${accentPrimary}80`,
-                            },
-                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                              borderColor: accentPrimary,
-                            },
-                            '& input': {
-                              color: textPrimary,
-                            },
-                          },
-                          '& .MuiInputLabel-root': {
-                            color: textSecondary,
-                          },
-                          '& .MuiSvgIcon-root': {
-                            color: accentPrimary,
-                          },
-                          '& .MuiFormHelperText-root': {
-                            color: 'error.main',
-                          },
+                        sx={{
+                          ...commonInputStyles,
+                          '& .MuiSelect-root': {
+                            bgcolor: inputBg,
+                          }
                         }}
                       >
                         <InputLabel>Return Location</InputLabel>
@@ -696,25 +569,8 @@ const handleSubmit = async () => {
                       rows={3}
                       placeholder="Any specific requirements or preferences for your rental"
                       sx={{
-                        '& .MuiInputBase-root': {
-                          bgcolor: darkPanel,
-                          color: textPrimary,
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: `${accentPrimary}40`,
-                          },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: `${accentPrimary}80`,
-                          },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: accentPrimary,
-                          },
-                          '& input': {
-                              color: textPrimary,
-                            },
-                        },
-                        '& .MuiInputLabel-root': {
-                          color: textSecondary,
-                        },
+                        mb: 3,
+                        ...commonInputStyles
                       }}
                     />
                   </motion.div>
@@ -744,28 +600,7 @@ const handleSubmit = async () => {
                     helperText={validationErrors.firstName}
                     sx={{
                       mb: 3,
-                      '& .MuiInputBase-root': {
-                        bgcolor: darkPanel,
-                        color: textPrimary,
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: `${accentPrimary}40`,
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: `${accentPrimary}80`,
-                        },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: accentPrimary,
-                        },
-                        '& input': {
-                              color: textPrimary,
-                            },
-                      },
-                      '& .MuiInputLabel-root': {
-                        color: textSecondary,
-                      },
-                      '& .MuiFormHelperText-root': {
-                        color: 'error.main',
-                      },
+                      ...commonInputStyles
                     }}
                   />
                 </motion.div>
@@ -782,28 +617,7 @@ const handleSubmit = async () => {
                     helperText={validationErrors.lastName}
                     sx={{
                       mb: 3,
-                      '& .MuiInputBase-root': {
-                        bgcolor: darkPanel,
-                        color: textPrimary,
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: `${accentPrimary}40`,
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: `${accentPrimary}80`,
-                        },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: accentPrimary,
-                        },
-                        '& input': {
-                              color: textPrimary,
-                            },
-                      },
-                      '& .MuiInputLabel-root': {
-                        color: textSecondary,
-                      },
-                      '& .MuiFormHelperText-root': {
-                        color: 'error.main',
-                      },
+                      ...commonInputStyles
                     }}
                   />
                 </motion.div>
@@ -821,28 +635,7 @@ const handleSubmit = async () => {
                     helperText={validationErrors.email}
                     sx={{
                       mb: 3,
-                      '& .MuiInputBase-root': {
-                        bgcolor: darkPanel,
-                        color: textPrimary,
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: `${accentPrimary}40`,
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: `${accentPrimary}80`,
-                        },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: accentPrimary,
-                        },
-                        '& input': {
-                              color: textPrimary,
-                            },
-                      },
-                      '& .MuiInputLabel-root': {
-                        color: textSecondary,
-                      },
-                      '& .MuiFormHelperText-root': {
-                        color: 'error.main',
-                      },
+                      ...commonInputStyles
                     }}
                   />
                 </motion.div>
@@ -859,28 +652,7 @@ const handleSubmit = async () => {
                     helperText={validationErrors.phone}
                     sx={{
                       mb: 3,
-                      '& .MuiInputBase-root': {
-                        bgcolor: darkPanel,
-                        color: textPrimary,
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: `${accentPrimary}40`,
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: `${accentPrimary}80`,
-                        },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: accentPrimary,
-                        },
-                        '& input': {
-                              color: textPrimary,
-                            },
-                      },
-                      '& .MuiInputLabel-root': {
-                        color: textSecondary,
-                      },
-                      '& .MuiFormHelperText-root': {
-                        color: 'error.main',
-                      },
+                      ...commonInputStyles
                     }}
                   />
                 </motion.div>
