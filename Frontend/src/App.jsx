@@ -13,6 +13,7 @@ import AccountSettings from './components/AccountSettings';
 import BookingHistory from './components/BookingHistory';
 import BookingPage from './components/BookingPage';
 import CarDetail from './CarDetail';
+import ContactUs from './components/ContactUs';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Route path="/aboutus" element={<AboutUs/>}/>
           <Route path="/carinventory" element={<CarInventory/>}/>
           <Route path="/cardetail/:id" element={<CarDetail/>}/>
+          <Route path="/contact" element={<ContactUs/>}/>
           
           {/* Protected Routes */}
           <Route

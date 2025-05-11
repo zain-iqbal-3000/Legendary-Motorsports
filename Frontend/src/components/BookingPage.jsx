@@ -143,7 +143,7 @@ const BookingPage = () => {
         }
 
         // Real API call to get specific car details from backend
-        const response = await axios.get(`/api/cars/${carId}`);
+        const response = await axios.get(`http://localhost:5000/api/cars/${carId}`);
         setCar(response.data);
         
         setLoading(false);
@@ -202,21 +202,26 @@ const BookingPage = () => {
     let days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     days = Math.max(days, 1); // Minimum 1 day rental
     
+    // Use optional chaining and provide fallback values
+    const dailyRate = car.availability?.rentalPrice?.daily || 500; // Default $500/day
+    const weeklyRate = car.availability?.rentalPrice?.weekly || dailyRate * 7 * 0.9; // 10% discount for weekly
+    const monthlyRate = car.availability?.rentalPrice?.monthly || dailyRate * 30 * 0.8; // 20% discount for monthly
+    
     let totalPrice;
     if (days >= 30) {
-      totalPrice = Math.floor(days / 30) * car.availability.rentalPrice.monthly;
+      totalPrice = Math.floor(days / 30) * monthlyRate;
       const remainingDays = days % 30;
       if (remainingDays >= 7) {
-        totalPrice += Math.floor(remainingDays / 7) * car.availability.rentalPrice.weekly;
-        totalPrice += (remainingDays % 7) * car.availability.rentalPrice.daily;
+        totalPrice += Math.floor(remainingDays / 7) * weeklyRate;
+        totalPrice += (remainingDays % 7) * dailyRate;
       } else {
-        totalPrice += remainingDays * car.availability.rentalPrice.daily;
+        totalPrice += remainingDays * dailyRate;
       }
     } else if (days >= 7) {
-      totalPrice = Math.floor(days / 7) * car.availability.rentalPrice.weekly;
-      totalPrice += (days % 7) * car.availability.rentalPrice.daily;
+      totalPrice = Math.floor(days / 7) * weeklyRate;
+      totalPrice += (days % 7) * dailyRate;
     } else {
-      totalPrice = days * car.availability.rentalPrice.daily;
+      totalPrice = days * dailyRate;
     }
 
     return { days, totalPrice };
@@ -293,62 +298,66 @@ const BookingPage = () => {
   };
 
   // Handle form submission
-  const handleSubmit = async () => {
-    try {
-      setSubmitting(true);
-      setError(null);
+const handleSubmit = async () => {
+  try {
+    setSubmitting(true);
+    setError(null);
 
-      const { days, totalPrice } = calculateBookingDetails();
-      
-      // Format dates properly for the API
-      const formattedStartDate = new Date(bookingData.startDate);
-      const formattedEndDate = new Date(bookingData.endDate);
-      
-      if (bookingData.pickupTime) {
-        const pickupTime = new Date(bookingData.pickupTime);
-        formattedStartDate.setHours(pickupTime.getHours(), pickupTime.getMinutes());
-      }
-      
-      if (bookingData.dropoffTime) {
-        const dropoffTime = new Date(bookingData.dropoffTime);
-        formattedEndDate.setHours(dropoffTime.getHours(), dropoffTime.getMinutes());
-      }
+    const { days, totalPrice } = calculateBookingDetails();
 
-      // Get the logged in user ID from localStorage or context
-      // This is just a placeholder - replace with your actual authentication method
-      const userId = localStorage.getItem('userId') || '65ba180399252b8aed855c3b';
-      
-      // Real API call to create the booking
-      const response = await axios.post("/api/bookings", {
-        user: userId,
-        car: car._id || carId,
-        startDate: formattedStartDate.toISOString(),
-        endDate: formattedEndDate.toISOString(),
-        pickupLocation: bookingData.pickupLocation,
-        dropoffLocation: bookingData.dropoffLocation,
-        specialRequests: bookingData.specialRequests,
-        totalAmount: totalPrice,
-        paymentDetails: {
-          method: "CREDIT_CARD",
-          cardLast4: paymentMethods.find(m => m.id === bookingData.paymentMethod)?.cardNumber.slice(-4) || '1234'
-        },
-      });
-      
-      // Store booking reference for confirmation page
-      const bookingReference = response?.data?.invoiceNumber || `LM-${Math.floor(Math.random() * 10000)}`;
-      setBookingReference(bookingReference);
-      
-      // Move to confirmation step
-      setActiveStep((prevStep) => prevStep + 1);
-      setSubmitting(false);
-      window.scrollTo(0, 0);
-      
-    } catch (error) {
-      console.error("Error submitting booking:", error);
-      setError("Failed to process your booking. Please try again.");
-      setSubmitting(false);
+    // Combine date and time for pickup and dropoff
+    const formattedStartDate = new Date(bookingData.startDate);
+    const formattedEndDate = new Date(bookingData.endDate);
+
+    if (bookingData.pickupTime) {
+      const pickupTime = new Date(bookingData.pickupTime);
+      formattedStartDate.setHours(pickupTime.getHours(), pickupTime.getMinutes());
     }
-  };
+
+    if (bookingData.dropoffTime) {
+      const dropoffTime = new Date(bookingData.dropoffTime);
+      formattedEndDate.setHours(dropoffTime.getHours(), dropoffTime.getMinutes());
+    }
+
+    // Assuming you have user ID stored in auth context or localStorage
+    const userId = localStorage.getItem('userId'); // Adjust as per your auth logic
+
+    const requestData = {
+      user: userId, // Required by backend
+      car: carId,   // From URL params
+      startDate: formattedStartDate.toISOString(),
+      endDate: formattedEndDate.toISOString(),
+      pickupLocation: bookingData.pickupLocation,
+      dropoffLocation: bookingData.dropoffLocation,
+      totalAmount: totalPrice,
+      paymentDetails: {
+        method: "CREDIT_CARD", // or from bookingData.paymentMethod if mapped correctly
+        cardLast4: paymentMethods.find(m => m.id === parseInt(bookingData.paymentMethod))?.cardNumber.slice(-4) || '0000',
+      },
+      specialRequests: bookingData.specialRequests || "",
+      // Optional fields like requiresAction can be added if needed
+    };
+
+    const response = await axios.post("http://localhost:5000/api/bookings", requestData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': localStorage.getItem('token'), // Include auth token if applicable
+      },
+    });
+
+    // Store booking reference or ID for confirmation step
+    setBookingReference(response.data._id || response.data.bookingId);
+
+    setActiveStep((prevStep) => prevStep + 1);
+    setSubmitting(false);
+    window.scrollTo(0, 0);
+  } catch (error) {
+    console.error("Error submitting booking:", error);
+    setError(error.response?.data?.message || "Failed to process your booking. Please try again.");
+    setSubmitting(false);
+  }
+};
+
 
   // Render content for each step
   const renderStepContent = () => {
@@ -1305,7 +1314,7 @@ const BookingPage = () => {
                       Starting from
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 700, color: accentPrimary }}>
-                      ${car.availability?.rentalPrice?.daily?.toLocaleString() || 'N/A'}/day
+                      ${car?.availability?.rentalPrice?.daily?.toLocaleString() || 'N/A'}/day
                     </Typography>
                     {days > 0 && (
                       <Typography variant="body1" sx={{ fontWeight: 700, color: accentSecondary }}>
@@ -1400,6 +1409,9 @@ const BookingPage = () => {
                 visibility: activeStep === 0 || activeStep === steps.length - 1 ? "hidden" : "visible",
                 color: accentPrimary,
                 borderColor: `${accentPrimary}60`,
+                visibility: activeStep === 0 || activeStep === steps.length - 1 ? "hidden" : "visible",
+                color: accentPrimary,
+                borderColor: `${accentPrimary}60`,
                 '&:hover': {
                   borderColor: accentPrimary,
                   bgcolor: `${accentPrimary}10`,
@@ -1430,17 +1442,13 @@ const BookingPage = () => {
                   },
                 }}
               >
-                {activeStep === steps.length - 2 ? (
-                  submitting ? (
-                    <>
-                      <CircularProgress size={20} sx={{ mr: 1, color: "#fff" }} />
-                      Processing...
-                    </>
-                  ) : (
-                    "Confirm Booking"
-                  )
+                {submitting ? (
+                  <>
+                    <CircularProgress size={20} sx={{ mr: 1, color: "#fff" }} />
+                    Processing...
+                  </>
                 ) : (
-                  "Continue"
+                  activeStep === steps.length - 2 ? "Confirm Booking" : "Continue"
                 )}
               </Button>
             )}

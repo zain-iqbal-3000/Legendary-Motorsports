@@ -130,6 +130,9 @@ const CarDetail = () => {
   const [addCommentError, setAddCommentError] = useState(null);
   const [addCommentSuccess, setAddCommentSuccess] = useState(null);
 
+  // User info (would come from your auth context/state)
+  const [userInfo, setUserInfo] = useState(null);
+
   // Tabs
   const [tabValue, setTabValue] = useState(0);
 
@@ -144,49 +147,121 @@ const CarDetail = () => {
       .catch(() => setLoading(false));
   }, [id]);
 
-  // Fetch comments
+  // Fetch user info - you would implement this based on your auth system
+  useEffect(() => {
+    // Check if user is logged in by looking for token
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Fetch user info from your auth system or API
+      axios.get('/api/users/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(res => {
+        setUserInfo(res.data);
+      })
+      .catch(err => {
+        console.error('Error fetching user info:', err);
+      });
+    }
+  }, []);
+
+  // Fetch comments with better error handling
   useEffect(() => {
     setCommentsLoading(true);
     setCommentsError(null);
+    
     axios.get(`/api/comments/car/${id}`)
       .then(res => {
         setComments(res.data || []);
         setCommentsLoading(false);
       })
-      .catch(() => {
-        // Don't show error if status is 401, just set to empty array
+      .catch(err => {
+        console.error('Error fetching comments:', err);
+        // Only show error if it's not an auth error
+        if (err.response && err.response.status !== 401) {
+          setCommentsError("Failed to load reviews. Please try again later.");
+        }
         setComments([]);
         setCommentsLoading(false);
       });
   }, [id, addCommentSuccess]);
 
-  // Add comment handler with credentials
+  // Add comment handler with proper API integration
   const handleAddComment = async (e) => {
     e.preventDefault();
     setAddCommentLoading(true);
     setAddCommentError(null);
     setAddCommentSuccess(null);
     
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      setAddCommentError("Please log in to submit a review");
+      setAddCommentLoading(false);
+      return;
+    }
+    
     try {
-      // For testing without auth, just skip this step and show success
-      setAddCommentSuccess("Comment submitted successfully!");
+      // Get user's active bookings to check if they can review
+      const bookingsResponse = await axios.get('/api/bookings/user', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Find a completed booking for this car
+      const eligibleBooking = bookingsResponse.data.find(
+        booking => booking.car._id === id && booking.status === 'COMPLETED'
+      );
+      
+      if (!eligibleBooking) {
+        setAddCommentError("You must have completed a booking for this car to leave a review");
+        setAddCommentLoading(false);
+        return;
+      }
+      
+      // Submit the comment with the booking reference
+      const response = await axios.post('/api/comments', {
+        carId: id,
+        bookingId: eligibleBooking._id,
+        rating: newComment.rating,
+        content: newComment.content
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setAddCommentSuccess("Review submitted successfully!");
       setNewComment({ rating: 5, content: '' });
       
-      /* Uncomment when you have auth working
-      await axios.post('/api/comments', {
-        carId: id,
-        rating: newComment.rating,
-        content: newComment.content,
-      }, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      */
+      // Refresh comments list
+      const updatedComments = await axios.get(`/api/comments/car/${id}`);
+      setComments(updatedComments.data || []);
+      
     } catch (err) {
-      setAddCommentError("Login required to submit a comment.");
+      console.error('Error submitting review:', err);
+      
+      if (err.response) {
+        // Handle specific error messages from the API
+        if (err.response.status === 400) {
+          setAddCommentError(err.response.data.message || "You've already reviewed this booking");
+        } else if (err.response.status === 401) {
+          setAddCommentError("Please log in to submit a review");
+        } else if (err.response.status === 403) {
+          setAddCommentError("You're not authorized to review this car");
+        } else {
+          setAddCommentError("Failed to submit review. Please try again.");
+        }
+      } else {
+        setAddCommentError("Network error. Please check your connection.");
+      }
     }
+    
     setAddCommentLoading(false);
+  };
+
+  // Add the missing handleLoginRedirect function
+  const handleLoginRedirect = () => {
+    // Save current page URL to redirect back after login
+    localStorage.setItem('redirectAfterLogin', window.location.pathname);
+    navigate('/login');
   };
 
   if (loading) {
@@ -806,7 +881,7 @@ const CarDetail = () => {
             <CommentCard key={comment._id} comment={comment} />
           ))}
 
-          {/* Add Comment Card */}
+          {/* Add Comment Card - Modify this section */}
           <Card
             sx={{
               bgcolor: cardBg,
@@ -834,84 +909,106 @@ const CarDetail = () => {
                 Share Your Experience
               </Typography>
               
-              <form onSubmit={handleAddComment}>
-                <Box sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
-                  <Typography variant="body2" sx={{ mr: 2, color: textSecondary }}>
-                    Your Rating:
+              {!localStorage.getItem('token') ? (
+                <Box sx={{ textAlign: 'center', py: 2 }}>
+                  <Typography color={textSecondary} sx={{ mb: 2 }}>
+                    Please log in to submit a review
                   </Typography>
-                  <Rating
-                    name="rating"
-                    value={newComment.rating}
-                    onChange={(_, value) => setNewComment((prev) => ({ ...prev, rating: value }))}
-                    size="large"
-                    sx={{ color: gold }}
-                  />
-                </Box>
-                
-                <TextField
-                  label="Write your review"
-                  variant="outlined"
-                  fullWidth
-                  multiline
-                  rows={3}
-                  value={newComment.content}
-                  onChange={e => setNewComment((prev) => ({ ...prev, content: e.target.value }))}
-                  sx={{
-                    mb: 3,
-                    '& .MuiOutlinedInput-root': {
-                      bgcolor: darkPanel,
-                      borderRadius: 2,
-                      '& fieldset': {
-                        borderColor: `${accentPrimary}40`
-                      },
-                      '&:hover fieldset': {
-                        borderColor: `${accentPrimary}80`
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: accentPrimary
+                  <Button
+                    variant="outlined"
+                    onClick={handleLoginRedirect}
+                    sx={{
+                      color: accentPrimary,
+                      borderColor: accentPrimary,
+                      '&:hover': {
+                        borderColor: accentSecondary,
+                        color: accentSecondary
                       }
-                    },
-                    '& .MuiInputLabel-root': {
-                      color: textSecondary
-                    },
-                    input: { color: textPrimary }
-                  }}
-                  required
-                />
-                
-                <Button
-                  type="submit"
-                  variant="contained"
-                  endIcon={<SendIcon />}
-                  disabled={addCommentLoading || !newComment.content}
-                  sx={{
-                    bgcolor: accentPrimary,
-                    color: "#fff",
-                    fontWeight: 600,
-                    px: 4,
-                    py: 1.2,
-                    borderRadius: 2,
-                    '&:hover': { 
-                      bgcolor: accentSecondary,
-                    },
-                    textTransform: 'none'
-                  }}
-                >
-                  {addCommentLoading ? "Submitting..." : "Submit Review"}
-                </Button>
-                
-                {addCommentError && (
-                  <Alert severity="error" sx={{ mt: 2 }}>
-                    {addCommentError}
-                  </Alert>
-                )}
-                
-                {addCommentSuccess && (
-                  <Alert severity="success" sx={{ mt: 2 }}>
-                    {addCommentSuccess}
-                  </Alert>
-                )}
-              </form>
+                    }}
+                  >
+                    Log In
+                  </Button>
+                </Box>
+              ) : (
+                <form onSubmit={handleAddComment}>
+                  <Box sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
+                    <Typography variant="body2" sx={{ mr: 2, color: textSecondary }}>
+                      Your Rating:
+                    </Typography>
+                    <Rating
+                      name="rating"
+                      value={newComment.rating}
+                      onChange={(_, value) => setNewComment((prev) => ({ ...prev, rating: value || 5 }))}
+                      size="large"
+                      sx={{ color: gold }}
+                    />
+                  </Box>
+                  
+                  <TextField
+                    label="Write your review"
+                    variant="outlined"
+                    fullWidth
+                    multiline
+                    rows={3}
+                    value={newComment.content}
+                    onChange={e => setNewComment((prev) => ({ ...prev, content: e.target.value }))}
+                    sx={{
+                      mb: 3,
+                      '& .MuiOutlinedInput-root': {
+                        bgcolor: darkPanel,
+                        borderRadius: 2,
+                        '& fieldset': {
+                          borderColor: `${accentPrimary}40`
+                        },
+                        '&:hover fieldset': {
+                          borderColor: `${accentPrimary}80`
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: accentPrimary
+                        }
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: textSecondary
+                      },
+                      input: { color: textPrimary }
+                    }}
+                    required
+                  />
+                  
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    endIcon={<SendIcon />}
+                    disabled={addCommentLoading || !newComment.content}
+                    sx={{
+                      bgcolor: accentPrimary,
+                      color: "#fff",
+                      fontWeight: 600,
+                      px: 4,
+                      py: 1.2,
+                      borderRadius: 2,
+                      '&:hover': { 
+                        bgcolor: accentSecondary,
+                      },
+                      textTransform: 'none'
+                    }}
+                  >
+                    {addCommentLoading ? "Submitting..." : "Submit Review"}
+                  </Button>
+                  
+                  {addCommentError && (
+                    <Alert severity="error" sx={{ mt: 2 }}>
+                      {addCommentError}
+                    </Alert>
+                  )}
+                  
+                  {addCommentSuccess && (
+                    <Alert severity="success" sx={{ mt: 2 }}>
+                      {addCommentSuccess}
+                    </Alert>
+                  )}
+                </form>
+              )}
             </CardContent>
           </Card>
         </Box>

@@ -1,197 +1,163 @@
 const express = require('express');
+const { body, validationResult } = require('express-validator');
+const Booking = require('../models/bookingSchema'); // Adjust path if needed
+
 const router = express.Router();
-const auth = require('../middleware/auth');
-const Booking = require('../models/bookingSchema'); 
-const Car = require('../models/hypercarSchema');
-const User = require('../models/userSchema');
-
-// Get all bookings for the current user
-router.get('/', auth, async (req, res) => {
-  try {
-    // Find bookings for the current user
-    const bookings = await Booking.find({ userId: req.user.id })
-      .sort({ createdAt: -1 })
-      .populate('carId');
-
-    // Format the response data
-    const formattedBookings = await Promise.all(bookings.map(async (booking) => {
-      // Get car details
-      const car = await Car.findById(booking.carId);
-      
-      // Calculate duration in days
-      const pickupDate = new Date(booking.pickup.date);
-      const dropoffDate = new Date(booking.dropoff.date);
-      const durationMs = dropoffDate - pickupDate;
-      const durationDays = Math.ceil(durationMs / (1000 * 60 * 60 * 24));
-      
-      // Check if pickup is within next 24 hours
-      const now = new Date();
-      const requiresAction = 
-        booking.status === 'active' && 
-        pickupDate > now && 
-        (pickupDate - now) < (24 * 60 * 60 * 1000);
-      
-      return {
-        id: booking._id,
-        carId: booking.carId._id,
-        car: {
-          name: `${car.make} ${car.model}`,
-          year: car.year,
-          image: car.images[0],
-          type: car.type
-        },
-        pickup: booking.pickup,
-        dropoff: booking.dropoff,
-        price: booking.totalPrice,
-        duration: `${durationDays} ${durationDays === 1 ? 'day' : 'days'}`,
-        status: booking.status,
-        requiresAction,
-        createdAt: booking.createdAt
-      };
-    }));
-
-    res.json(formattedBookings);
-  } catch (error) {
-    console.error('Error getting user bookings:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Get a specific booking
-router.get('/:id', auth, async (req, res) => {
-  try {
-    const booking = await Booking.findById(req.params.id);
-    
-    // Check if booking exists
-    if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
-    }
-    
-    // Check if the booking belongs to the user
-    if (booking.userId.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized to access this booking' });
-    }
-    
-    // Get car details
-    const car = await Car.findById(booking.carId);
-    
-    // Format booking with car details
-    const formattedBooking = {
-      id: booking._id,
-      carId: booking.carId,
-      car: {
-        name: `${car.make} ${car.model}`,
-        year: car.year,
-        image: car.images[0],
-        type: car.type
-      },
-      pickup: booking.pickup,
-      dropoff: booking.dropoff,
-      price: booking.totalPrice,
-      status: booking.status,
-      createdAt: booking.createdAt
-    };
-    
-    res.json(formattedBooking);
-  } catch (error) {
-    console.error('Error getting booking:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Cancel a booking
-router.put('/:id/cancel', auth, async (req, res) => {
-  try {
-    const booking = await Booking.findById(req.params.id);
-    
-    // Check if booking exists
-    if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
-    }
-    
-    // Check if the booking belongs to the user
-    if (booking.userId.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized to modify this booking' });
-    }
-    
-    // Check if booking can be cancelled (not already completed)
-    if (booking.status === 'completed') {
-      return res.status(400).json({ message: 'Cannot cancel a completed booking' });
-    }
-    
-    // Update status to cancelled
-    booking.status = 'cancelled';
-    await booking.save();
-    
-    res.json({ message: 'Booking cancelled successfully', status: 'cancelled' });
-  } catch (error) {
-    console.error('Error cancelling booking:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
 
 // Create a new booking
-router.post('/', auth, async (req, res) => {
+router.post(
+  '/',
+  [
+    body('user').isMongoId().withMessage('Valid user ID is required'),
+    body('car').isMongoId().withMessage('Valid car ID is required'),
+    body('startDate').isISO8601().toDate().withMessage('Valid start date is required'),
+    body('endDate').isISO8601().toDate().withMessage('Valid end date is required'),
+    body('pickupLocation').notEmpty().withMessage('Pickup location is required'),
+    body('dropoffLocation').notEmpty().withMessage('Dropoff location is required'),
+    body('totalAmount').isNumeric().withMessage('Total amount must be a number'),
+    body('status').optional().isIn(['PENDING', 'CONFIRMED', 'ACTIVE', 'COMPLETED', 'CANCELLED']),
+    body('paymentStatus').optional().isIn(['PENDING', 'PAID', 'REFUNDED', 'FAILED']),
+    body('paymentDetails.method').optional().isIn(['CREDIT_CARD', 'DEBIT_CARD', 'BANK_TRANSFER', 'CASH']),
+    body('specialRequests').optional().isString(),
+    body('requiresAction').optional().isBoolean()
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      const booking = new Booking(req.body);
+      await booking.save();
+      res.status(201).json(booking);
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
+);
+
+// Get all bookings
+router.get('/', async (req, res) => {
   try {
-    const { carId, pickup, dropoff, payment } = req.body;
-    
-    // Check if car exists and is available
-    const car = await Car.findById(carId);
-    if (!car) {
-      return res.status(404).json({ message: 'Car not found' });
-    }
-    
-    // Check if car is available for the selected dates
-    const conflictingBookings = await Booking.find({
-      carId: carId,
-      status: { $in: ['active', 'upcoming'] },
-      $or: [
-        { 'pickup.date': { $lte: new Date(dropoff.date), $gte: new Date(pickup.date) } },
-        { 'dropoff.date': { $lte: new Date(dropoff.date), $gte: new Date(pickup.date) } },
-        { 
-          $and: [
-            { 'pickup.date': { $lte: new Date(pickup.date) } },
-            { 'dropoff.date': { $gte: new Date(dropoff.date) } }
-          ]
-        }
-      ]
-    });
-    
-    if (conflictingBookings.length > 0) {
-      return res.status(400).json({ message: 'Car is not available for the selected dates' });
-    }
-    
-    // Calculate duration and total price
-    const pickupDate = new Date(pickup.date);
-    const dropoffDate = new Date(dropoff.date);
-    const durationMs = dropoffDate - pickupDate;
-    const durationDays = Math.ceil(durationMs / (1000 * 60 * 60 * 24));
-    const totalPrice = car.pricePerDay * durationDays;
-    
-    // Create the booking
-    const newBooking = new Booking({
-      userId: req.user.id,
-      carId: carId,
-      pickup: pickup,
-      dropoff: dropoff,
-      totalPrice: totalPrice,
-      paymentInfo: payment,
-      status: 'upcoming'
-    });
-    
-    await newBooking.save();
-    
-    // Add booking to user's bookings array
-    const user = await User.findById(req.user.id);
-    user.bookings.push(newBooking._id);
-    await user.save();
-    
-    res.status(201).json({
-      message: 'Booking created successfully',
-      bookingId: newBooking._id
-    });
+    const bookings = await Booking.find()
+      .populate('user', 'name email') // Customize fields as per your User model
+      .populate('car', 'make model year'); // Customize fields as per your Hypercar model
+    res.json(bookings);
   } catch (error) {
-    console.error('Error creating booking:', error);
+    console.error('Error fetching bookings:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get booking by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id)
+      .populate('user', 'name email')
+      .populate('car', 'make model year');
+
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    res.json(booking);
+  } catch (error) {
+    console.error('Error fetching booking:', error);
+    if (error.kind === 'ObjectId') {
+      return res.status(400).json({ message: 'Invalid booking ID' });
+    }
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update booking by ID
+router.put(
+  '/:id',
+  [
+    // Optional validations for update
+    body('status').optional().isIn(['PENDING', 'CONFIRMED', 'ACTIVE', 'COMPLETED', 'CANCELLED']),
+    body('paymentStatus').optional().isIn(['PENDING', 'PAID', 'REFUNDED', 'FAILED']),
+    body('paymentDetails.method').optional().isIn(['CREDIT_CARD', 'DEBIT_CARD', 'BANK_TRANSFER', 'CASH']),
+    body('requiresAction').optional().isBoolean()
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      const booking = await Booking.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true
+      });
+
+      if (!booking) {
+        return res.status(404).json({ message: 'Booking not found' });
+      }
+
+      res.json(booking);
+    } catch (error) {
+      console.error('Error updating booking:', error);
+      if (error.kind === 'ObjectId') {
+        return res.status(400).json({ message: 'Invalid booking ID' });
+      }
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
+);
+
+// Delete booking by ID
+router.delete('/:id', async (req, res) => {
+  try {
+    const booking = await Booking.findByIdAndDelete(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    res.json({ message: 'Booking deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting booking:', error);
+    if (error.kind === 'ObjectId') {
+      return res.status(400).json({ message: 'Invalid booking ID' });
+    }
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.get('/user/:userId', async (req, res) => {
+  try {
+    const bookings = await Booking.find({ user: req.params.userId })
+      .populate({
+        path: 'car',
+        select: 'make model year images specifications'
+      })
+      .populate({
+        path: 'user',
+        select: 'firstName lastName email'
+      })
+      .sort({ createdAt: -1 });
+
+    // Map bookings to include all fields needed by frontend
+    const mapped = bookings.map(b => ({
+      _id: b._id,
+      car: b.car,
+      pickupLocation: b.pickupLocation,
+      dropoffLocation: b.dropoffLocation,
+      startDate: b.startDate,
+      endDate: b.endDate,
+      totalAmount: b.totalAmount,
+      status: b.status,
+      requiresAction: b.requiresAction,
+      createdAt: b.createdAt
+    }));
+
+    res.json(mapped);
+  } catch (error) {
+    console.error('Error fetching bookings by user:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

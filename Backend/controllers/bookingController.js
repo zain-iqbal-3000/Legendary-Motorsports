@@ -4,7 +4,8 @@ const Hypercar = require('../models/hypercarSchema');
 const mongoose = require('mongoose');
 
 // Create a new booking
-exports.createBooking = async (req, res) => {
+const createBooking = async (req, res) => {
+  console.log('Creating booking with data:', req.body);
   try {
     const { 
       userId, 
@@ -79,7 +80,7 @@ exports.createBooking = async (req, res) => {
 };
 
 // Get all bookings (admin only)
-exports.getAllBookings = async (req, res) => {
+const getAllBookings = async (req, res) => {
   try {
     const bookings = await Booking.find()
       .populate('user', 'firstName lastName email phoneNumber')
@@ -93,7 +94,7 @@ exports.getAllBookings = async (req, res) => {
 };
 
 // Get user's bookings
-exports.getUserBookings = async (req, res) => {
+const getUserBookings = async (req, res) => {
   try {
     const { userId } = req.params;
     
@@ -109,7 +110,7 @@ exports.getUserBookings = async (req, res) => {
 };
 
 // Get a specific booking by id
-exports.getBookingById = async (req, res) => {
+const getBookingById = async (req, res) => {
   try {
     const { bookingId } = req.params;
     
@@ -133,7 +134,7 @@ exports.getBookingById = async (req, res) => {
 };
 
 // Update booking status
-exports.updateBookingStatus = async (req, res) => {
+const updateBookingStatus = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const { status, paymentStatus } = req.body;
@@ -171,7 +172,7 @@ exports.updateBookingStatus = async (req, res) => {
 };
 
 // Cancel booking
-exports.cancelBooking = async (req, res) => {
+const cancelBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const { cancellationReason } = req.body;
@@ -210,7 +211,7 @@ exports.cancelBooking = async (req, res) => {
 };
 
 // Get bookings for a specific car
-exports.getCarBookings = async (req, res) => {
+const getCarBookings = async (req, res) => {
   try {
     const { carId } = req.params;
     
@@ -229,4 +230,14 @@ exports.getCarBookings = async (req, res) => {
     console.error('Error fetching car bookings:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
+};
+
+module.exports = {
+  createBooking,
+  getAllBookings,
+  getUserBookings,
+  getBookingById,
+  updateBookingStatus,
+  cancelBooking,
+  getCarBookings
 };

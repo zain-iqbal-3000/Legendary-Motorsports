@@ -79,8 +79,7 @@ exports.getCarComments = async (req, res) => {
     }
     
     const comments = await Comment.find({ 
-      car: carId,
-      status: 'APPROVED' 
+      car: carId
     })
     .populate('user', 'firstName lastName profileImage')
     .sort({ createdAt: -1 });
