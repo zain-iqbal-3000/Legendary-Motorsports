@@ -496,7 +496,7 @@ const Home = () => {
           <Container maxWidth="lg">
             <Grid container spacing={2} justifyContent="center" alignItems="center">
               {statsData.map((stat, index) => (
-                <Grid item xs={6} md={3} key={index}>
+                <Grid size={{xs:6, md:3}} key={index}>
                   <Box sx={{ 
                     textAlign: 'center', 
                     p: 3, 
@@ -546,7 +546,7 @@ const Home = () => {
             {carsLoading && (
               <Grid container spacing={4} justifyContent="center">
                 {[...Array(6)].map((_, i) => (
-                  <Grid item xs={12} sm={6} md={4} key={i}>
+                  <Grid size={{xs:12, sm: 6, md:4}} key={i}>
                     <Skeleton variant="rectangular" height={440} sx={{ bgcolor: '#222', borderRadius: 2 }} />
                   </Grid>
                 ))}
@@ -560,7 +560,7 @@ const Home = () => {
             {!carsLoading && !carsError && (
               <Grid container spacing={4} justifyContent="center">
                 {carsData.slice(0, 6).map((car) => (
-                  <Grid item xs={12} sm={6} md={4} key={car._id || car.id} sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <Grid size={{xs:12, sm: 6, md:4}}  key={car._id || car.id} sx={{ display: 'flex', justifyContent: 'center' }}>
                     <Card
                       sx={{
                         width: 320,
@@ -699,7 +699,7 @@ const Home = () => {
             </Typography>
             <Grid container spacing={4}>
               {locationData.map((location, index) => (
-                <Grid item xs={12} sm={6} md={3} key={index}>
+                <Grid size={{xs:12, sm: 6, md:3}} key={index}>
                   <Paper 
                     elevation={3} 
                     sx={{ 
@@ -746,7 +746,7 @@ const Home = () => {
         <Box id="about" sx={{ py: 10, bgcolor: theme.palette.background.default }}>
           <Container maxWidth="lg">
             <Grid container spacing={6} alignItems="center">
-              <Grid item xs={12} md={6}>
+              <Grid size={{xs:12, md:6}} >
                 <motion.div variants={aboutItemVariants} initial="hidden" animate="visible">
                   <Typography variant="h3" fontWeight={700} mb={3} color="text.primary" letterSpacing="0.05em">
                     About Legendary Motorsports
@@ -781,7 +781,7 @@ const Home = () => {
                   </Button>
                 </motion.div>
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{xs:12, md:6}} >
                 <motion.div
                   variants={imageVariants}
                   initial="hidden"
@@ -814,7 +814,7 @@ const Home = () => {
             </Typography>
             <Grid container spacing={4}>
               {benefitsData.map((benefit, index) => (
-                <Grid item xs={12} sm={6} md={4} key={index}>
+                <Grid size={{xs:12, sm: 6, md:4}}  key={index}>
                   <Paper 
                     elevation={4} 
                     sx={{ 
@@ -1130,7 +1130,7 @@ const Home = () => {
         <Box sx={{ py: 10, bgcolor: theme.palette.background.accent }}>
           <Container maxWidth="lg">
             <Grid container spacing={5} alignItems="center">
-              <Grid item xs={12} md={6}>
+              <Grid size={{xs:12, md:6}} >
                 <Typography variant="h3" fontWeight={700} mb={3} color="text.primary">
                   Ready to Experience Luxury?
                 </Typography>
@@ -1172,7 +1172,7 @@ const Home = () => {
                   </IconButton>
                 </Stack>
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{xs:12, md:6}} >
                 <Paper 
                   elevation={4} 
                   sx={{ 

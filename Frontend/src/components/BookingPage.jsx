@@ -28,6 +28,7 @@ import {
   Checkbox,
   useTheme,
   alpha,
+  StepConnector,
 } from "@mui/material";
 import {
   EventAvailable,
@@ -38,6 +39,7 @@ import {
   ArrowBack,
   ArrowForward,
   Check,
+  Speed,
 } from "@mui/icons-material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
@@ -47,6 +49,21 @@ import axios from "axios";
 import { motion } from "framer-motion";
 import Header from "./Header";
 import Footer from "./Footer";
+
+// Dark theme colors
+const darkBg = "#111517"; // Light black background
+const accentPrimary = "#3498db"; // Main blue accent
+const accentSecondary = "#f1c40f"; // Yellow accent
+const darkPanel = "rgba(25, 28, 32, 0.85)";
+const cardBg = "rgba(21, 24, 28, 0.95)";
+const gold = "#F9A825";
+const textPrimary = "#ffffff";
+const textSecondary = "#a0a9b6";
+const border = `1px solid ${accentPrimary}33`;
+
+// Clean subtle effects
+const glowEffect = `0 0 15px ${accentPrimary}40`;
+const subtleShadow = '0 8px 24px rgba(0, 0, 0, 0.3)';
 
 // Define steps for the booking process
 const steps = ["Select Dates & Location", "Personal Details", "Payment", "Confirmation"];
@@ -86,7 +103,6 @@ const locations = [
 ];
 
 const BookingPage = () => {
-  const theme = useTheme();
   const navigate = useNavigate();
   const { carId } = useParams();
   
@@ -113,10 +129,6 @@ const BookingPage = () => {
     paymentMethod: "",
   });
   const [validationErrors, setValidationErrors] = useState({});
-
-  const primaryColour = theme.palette.primary.main;
-  const secondaryColour = theme.palette.secondary.main;
-  const darkBlueColor = theme.palette.primary.blue;
 
   // Fetch car data when component mounts
   useEffect(() => {
@@ -352,9 +364,9 @@ const BookingPage = () => {
               animate="visible"
             >
               <Grid container spacing={4}>
-                <Grid item xs={12} md={6}>
+                <Grid size={{xs:12, md:6}}>
                   <motion.div variants={itemVariants}>
-                    <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                    <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: textPrimary }}>
                       Pickup Details
                     </Typography>
                     <Box sx={{ mb: 3 }}>
@@ -363,7 +375,35 @@ const BookingPage = () => {
                         value={bookingData.startDate}
                         onChange={(newValue) => handleDateTimeChange("startDate", newValue)}
                         disablePast
-                        sx={{ width: "100%", mb: 2 }}
+                        sx={{ 
+                          width: "100%", 
+                          mb: 2,
+                          '& .MuiInputBase-root': {
+                            bgcolor: darkPanel,
+                            color: textPrimary,
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: `${accentPrimary}40`,
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: `${accentPrimary}80`,
+                            },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                              borderColor: accentPrimary,
+                            },
+                             '& input': {
+                            color: textPrimary,
+                          },
+                          },
+                          '& .MuiInputLabel-root': {
+                            color: textSecondary,
+                          },
+                          '& .MuiIconButton-root': {
+                            color: accentPrimary,
+                          },
+                          '& .MuiSvgIcon-root': {
+                            color: accentPrimary,
+                          },
+                        }}
                         slotProps={{
                           textField: {
                             helperText: validationErrors.startDate,
@@ -375,7 +415,35 @@ const BookingPage = () => {
                         label="Pickup Time"
                         value={bookingData.pickupTime}
                         onChange={(newValue) => handleDateTimeChange("pickupTime", newValue)}
-                        sx={{ width: "100%", mb: 2 }}
+                        sx={{ 
+                          width: "100%", 
+                          mb: 2,
+                          '& .MuiInputBase-root': {
+                            bgcolor: darkPanel,
+                            color: textPrimary,
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: `${accentPrimary}40`,
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: `${accentPrimary}80`,
+                            },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                              borderColor: accentPrimary,
+                            },
+                             '& input': {
+                            color: textPrimary,
+                          },
+                          },
+                          '& .MuiInputLabel-root': {
+                            color: textSecondary,
+                          },
+                          '& .MuiIconButton-root': {
+                            color: accentPrimary,
+                          },
+                          '& .MuiSvgIcon-root': {
+                            color: accentPrimary,
+                          },
+                        }}
                         slotProps={{
                           textField: {
                             helperText: validationErrors.pickupTime,
@@ -383,13 +451,64 @@ const BookingPage = () => {
                           },
                         }}
                       />
-                      <FormControl fullWidth error={!!validationErrors.pickupLocation}>
+                      <FormControl 
+                        fullWidth 
+                        error={!!validationErrors.pickupLocation} 
+                        sx={{ 
+                          '& .MuiInputBase-root': {
+                            bgcolor: darkPanel,
+                            color: textPrimary,
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: `${accentPrimary}40`,
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: `${accentPrimary}80`,
+                            },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                              borderColor: accentPrimary,
+                            },
+                             '& input': {
+                            color: textPrimary,
+                          },
+                          },
+                          '& .MuiInputLabel-root': {
+                            color: textSecondary,
+                          },
+                          '& .MuiSvgIcon-root': {
+                            color: accentPrimary,
+                          },
+                          '& .MuiFormHelperText-root': {
+                            color: 'error.main',
+                          },
+                        }}
+                      >
                         <InputLabel>Pickup Location</InputLabel>
                         <Select
                           value={bookingData.pickupLocation}
                           label="Pickup Location"
                           name="pickupLocation"
                           onChange={handleChange}
+                          MenuProps={{
+                            PaperProps: {
+                              sx: {
+                                bgcolor: darkPanel,
+                                color: textPrimary,
+                                '& .MuiMenuItem-root': {
+                                  color: textPrimary,
+                                  '&:hover': {
+                                    bgcolor: `${accentPrimary}20`,
+                                  },
+                                  '&.Mui-selected': {
+                                    bgcolor: `${accentPrimary}40`,
+                                    color: textPrimary,
+                                    '&:hover': {
+                                      bgcolor: `${accentPrimary}50`,
+                                    },
+                                  },
+                                },
+                              },
+                            },
+                          }}
                         >
                           {locations.map((location) => (
                             <MenuItem key={location} value={location}>
@@ -404,9 +523,9 @@ const BookingPage = () => {
                     </Box>
                   </motion.div>
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid size={{xs:12, md:6}}>
                   <motion.div variants={itemVariants}>
-                    <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                    <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: textPrimary }}>
                       Drop-off Details
                     </Typography>
                     <Box sx={{ mb: 3 }}>
@@ -415,7 +534,35 @@ const BookingPage = () => {
                         value={bookingData.endDate}
                         onChange={(newValue) => handleDateTimeChange("endDate", newValue)}
                         disablePast
-                        sx={{ width: "100%", mb: 2 }}
+                        sx={{ 
+                          width: "100%", 
+                          mb: 2,
+                          '& .MuiInputBase-root': {
+                            bgcolor: darkPanel,
+                            color: textPrimary,
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: `${accentPrimary}40`,
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: `${accentPrimary}80`,
+                            },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                              borderColor: accentPrimary,
+                            },
+                             '& input': {
+                            color: textPrimary,
+                          },
+                          },
+                          '& .MuiInputLabel-root': {
+                            color: textSecondary,
+                          },
+                          '& .MuiIconButton-root': {
+                            color: accentPrimary,
+                          },
+                          '& .MuiSvgIcon-root': {
+                            color: accentPrimary,
+                          },
+                        }}
                         slotProps={{
                           textField: {
                             helperText: validationErrors.endDate,
@@ -427,7 +574,35 @@ const BookingPage = () => {
                         label="Return Time"
                         value={bookingData.dropoffTime}
                         onChange={(newValue) => handleDateTimeChange("dropoffTime", newValue)}
-                        sx={{ width: "100%", mb: 2 }}
+                        sx={{ 
+                          width: "100%", 
+                          mb: 2,
+                          '& .MuiInputBase-root': {
+                            bgcolor: darkPanel,
+                            color: textPrimary,
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: `${accentPrimary}40`,
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: `${accentPrimary}80`,
+                            },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                              borderColor: accentPrimary,
+                            },
+                             '& input': {
+                              color: textPrimary,
+                            },
+                          },
+                          '& .MuiInputLabel-root': {
+                            color: textSecondary,
+                          },
+                          '& .MuiIconButton-root': {
+                            color: accentPrimary,
+                          },
+                          '& .MuiSvgIcon-root': {
+                            color: accentPrimary,
+                          },
+                        }}
                         slotProps={{
                           textField: {
                             helperText: validationErrors.dropoffTime,
@@ -435,13 +610,64 @@ const BookingPage = () => {
                           },
                         }}
                       />
-                      <FormControl fullWidth error={!!validationErrors.dropoffLocation}>
+                      <FormControl 
+                        fullWidth 
+                        error={!!validationErrors.dropoffLocation}
+                        sx={{ 
+                          '& .MuiInputBase-root': {
+                            bgcolor: darkPanel,
+                            color: textPrimary,
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: `${accentPrimary}40`,
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: `${accentPrimary}80`,
+                            },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                              borderColor: accentPrimary,
+                            },
+                            '& input': {
+                              color: textPrimary,
+                            },
+                          },
+                          '& .MuiInputLabel-root': {
+                            color: textSecondary,
+                          },
+                          '& .MuiSvgIcon-root': {
+                            color: accentPrimary,
+                          },
+                          '& .MuiFormHelperText-root': {
+                            color: 'error.main',
+                          },
+                        }}
+                      >
                         <InputLabel>Return Location</InputLabel>
                         <Select
                           value={bookingData.dropoffLocation}
                           label="Return Location"
                           name="dropoffLocation"
                           onChange={handleChange}
+                          MenuProps={{
+                            PaperProps: {
+                              sx: {
+                                bgcolor: darkPanel,
+                                color: textPrimary,
+                                '& .MuiMenuItem-root': {
+                                  color: textPrimary,
+                                  '&:hover': {
+                                    bgcolor: `${accentPrimary}20`,
+                                  },
+                                  '&.Mui-selected': {
+                                    bgcolor: `${accentPrimary}40`,
+                                    color: textPrimary,
+                                    '&:hover': {
+                                      bgcolor: `${accentPrimary}50`,
+                                    },
+                                  },
+                                },
+                              },
+                            },
+                          }}
                         >
                           {locations.map((location) => (
                             <MenuItem key={location} value={location}>
@@ -456,7 +682,7 @@ const BookingPage = () => {
                     </Box>
                   </motion.div>
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={{xs:12}}>
                   <motion.div variants={itemVariants}>
                     <TextField
                       fullWidth
@@ -467,6 +693,27 @@ const BookingPage = () => {
                       multiline
                       rows={3}
                       placeholder="Any specific requirements or preferences for your rental"
+                      sx={{
+                        '& .MuiInputBase-root': {
+                          bgcolor: darkPanel,
+                          color: textPrimary,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: `${accentPrimary}40`,
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: `${accentPrimary}80`,
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: accentPrimary,
+                          },
+                          '& input': {
+                              color: textPrimary,
+                            },
+                        },
+                        '& .MuiInputLabel-root': {
+                          color: textSecondary,
+                        },
+                      }}
                     />
                   </motion.div>
                 </Grid>
@@ -483,7 +730,7 @@ const BookingPage = () => {
             animate="visible"
           >
             <Grid container spacing={4}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{xs:12, md:6}}>
                 <motion.div variants={itemVariants}>
                   <TextField
                     fullWidth
@@ -493,11 +740,35 @@ const BookingPage = () => {
                     onChange={handleChange}
                     error={!!validationErrors.firstName}
                     helperText={validationErrors.firstName}
-                    sx={{ mb: 3 }}
+                    sx={{
+                      mb: 3,
+                      '& .MuiInputBase-root': {
+                        bgcolor: darkPanel,
+                        color: textPrimary,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: `${accentPrimary}40`,
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: `${accentPrimary}80`,
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: accentPrimary,
+                        },
+                        '& input': {
+                              color: textPrimary,
+                            },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: textSecondary,
+                      },
+                      '& .MuiFormHelperText-root': {
+                        color: 'error.main',
+                      },
+                    }}
                   />
                 </motion.div>
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{xs:12, md:6}}>
                 <motion.div variants={itemVariants}>
                   <TextField
                     fullWidth
@@ -507,11 +778,35 @@ const BookingPage = () => {
                     onChange={handleChange}
                     error={!!validationErrors.lastName}
                     helperText={validationErrors.lastName}
-                    sx={{ mb: 3 }}
+                    sx={{
+                      mb: 3,
+                      '& .MuiInputBase-root': {
+                        bgcolor: darkPanel,
+                        color: textPrimary,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: `${accentPrimary}40`,
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: `${accentPrimary}80`,
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: accentPrimary,
+                        },
+                        '& input': {
+                              color: textPrimary,
+                            },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: textSecondary,
+                      },
+                      '& .MuiFormHelperText-root': {
+                        color: 'error.main',
+                      },
+                    }}
                   />
                 </motion.div>
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{xs:12, md:6}}>
                 <motion.div variants={itemVariants}>
                   <TextField
                     fullWidth
@@ -522,11 +817,35 @@ const BookingPage = () => {
                     onChange={handleChange}
                     error={!!validationErrors.email}
                     helperText={validationErrors.email}
-                    sx={{ mb: 3 }}
+                    sx={{
+                      mb: 3,
+                      '& .MuiInputBase-root': {
+                        bgcolor: darkPanel,
+                        color: textPrimary,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: `${accentPrimary}40`,
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: `${accentPrimary}80`,
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: accentPrimary,
+                        },
+                        '& input': {
+                              color: textPrimary,
+                            },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: textSecondary,
+                      },
+                      '& .MuiFormHelperText-root': {
+                        color: 'error.main',
+                      },
+                    }}
                   />
                 </motion.div>
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{xs:12, md:6}}>
                 <motion.div variants={itemVariants}>
                   <TextField
                     fullWidth
@@ -536,13 +855,47 @@ const BookingPage = () => {
                     onChange={handleChange}
                     error={!!validationErrors.phone}
                     helperText={validationErrors.phone}
-                    sx={{ mb: 3 }}
+                    sx={{
+                      mb: 3,
+                      '& .MuiInputBase-root': {
+                        bgcolor: darkPanel,
+                        color: textPrimary,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: `${accentPrimary}40`,
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: `${accentPrimary}80`,
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: accentPrimary,
+                        },
+                        '& input': {
+                              color: textPrimary,
+                            },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: textSecondary,
+                      },
+                      '& .MuiFormHelperText-root': {
+                        color: 'error.main',
+                      },
+                    }}
                   />
                 </motion.div>
               </Grid>
             </Grid>
             <motion.div variants={itemVariants} style={{ marginTop: 24 }}>
-              <Alert severity="info" sx={{ mb: 2 }}>
+              <Alert 
+                severity="info" 
+                sx={{ 
+                  mb: 2, 
+                  bgcolor: `${accentPrimary}20`,
+                  color: textPrimary,
+                  '& .MuiAlert-icon': {
+                    color: accentPrimary,
+                  },
+                }}
+              >
                 Your personal details are required for verification and to complete the rental agreement. 
                 We need to verify your identity and driving license before you can pick up the car.
               </Alert>
@@ -558,43 +911,47 @@ const BookingPage = () => {
             animate="visible"
           >
             <Grid container spacing={4}>
-              <Grid item xs={12}>
+              <Grid size={{xs:12}}>
                 <motion.div variants={itemVariants}>
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: textPrimary }}>
                     Select Payment Method
                   </Typography>
                   <FormControl fullWidth error={!!validationErrors.paymentMethod}>
                     <Grid container spacing={2}>
                       {paymentMethods.map((method) => (
-                        <Grid item xs={12} sm={6} key={method.id}>
+                        <Grid size={{xs:12, sm:6}} key={method.id}>
                           <Paper
                             elevation={bookingData.paymentMethod === method.id ? 3 : 1}
                             sx={{
                               p: 2,
-                              border: bookingData.paymentMethod === method.id ? `2px solid ${primaryColour}` : "1px solid #e0e0e0",
+                              bgcolor: darkPanel,
+                              border: bookingData.paymentMethod === method.id 
+                                ? `2px solid ${accentPrimary}`
+                                : `1px solid ${accentPrimary}30`,
                               borderRadius: 2,
                               cursor: "pointer",
                               transition: "all 0.2s",
                               "&:hover": {
-                                borderColor: primaryColour,
+                                borderColor: accentPrimary,
+                                boxShadow: glowEffect,
                               },
                             }}
                             onClick={() => handleChange({ target: { name: "paymentMethod", value: method.id } })}
                           >
                             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                               <Box>
-                                <Typography variant="subtitle1" fontWeight={600}>
+                                <Typography variant="subtitle1" fontWeight={600} color={textPrimary}>
                                   {method.cardType}
                                 </Typography>
-                                <Typography variant="body2" color="text.secondary">
+                                <Typography variant="body2" color={textSecondary}>
                                   {method.cardNumber}
                                 </Typography>
-                                <Typography variant="caption" color="text.secondary">
+                                <Typography variant="caption" color={textSecondary}>
                                   Expires: {method.expiryDate}
                                 </Typography>
                               </Box>
                               {bookingData.paymentMethod === method.id && (
-                                <Check sx={{ color: primaryColour }} />
+                                <Check sx={{ color: accentPrimary }} />
                               )}
                             </Box>
                           </Paper>
@@ -602,62 +959,69 @@ const BookingPage = () => {
                       ))}
                     </Grid>
                     {validationErrors.paymentMethod && (
-                      <FormHelperText>{validationErrors.paymentMethod}</FormHelperText>
+                      <FormHelperText sx={{ color: 'error.main' }}>
+                        {validationErrors.paymentMethod}
+                      </FormHelperText>
                     )}
                   </FormControl>
                 </motion.div>
               </Grid>
               
-              <Grid item xs={12}>
+              <Grid size={{xs:12}}>
                 <motion.div variants={itemVariants}>
-                  <Divider sx={{ my: 2 }} />
+                  <Divider sx={{ my: 2, borderColor: `${accentPrimary}30` }} />
                   <Box sx={{ mb: 2 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: textPrimary }}>
                       Rental Summary
                     </Typography>
-                    <Paper sx={{ p: 2, bgcolor: alpha(darkBlueColor, 0.02) }}>
+                    <Paper sx={{ 
+                      p: 2, 
+                      bgcolor: cardBg, 
+                      border: `1px solid ${accentPrimary}20`,
+                      borderRadius: 2,
+                    }}>
                       <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6}>
-                          <Typography variant="body2" color="text.secondary">
+                        <Grid size={{xs:12, sm:6}}>
+                          <Typography variant="body2" color={textSecondary}>
                             Pickup Date & Time
                           </Typography>
-                          <Typography variant="body1" sx={{ mb: 1 }}>
+                          <Typography variant="body1" sx={{ mb: 1, color: textPrimary }}>
                             {bookingData.startDate && bookingData.pickupTime
                               ? `${bookingData.startDate.toLocaleDateString()} at ${new Date(bookingData.pickupTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`
                               : "Not specified"}
                           </Typography>
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography variant="body2" color={textSecondary}>
                             Pickup Location
                           </Typography>
-                          <Typography variant="body1" sx={{ mb: 1 }}>
+                          <Typography variant="body1" sx={{ mb: 1, color: textPrimary }}>
                             {bookingData.pickupLocation || "Not specified"}
                           </Typography>
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography variant="body2" color={textSecondary}>
                             Duration
                           </Typography>
-                          <Typography variant="body1">
+                          <Typography variant="body1" sx={{ color: textPrimary }}>
                             {days} {days === 1 ? "day" : "days"}
                           </Typography>
                         </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <Typography variant="body2" color="text.secondary">
+                        <Grid size={{xs:12, sm:6}}>
+                          <Typography variant="body2" color={textSecondary}>
                             Return Date & Time
                           </Typography>
-                          <Typography variant="body1" sx={{ mb: 1 }}>
+                          <Typography variant="body1" sx={{ mb: 1, color: textPrimary }}>
                             {bookingData.endDate && bookingData.dropoffTime
                               ? `${bookingData.endDate.toLocaleDateString()} at ${new Date(bookingData.dropoffTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`
                               : "Not specified"}
                           </Typography>
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography variant="body2" color={textSecondary}>
                             Return Location
                           </Typography>
-                          <Typography variant="body1" sx={{ mb: 1 }}>
+                          <Typography variant="body1" sx={{ mb: 1, color: textPrimary }}>
                             {bookingData.dropoffLocation || "Not specified"}
                           </Typography>
-                          <Typography variant="body2" color="text.secondary" fontWeight={700}>
+                          <Typography variant="body2" color={textSecondary} fontWeight={700}>
                             Total Price
                           </Typography>
-                          <Typography variant="body1" fontWeight={700} color={darkBlueColor}>
+                          <Typography variant="body1" fontWeight={700} color={accentSecondary}>
                             ${totalPrice.toLocaleString()}
                           </Typography>
                         </Grid>
@@ -667,7 +1031,7 @@ const BookingPage = () => {
                 </motion.div>
               </Grid>
               
-              <Grid item xs={12}>
+              <Grid size={{xs:12}}>
                 <motion.div variants={itemVariants}>
                   <FormControlLabel
                     control={
@@ -675,13 +1039,21 @@ const BookingPage = () => {
                         checked={bookingData.agreeToTerms}
                         onChange={handleChange}
                         name="agreeToTerms"
-                        color="primary"
+                        sx={{
+                          color: textSecondary,
+                          '&.Mui-checked': {
+                            color: accentPrimary,
+                          },
+                        }}
                       />
                     }
                     label="I agree to the terms and conditions, including the cancellation policy and insurance requirements."
+                    sx={{ color: textPrimary }}
                   />
                   {validationErrors.agreeToTerms && (
-                    <FormHelperText error>{validationErrors.agreeToTerms}</FormHelperText>
+                    <FormHelperText sx={{ color: 'error.main' }}>
+                      {validationErrors.agreeToTerms}
+                    </FormHelperText>
                   )}
                 </motion.div>
               </Grid>
@@ -698,19 +1070,29 @@ const BookingPage = () => {
           >
             <Box sx={{ textAlign: "center", py: 4 }}>
               <motion.div variants={itemVariants}>
-                <CheckCircle sx={{ fontSize: 80, color: "success.main", mb: 3 }} />
-                <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
+                <CheckCircle sx={{ fontSize: 80, color: accentSecondary, mb: 3 }} />
+                <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, color: textPrimary }}>
                   Booking Confirmed!
                 </Typography>
-                <Typography variant="h6" sx={{ color: "text.secondary", mb: 4 }}>
+                <Typography variant="h6" sx={{ color: accentSecondary, mb: 4 }}>
                   Your booking reference: <b>{bookingReference}</b>
                 </Typography>
-                <Paper elevation={0} sx={{ p: 3, maxWidth: 600, mx: "auto", bgcolor: alpha(darkBlueColor, 0.03) }}>
-                  <Typography variant="body1" sx={{ mb: 2, textAlign: "left" }}>
+                <Paper
+                  elevation={0} 
+                  sx={{ 
+                    p: 3, 
+                    maxWidth: 600, 
+                    mx: "auto", 
+                    bgcolor: cardBg,
+                    border: `1px solid ${accentPrimary}30`,
+                    borderRadius: 2,
+                  }}
+                >
+                  <Typography variant="body1" sx={{ mb: 2, textAlign: "left", color: textPrimary }}>
                     We've sent a confirmation email to <b>{bookingData.email}</b> with all booking details. 
                     You'll receive a reminder 24 hours before your pickup.
                   </Typography>
-                  <Typography variant="body1" sx={{ textAlign: "left" }}>
+                  <Typography variant="body1" sx={{ textAlign: "left", color: textPrimary }}>
                     If you have any questions or need to make changes to your booking, please contact our customer service team.
                   </Typography>
                 </Paper>
@@ -723,9 +1105,12 @@ const BookingPage = () => {
                   sx={{ 
                     mt: 3, 
                     px: 4,
-                    bgcolor: primaryColour,
-                    color: darkBlueColor,
-                    fontWeight: 600 
+                    bgcolor: accentPrimary,
+                    color: "#fff",
+                    fontWeight: 600,
+                    '&:hover': {
+                      bgcolor: accentSecondary,
+                    }
                   }}
                 >
                   View My Bookings
@@ -744,8 +1129,14 @@ const BookingPage = () => {
     return (
       <>
         <Header />
-        <Box sx={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <CircularProgress size={60} />
+        <Box sx={{ 
+          minHeight: "80vh", 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "center",
+          bgcolor: darkBg,
+        }}>
+          <CircularProgress size={60} sx={{ color: accentPrimary }} />
         </Box>
         <Footer />
       </>
@@ -756,18 +1147,43 @@ const BookingPage = () => {
     return (
       <>
         <Header />
-        <Container sx={{ py: 8, minHeight: "60vh" }}>
-          <Alert severity="error" sx={{ mb: 4 }}>
-            {error}
-          </Alert>
-          <Button 
-            variant="outlined" 
-            onClick={() => navigate(-1)}
-            startIcon={<ArrowBack />}
-          >
-            Go Back
-          </Button>
-        </Container>
+        <Box sx={{ 
+          py: 8, 
+          minHeight: "60vh",
+          bgcolor: darkBg,
+        }}>
+          <Container>
+            <Alert 
+              severity="error" 
+              sx={{ 
+                mb: 4,
+                bgcolor: 'rgba(211, 47, 47, 0.15)',
+                color: '#ff8a80',
+                '& .MuiAlert-icon': {
+                  color: '#ff8a80',
+                }
+              }}
+            >
+              {error}
+            </Alert>
+            <Button 
+              variant="outlined" 
+              onClick={() => navigate(-1)}
+              startIcon={<ArrowBack />}
+              sx={{
+                color: accentPrimary,
+                borderColor: accentPrimary,
+                '&:hover': {
+                  borderColor: accentSecondary,
+                  color: accentSecondary,
+                  bgcolor: `${accentSecondary}10`,
+                }
+              }}
+            >
+              Go Back
+            </Button>
+          </Container>
+        </Box>
         <Footer />
       </>
     );
@@ -780,31 +1196,51 @@ const BookingPage = () => {
       <Header />
       <Box 
         sx={{ 
-          py: { xs: 5, md: 8 }, 
-          pt: { xs: 12, md: 16 },
-          background: `linear-gradient(to bottom, ${alpha(darkBlueColor, 0.03)}, ${alpha(darkBlueColor, 0.07)})`,
-          minHeight: "100vh" 
+          py: { xs: 4, md: 6 }, 
+          pt: { xs: 10, md: 12 },
+          bgcolor: darkBg,
+          minHeight: "100vh",
+          background: `linear-gradient(180deg, ${darkBg} 0%, rgba(10, 12, 14, 1) 100%)`,
+          position: 'relative',
         }}
       >
-        <Container maxWidth="lg">
+        {/* Subtle grid overlay */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundImage: `
+              linear-gradient(to right, ${accentPrimary}08 1px, transparent 1px),
+              linear-gradient(to bottom, ${accentPrimary}08 1px, transparent 1px)
+            `,
+            backgroundSize: '40px 40px',
+            zIndex: 0,
+            opacity: 0.4
+          }}
+        />
+
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
           <Typography
             variant="h3"
-            fontWeight={800}
+            fontWeight={700}
             sx={{
-              color: darkBlueColor,
+              color: textPrimary,
               mb: 1,
               textAlign: "center",
             }}
           >
-            Book Your Dream Car
+            Book Your Hypercar Experience
           </Typography>
           <Typography
             variant="subtitle1"
             sx={{
-              color: "text.secondary",
-              mb: 6,
+              color: textSecondary,
+              mb: 5,
               textAlign: "center",
-              maxWidth: 600,
+              maxWidth: 700,
               mx: "auto",
             }}
           >
@@ -817,56 +1253,62 @@ const BookingPage = () => {
               elevation={0}
               sx={{
                 p: 3,
-                mb: 5,
+                mb: 4,
                 borderRadius: 3,
-                bgcolor: "rgba(255, 255, 255, 0.9)",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
+                bgcolor: cardBg,
+                border: border,
+                boxShadow: subtleShadow,
               }}
             >
               <Grid container spacing={3} alignItems="center">
-                <Grid item xs={12} sm={4} md={3}>
+                <Grid size={{xs:12, sm:4, md:6}}>
                   <CardMedia
                     component="img"
                     image={car.images?.[0] || "https://via.placeholder.com/300"}
                     alt={`${car.make || 'Car'} ${car.model || ''}`}
-                    sx={{ borderRadius: 2, height: 140, objectFit: "cover" }}
+                    sx={{ 
+                      borderRadius: 2, 
+                      height: 140, 
+                      objectFit: "cover",
+                      border: `1px solid ${accentPrimary}20`,
+                    }}
                   />
                 </Grid>
-                <Grid item xs={12} sm={8} md={6}>
-                  <Typography variant="h5" sx={{ fontWeight: 700, color: darkBlueColor }}>
+                <Grid size={{xs:12,sm:8, md:6}}>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: textPrimary }}>
                     {car.make} {car.model}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color={textSecondary}>
                     {car.year}
                   </Typography>
                   <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                     <Chip
                       size="small"
                       label={`${car.specifications?.engine?.horsepower || 'N/A'} HP`}
-                      sx={{ bgcolor: alpha(primaryColour, 0.1), color: darkBlueColor }}
+                      sx={{ bgcolor: `${accentPrimary}20`, color: accentPrimary }}
                     />
                     <Chip
                       size="small"
                       label={`${car.specifications?.performance?.topSpeed || 'N/A'} km/h`}
-                      sx={{ bgcolor: alpha(primaryColour, 0.1), color: darkBlueColor }}
+                      sx={{ bgcolor: `${accentSecondary}20`, color: accentSecondary }}
                     />
                     <Chip
                       size="small"
                       label={`0-100: ${car.specifications?.performance?.zeroToSixty || 'N/A'}s`}
-                      sx={{ bgcolor: alpha(primaryColour, 0.1), color: darkBlueColor }}
+                      sx={{ bgcolor: `${accentPrimary}20`, color: accentPrimary }}
                     />
                   </Stack>
                 </Grid>
-                <Grid item xs={12} md={3}>
+                <Grid size={{xs:12, md:3}}>
                   <Box sx={{ textAlign: { xs: "left", md: "right" } }}>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" color={textSecondary}>
                       Starting from
                     </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: darkBlueColor }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: accentPrimary }}>
                       ${car.availability?.rentalPrice?.daily?.toLocaleString() || 'N/A'}/day
                     </Typography>
                     {days > 0 && (
-                      <Typography variant="body1" sx={{ fontWeight: 700, color: secondaryColour }}>
+                      <Typography variant="body1" sx={{ fontWeight: 700, color: accentSecondary }}>
                         Total: ${totalPrice.toLocaleString()}
                       </Typography>
                     )}
@@ -883,15 +1325,49 @@ const BookingPage = () => {
             sx={{ 
               mb: 5,
               "& .MuiStepIcon-root": {
-                color: alpha(primaryColour, 0.3),
+                color: `${accentPrimary}40`,
                 "&.Mui-active": {
-                  color: primaryColour,
+                  color: accentPrimary,
                 },
                 "&.Mui-completed": {
-                  color: primaryColour,
+                  color: accentPrimary,
+                },
+              },
+              "& .MuiStepLabel-label": {
+                color: textSecondary,
+                "&.Mui-active": {
+                  color: textPrimary,
+                },
+                "&.Mui-completed": {
+                  color: textSecondary,
                 },
               },
             }}
+            connector={
+              <StepConnector
+                sx={{
+                  "&.MuiStepConnector-root": {
+                    top: 10,
+                  },
+                  "& .MuiStepConnector-line": {
+                    borderColor: `${accentPrimary}40`,
+                  },
+                  "&.Mui-active": {
+                    "& .MuiStepConnector-line": {
+                      borderColor: accentPrimary,
+                    },
+                    '& input': {
+                              color: textPrimary,
+                            },
+                  },
+                  "&.Mui-completed": {
+                    "& .MuiStepConnector-line": {
+                      borderColor: accentPrimary,
+                    },
+                  },
+                }}
+              />
+            }
           >
             {steps.map((label) => (
               <Step key={label}>
@@ -903,11 +1379,12 @@ const BookingPage = () => {
           {/* Main Content */}
           <Paper
             sx={{
-              p: { xs: 3, md: 5 },
+              p: { xs: 3, md: 4 },
               borderRadius: 3,
-              bgcolor: "rgba(255, 255, 255, 0.95)",
-              mb: 5,
-              boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+              bgcolor: cardBg,
+              border: border,
+              boxShadow: subtleShadow,
+              mb: 4,
             }}
           >
             {renderStepContent()}
@@ -921,6 +1398,15 @@ const BookingPage = () => {
               startIcon={<ArrowBack />}
               sx={{
                 visibility: activeStep === 0 || activeStep === steps.length - 1 ? "hidden" : "visible",
+                color: accentPrimary,
+                borderColor: `${accentPrimary}60`,
+                '&:hover': {
+                  borderColor: accentPrimary,
+                  bgcolor: `${accentPrimary}10`,
+                },
+                border: `1px solid ${accentPrimary}40`,
+                borderRadius: 2,
+                px: 3,
               }}
             >
               Back
@@ -934,18 +1420,20 @@ const BookingPage = () => {
                 sx={{
                   px: 4,
                   py: 1.2,
-                  bgcolor: primaryColour,
-                  color: darkBlueColor,
+                  bgcolor: accentPrimary,
+                  color: "#fff",
                   fontWeight: 600,
+                  borderRadius: 2,
+                  boxShadow: glowEffect,
                   "&:hover": {
-                    bgcolor: alpha(primaryColour, 0.9),
+                    bgcolor: accentSecondary,
                   },
                 }}
               >
                 {activeStep === steps.length - 2 ? (
                   submitting ? (
                     <>
-                      <CircularProgress size={20} sx={{ mr: 1, color: darkBlueColor }} />
+                      <CircularProgress size={20} sx={{ mr: 1, color: "#fff" }} />
                       Processing...
                     </>
                   ) : (

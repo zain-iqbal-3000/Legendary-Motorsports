@@ -11,6 +11,20 @@ import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 
+// Dark theme colors - consistent with other pages
+const darkBg = "#111517"; // Dark background
+const accentPrimary = "#3498db"; // Blue accent
+const accentSecondary = "#f1c40f"; // Yellow accent
+const darkPanel = "rgba(25, 28, 32, 0.85)";
+const cardBg = "rgba(21, 24, 28, 0.95)";
+const textPrimary = "#ffffff";
+const textSecondary = "#a0a9b6";
+const border = `1px solid ${accentPrimary}33`;
+
+// Clean subtle effects
+const glowEffect = `0 0 15px ${accentPrimary}40`;
+const subtleShadow = '0 8px 24px rgba(0, 0, 0, 0.3)';
+
 const Services = () => {
   const navigate = useNavigate();
   
@@ -28,7 +42,7 @@ const Services = () => {
       ],
       image:
         'https://images.unsplash.com/photo-1521334884684-d80222895322?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
-      color: '#FFD700', // Gold
+      color: accentSecondary, // Yellow accent
     },
     {
       title: 'Track Day Experiences',
@@ -56,7 +70,7 @@ const Services = () => {
       ],
       image:
         'https://images.unsplash.com/photo-1556740738-b6a63e27c4df?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
-      color: '#4169E1', // Royal blue
+      color: accentPrimary, // Blue accent
     },
     {
       title: 'Luxury Wedding Transportation',
@@ -70,7 +84,7 @@ const Services = () => {
       ],
       image:
         'https://images.unsplash.com/photo-1519741347686-c1e0aadf4611?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
-      color: '#E75480', // Pink
+      color: accentSecondary, // Yellow accent
     },
     {
       title: 'Scenic Road Trip Experiences',
@@ -84,7 +98,7 @@ const Services = () => {
       ],
       image:
         'https://images.unsplash.com/photo-1506012787146-f92b2d7d6d96?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
-      color: '#228B22', // Forest green
+      color: accentPrimary, // Blue accent
     },
     {
       title: 'Film & Photoshoot Rentals',
@@ -98,7 +112,7 @@ const Services = () => {
       ],
       image:
         'https://images.unsplash.com/photo-1493238792000-8113da705763?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
-      color: '#800080', // Purple
+      color: accentSecondary, // Yellow accent
     },
   ];
 
@@ -173,8 +187,26 @@ const Services = () => {
             left: 0,
             width: '100%',
             height: '100%',
-            background: 'linear-gradient(to right, rgba(57, 0, 153, 0.8), rgba(57, 0, 153, 0.4))',
+            background: `linear-gradient(to right, ${darkBg}F0, ${darkBg}CC)`,
             zIndex: 1
+          }}
+        />
+        
+        {/* Subtle grid overlay */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundImage: `
+              linear-gradient(to right, ${accentPrimary}08 1px, transparent 1px),
+              linear-gradient(to bottom, ${accentPrimary}08 1px, transparent 1px)
+            `,
+            backgroundSize: '40px 40px',
+            zIndex: 1,
+            opacity: 0.4
           }}
         />
 
@@ -193,9 +225,10 @@ const Services = () => {
                   fontWeight: 700,
                   mb: 3,
                   textShadow: '0 4px 30px rgba(0, 0, 0, 0.3)',
-                  '& .highlight': { color: 'primary.main' },
+                  '& .highlight': { color: accentPrimary },
                   lineHeight: 1.2,
-                  fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4rem' }
+                  fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4rem' },
+                  color: textPrimary
                 }}
               >
                 PREMIUM <span className="highlight">SERVICES</span>
@@ -208,11 +241,12 @@ const Services = () => {
                 sx={{ 
                   mb: 5, 
                   maxWidth: 700,
-                  mx: 'auto', // This centers the paragraph horizontally
+                  mx: 'auto',
                   lineHeight: 1.6,
                   fontWeight: 400,
                   textShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-                  fontSize: { xs: '1rem', md: '1.2rem' }
+                  fontSize: { xs: '1rem', md: '1.2rem' },
+                  color: textSecondary
                 }}
               >
                 Discover our exclusive range of services tailored for automotive enthusiasts and luxury seekers.
@@ -228,10 +262,30 @@ const Services = () => {
         component="section"
         sx={{
           py: { xs: 8, md: 12 },
-          backgroundColor: 'background.default',
+          bgcolor: darkBg,
+          background: `linear-gradient(180deg, ${darkBg} 0%, rgba(10, 12, 14, 1) 100%)`,
+          position: 'relative',
         }}
       >
-        <Container>
+        {/* Subtle grid overlay */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundImage: `
+              linear-gradient(to right, ${accentPrimary}08 1px, transparent 1px),
+              linear-gradient(to bottom, ${accentPrimary}08 1px, transparent 1px)
+            `,
+            backgroundSize: '40px 40px',
+            zIndex: 0,
+            opacity: 0.4
+          }}
+        />
+        
+        <Container sx={{ position: 'relative', zIndex: 1 }}>
           <motion.div
             variants={containerVariants}
             initial="hidden"
@@ -246,7 +300,9 @@ const Services = () => {
                 sx={{
                   fontWeight: 700,
                   mb: 2,
-                  '& .highlight': { color: 'primary.main' },
+                  '& .highlight': { color: accentPrimary },
+                  fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                  color: textPrimary
                 }}
               >
                 OUR <span className="highlight">SERVICES</span>
@@ -255,7 +311,7 @@ const Services = () => {
                 sx={{
                   width: 100,
                   height: 4,
-                  bgcolor: 'primary.main',
+                  bgcolor: accentPrimary,
                   mx: 'auto',
                   mt: 2,
                   mb: 4
@@ -266,7 +322,7 @@ const Services = () => {
                 sx={{ 
                   maxWidth: 800,
                   mx: 'auto',
-                  color: 'text.secondary',
+                  color: textSecondary,
                   mb: 2
                 }}
               >
@@ -277,7 +333,7 @@ const Services = () => {
             {/* Services Grid */}
             <Grid container spacing={6}>
               {services.map((service, index) => (
-                <Grid item xs={12} sm={6} md={4} key={index}>
+                <Grid size={{xs:12, sm:6, md:4}} key={index}>
                   <motion.div 
                     variants={cardVariants}
                     whileHover={{ y: -15 }}
@@ -287,14 +343,16 @@ const Services = () => {
                         height: '100%',
                         display: 'flex',
                         flexDirection: 'column',
-                        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
+                        boxShadow: subtleShadow,
                         borderRadius: 3,
                         overflow: 'hidden',
-                        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                        transition: 'all 0.3s ease',
                         position: 'relative',
+                        bgcolor: cardBg,
+                        border: border,
                         '&:hover': {
-                          transform: 'translateY(-10px)',
-                          boxShadow: '0 15px 40px rgba(0, 0, 0, 0.3)',
+                          boxShadow: glowEffect,
+                          border: `1px solid ${accentPrimary}60`,
                         },
                         '&::before': {
                           content: '""',
@@ -321,14 +379,20 @@ const Services = () => {
                           },
                         }}
                       />
-                      <CardContent sx={{ flexGrow: 1, p: 4 }}>
+                      <CardContent 
+                        sx={{ 
+                          flexGrow: 1, 
+                          p: 4, 
+                          bgcolor: darkPanel
+                        }}
+                      >
                         <Typography
                           variant="h5"
                           component="h3"
                           gutterBottom
                           sx={{
                             fontWeight: 600,
-                            color: 'text.primary',
+                            color: textPrimary,
                             textAlign: 'center',
                             position: 'relative',
                             pb: 2,
@@ -350,7 +414,7 @@ const Services = () => {
                         <Typography
                           variant="body2"
                           sx={{
-                            color: 'text.secondary',
+                            color: textSecondary,
                             mb: 3,
                             lineHeight: 1.6,
                           }}
@@ -381,7 +445,7 @@ const Services = () => {
                               />
                               <Typography 
                                 variant="body2" 
-                                sx={{ color: 'text.secondary', fontSize: '0.9rem' }}
+                                sx={{ color: textSecondary, fontSize: '0.9rem' }}
                               >
                                 {feature}
                               </Typography>
@@ -442,7 +506,7 @@ const Services = () => {
         component="section"
         sx={{
           py: { xs: 8, md: 10 },
-          backgroundColor: 'primary.blue',
+          bgcolor: darkPanel,
           position: 'relative',
           overflow: 'hidden',
           '&::before': {
@@ -460,6 +524,24 @@ const Services = () => {
           }
         }}
       >
+        {/* Subtle grid overlay */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundImage: `
+              linear-gradient(to right, ${accentPrimary}08 1px, transparent 1px),
+              linear-gradient(to bottom, ${accentPrimary}08 1px, transparent 1px)
+            `,
+            backgroundSize: '40px 40px',
+            zIndex: 0,
+            opacity: 0.3
+          }}
+        />
+        
         <Container sx={{ position: 'relative', zIndex: 1 }}>
           <Box sx={{ textAlign: 'center', maxWidth: 800, mx: 'auto' }}>
             <motion.div
@@ -474,7 +556,8 @@ const Services = () => {
                 sx={{
                   fontWeight: 700,
                   mb: 3,
-                  '& .highlight': { color: 'primary.main' },
+                  '& .highlight': { color: accentPrimary },
+                  color: textPrimary
                 }}
               >
                 READY FOR AN <span className="highlight">UNFORGETTABLE</span> EXPERIENCE?
@@ -482,7 +565,7 @@ const Services = () => {
               <Typography
                 variant="h6"
                 sx={{
-                  color: 'text.secondary',
+                  color: textSecondary,
                   mb: 5,
                   lineHeight: 1.6,
                 }}
@@ -496,19 +579,45 @@ const Services = () => {
               >
                 <Button
                   variant="contained"
-                  color="primary"
                   size="large"
                   onClick={() => navigate('/#booking')}
-                  sx={{ px: 4, py: 1.5, fontSize: '1rem' }}
+                  sx={{ 
+                    px: 4, 
+                    py: 1.5, 
+                    fontSize: '1rem',
+                    bgcolor: accentPrimary,
+                    color: textPrimary,
+                    fontWeight: 600,
+                    borderRadius: 2,
+                    boxShadow: subtleShadow,
+                    transition: 'all 0.3s',
+                    '&:hover': {
+                      bgcolor: accentSecondary,
+                      transform: 'translateY(-3px)',
+                      boxShadow: glowEffect,
+                    }
+                  }}
                 >
                   Book a Service
                 </Button>
                 <Button
                   variant="outlined"
-                  color="primary"
                   size="large"
                   onClick={() => navigate('/#contact')}
-                  sx={{ px: 4, py: 1.5, fontSize: '1rem' }}
+                  sx={{ 
+                    px: 4, 
+                    py: 1.5, 
+                    fontSize: '1rem',
+                    borderWidth: 2,
+                    borderRadius: 2,
+                    borderColor: accentPrimary,
+                    color: accentPrimary,
+                    '&:hover': {
+                      borderColor: accentSecondary,
+                      color: accentSecondary,
+                      bgcolor: `${accentSecondary}10`,
+                    }
+                  }}
                 >
                   Contact Us
                 </Button>

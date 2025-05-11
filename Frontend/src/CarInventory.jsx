@@ -1,9 +1,23 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Box, Grid, Card, CardMedia, CardContent, Typography, Chip, Button, Container, Skeleton, Alert } from '@mui/material';
-import { Speed, DirectionsCar, AttachMoney } from '@mui/icons-material';
+import { Speed, DirectionsCar, AttachMoney, ElectricBolt, AltRoute, Engineering } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+
+// Dark theme colors
+const darkBg = "#111517"; // Dark background
+const accentPrimary = "#3498db"; // Blue accent
+const accentSecondary = "#f1c40f"; // Yellow accent (formerly teal)
+const darkPanel = "rgba(25, 28, 32, 0.85)";
+const cardBg = "rgba(21, 24, 28, 0.95)";
+const textPrimary = "#ffffff";
+const textSecondary = "#a0a9b6";
+const border = `1px solid ${accentPrimary}33`;
+
+// Clean subtle effects
+const glowEffect = `0 0 15px ${accentPrimary}40`;
+const subtleShadow = '0 8px 24px rgba(0, 0, 0, 0.3)';
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -50,25 +64,91 @@ export default function CarInventory() {
   }, []);
 
   return (
-    <Box sx={{ bgcolor: '#121212', py: 4, minHeight: '90vh' }}>
-      <Container maxWidth="xl">
-        <Typography variant="h4" fontWeight={700} mb={4} color="#FFD700">
-          Our Hypercar Inventory
-        </Typography>
+    <Box 
+      sx={{
+        bgcolor: darkBg,
+        py: 4,
+        minHeight: '90vh',
+        position: 'relative',
+        background: `linear-gradient(180deg, ${darkBg} 0%, rgba(10, 12, 14, 1) 100%)`,
+      }}
+    >
+      {/* Subtle grid overlay */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundImage: `
+            linear-gradient(to right, ${accentPrimary}08 1px, transparent 1px),
+            linear-gradient(to bottom, ${accentPrimary}08 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px',
+          zIndex: 0,
+          opacity: 0.4
+        }}
+      />
+      
+      <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1 }}>
+        <Box sx={{ mb: 5, textAlign: 'center' }}>
+          <Typography 
+            variant="h3" 
+            fontWeight={700} 
+            mb={1.5} 
+            color={textPrimary}
+          >
+            Our Hypercar Inventory
+          </Typography>
+          <Typography 
+            variant="subtitle1" 
+            sx={{ 
+              maxWidth: 700, 
+              mx: 'auto',
+              color: textSecondary,
+            }}
+          >
+            Explore our exclusive collection of the world's most prestigious hypercars
+          </Typography>
+        </Box>
+        
         {loading && (
           <Grid container spacing={3}>
             {[...Array(8)].map((_, index) => (
-              <Grid size={{xs:12, sm:6, md:4, lg:3}} key={index}>
-                <Skeleton variant="rectangular" height={300} sx={{ bgcolor: '#1E1E1E' }} />
+              <Grid size={{xs:12, sm:6, md:4, lg:3}}  key={index}>
+                <Skeleton 
+                  variant="rectangular" 
+                  height={300} 
+                  sx={{ 
+                    bgcolor: 'rgba(30, 30, 30, 0.5)',
+                    borderRadius: 2,
+                  }} 
+                />
               </Grid>
             ))}
           </Grid>
         )}
-        {error && <Alert severity="error">{error}</Alert>}
+        
+        {error && (
+          <Alert 
+            severity="error" 
+            sx={{
+              bgcolor: 'rgba(211, 47, 47, 0.15)',
+              color: '#ff8a80',
+              '& .MuiAlert-icon': {
+                color: '#ff8a80',
+              }
+            }}
+          >
+            {error}
+          </Alert>
+        )}
+        
         {!loading && !error && (
           <Grid container spacing={3}>
             {cars.map((car, index) => (
-              <Grid size={{xs:12, sm:6, md:4, lg:3}} key={car._id || index}>
+              <Grid size={{xs:12, sm:6, md:4, lg:3}}  key={car._id || index}>
                 <motion.div
                   custom={index}
                   variants={cardVariants}
@@ -76,16 +156,24 @@ export default function CarInventory() {
                   animate="visible"
                   whileHover="hover"
                   layout
+                  onMouseEnter={() => setHovered(car._id)}
+                  onMouseLeave={() => setHovered(null)}
                 >
                   <Card
                     sx={{
-                      borderRadius: 2,
+                      borderRadius: 3,
                       overflow: 'hidden',
                       height: '100%',
                       display: 'flex',
                       flexDirection: 'column',
-                      bgcolor: '#1E1E1E',
-                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
+                      bgcolor: cardBg,
+                      boxShadow: subtleShadow,
+                      border: border,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        boxShadow: glowEffect,
+                        border: `1px solid ${accentPrimary}60`,
+                      }
                     }}
                   >
                     <Box sx={{ position: 'relative', pt: '62.5%' }}>
@@ -113,19 +201,63 @@ export default function CarInventory() {
                             top: 12,
                             right: 12,
                             fontWeight: 600,
-                            bgcolor: '#FFD700',
+                            bgcolor: accentSecondary,
                             color: '#1C1C1C',
                           }}
                         />
                       )}
+                      
+                      {/* Add a small stats overlay */}
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          p: 1,
+                          background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <Chip
+                          size="small"
+                          avatar={<ElectricBolt sx={{ color: accentPrimary, fontSize: 16 }} />}
+                          label={`${car.specifications?.engine?.horsepower || 'N/A'} HP`}
+                          sx={{
+                            bgcolor: 'rgba(0,0,0,0.7)',
+                            color: accentPrimary,
+                            border: `1px solid ${accentPrimary}50`,
+                            '& .MuiChip-avatar': { 
+                              color: accentPrimary,
+                              bgcolor: 'transparent'
+                            },
+                          }}
+                        />
+                        <Chip
+                          size="small"
+                          avatar={<AltRoute sx={{ color: accentSecondary, fontSize: 16 }} />}
+                          label={`${car.specifications?.performance?.zeroToSixty || 'N/A'}s`}
+                          sx={{
+                            bgcolor: 'rgba(0,0,0,0.7)',
+                            color: accentSecondary,
+                            border: `1px solid ${accentSecondary}50`,
+                            '& .MuiChip-avatar': { 
+                              color: accentSecondary,
+                              bgcolor: 'transparent'
+                            },
+                          }}
+                        />
+                      </Box>
                     </Box>
+                    
                     <CardContent
                       sx={{
                         flexGrow: 1,
                         display: 'flex',
                         flexDirection: 'column',
                         p: 2.5,
-                        bgcolor: '#1E1E1E',
+                        bgcolor: darkPanel,
                       }}
                     >
                       <Typography
@@ -135,46 +267,59 @@ export default function CarInventory() {
                         gutterBottom
                         sx={{
                           lineHeight: 1.3,
-                          color: '#FFD700',
+                          color: textPrimary,
                         }}
                       >
                         {car.make || 'Unknown'} {car.model || 'Car'}
                       </Typography>
+                      
                       <Typography
                         variant="body2"
-                        color="#B0B0B0"
+                        color={textSecondary}
                         sx={{ mb: 2 }}
                       >
-                        Engine: {car.specifications?.engine?.type || 'N/A'}
+                        {car.year} • {car.specifications?.engine?.type || 'N/A'}
                       </Typography>
+                      
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
                         <Chip
                           size="small"
-                          icon={<Speed fontSize="small" />}
-                          label={`${car.specifications?.performance?.zeroToSixty || 'N/A'}s`}
+                          avatar={<Speed fontSize="small" />}
+                          label={`${car.specifications?.performance?.topSpeed || 'N/A'} km/h`}
                           sx={{
-                            bgcolor: '#007BFF',
-                            color: '#FFFFFF',
-                            '& .MuiChip-icon': { color: 'inherit' },
+                            bgcolor: `${accentPrimary}15`,
+                            color: accentPrimary,
+                            borderRadius: 1.5,
+                            border: `1px solid ${accentPrimary}30`,
+                            '& .MuiChip-avatar': { 
+                              color: accentPrimary,
+                              bgcolor: 'transparent'
+                            },
                           }}
                         />
                         <Chip
                           size="small"
-                          icon={<DirectionsCar fontSize="small" />}
-                          label={`${car.specifications?.performance?.topSpeed || 'N/A'} mph`}
+                          avatar={<Engineering fontSize="small" />}
+                          label={car.specifications?.engine?.transmission || 'Auto'}
                           sx={{
-                            bgcolor: '#007BFF',
-                            color: '#FFFFFF',
-                            '& .MuiChip-icon': { color: 'inherit' },
+                            bgcolor: `${accentSecondary}15`,
+                            color: accentSecondary,
+                            borderRadius: 1.5,
+                            border: `1px solid ${accentSecondary}30`,
+                            '& .MuiChip-avatar': { 
+                              color: accentSecondary,
+                              bgcolor: 'transparent'
+                            },
                           }}
                         />
                       </Box>
+                      
                       <Box
                         sx={{
                           mt: 'auto',
-                          pt: 1,
+                          pt: 1.5,
                           borderTop: '1px solid',
-                          borderColor: '#B0B0B0',
+                          borderColor: `${accentPrimary}20`,
                         }}
                       >
                         <Box
@@ -185,23 +330,24 @@ export default function CarInventory() {
                             justifyContent: 'center',
                           }}
                         >
-                          <AttachMoney sx={{ color: '#FFD700', fontSize: 28 }} />
+                          <AttachMoney sx={{ color: accentSecondary, fontSize: 28 }} />
                           <Typography
                             variant="h5"
                             fontWeight={700}
-                            color="#FFD700"
+                            color={accentSecondary}
                             sx={{ lineHeight: 1 }}
                           >
-                            ${car.availability?.rentalPrice?.daily || 'N/A'}
+                            ${car.availability?.rentalPrice?.daily?.toLocaleString() || 'N/A'}
                           </Typography>
                           <Typography
                             variant="body2"
-                            color="#B0B0B0"
+                            color={textSecondary}
                             sx={{ ml: 0.5, mt: 0.5 }}
                           >
                             / day
                           </Typography>
                         </Box>
+                        
                         <Button
                           component={Link}
                           to={`/cardetail/${car._id}`}
@@ -211,9 +357,16 @@ export default function CarInventory() {
                           sx={{
                             fontWeight: 600,
                             textTransform: 'none',
-                            borderRadius: 1.5,
-                            bgcolor: car.availability?.isAvailable ? '#3D007A' : '#FF4500',
-                            color: '#FFFFFF',
+                            borderRadius: 2,
+                            bgcolor: car.availability?.isAvailable ? '#673AB7' : '#FF4500',
+                            color: textPrimary,
+                            py: 1,
+                            transition: 'all 0.3s',
+                            '&:hover': { 
+                              bgcolor: car.availability?.isAvailable ? accentSecondary : '#FF6347',
+                              transform: 'translateY(-3px)',
+                              boxShadow: car.availability?.isAvailable ? glowEffect : 'none'
+                            }
                           }}
                           disabled={!car.availability?.isAvailable}
                         >

@@ -22,6 +22,20 @@ import LocalGasStationIcon from '@mui/icons-material/LocalGasStation';
 import Header from './Header';
 import Footer from './Footer';
 
+// Dark theme colors - consistent with Car Detail and Booking pages
+const darkBg = "#111517"; // Dark background
+const accentPrimary = "#3498db"; // Blue accent
+const accentSecondary = "#f1c40f"; // Yellow accent
+const darkPanel = "rgba(25, 28, 32, 0.85)";
+const cardBg = "rgba(21, 24, 28, 0.95)";
+const textPrimary = "#ffffff";
+const textSecondary = "#a0a9b6";
+const border = `1px solid ${accentPrimary}33`;
+
+// Clean subtle effects
+const glowEffect = `0 0 15px ${accentPrimary}40`;
+const subtleShadow = '0 8px 24px rgba(0, 0, 0, 0.3)';
+
 const AboutUs = () => {
   // Team members data
   const teamMembers = [
@@ -85,6 +99,7 @@ const AboutUs = () => {
     },
     hover: {
       y: -15,
+      boxShadow: glowEffect,
       transition: { duration: 0.3 }
     }
   };
@@ -98,7 +113,7 @@ const AboutUs = () => {
     },
     hover: {
       y: -10,
-      boxShadow: "0px 10px 30px rgba(0, 0, 0, 0.2)",
+      boxShadow: glowEffect,
       transition: { duration: 0.3 }
     }
   };
@@ -131,8 +146,26 @@ const AboutUs = () => {
             left: 0,
             width: '100%',
             height: '100%',
-            background: 'linear-gradient(to right, rgba(57, 0, 153, 0.9), rgba(57, 0, 153, 0.6))',
+            background: `linear-gradient(to right, ${darkBg}F0, ${darkBg}CC)`,
             zIndex: 1
+          }}
+        />
+        
+        {/* Subtle grid overlay */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundImage: `
+              linear-gradient(to right, ${accentPrimary}08 1px, transparent 1px),
+              linear-gradient(to bottom, ${accentPrimary}08 1px, transparent 1px)
+            `,
+            backgroundSize: '40px 40px',
+            zIndex: 1,
+            opacity: 0.4
           }}
         />
 
@@ -150,10 +183,11 @@ const AboutUs = () => {
                   fontWeight: 700,
                   mb: 3,
                   textShadow: '0 4px 30px rgba(0, 0, 0, 0.3)',
-                  '& .highlight': { color: 'primary.main' },
+                  '& .highlight': { color: accentPrimary },
                   lineHeight: 1.2,
                   fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4rem' },
-                  textAlign: { xs: 'center', md: 'left' }
+                  textAlign: { xs: 'center', md: 'left' },
+                  color: textPrimary
                 }}
               >
                 OUR <span className="highlight">STORY</span>
@@ -170,7 +204,8 @@ const AboutUs = () => {
                   fontWeight: 400,
                   textShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
                   fontSize: {xs: '1rem', md: '1.2rem' },
-                  textAlign: { xs: 'center', md: 'left' }
+                  textAlign: { xs: 'center', md: 'left' },
+                  color: textSecondary
                 }}
               >
                 The journey that turned a passion for hypercars into the premier exotic car rental experience
@@ -185,12 +220,32 @@ const AboutUs = () => {
         component="section"
         sx={{ 
           py: { xs: 8, md: 12 },
-          bgcolor: 'background.default'
+          bgcolor: darkBg,
+          background: `linear-gradient(180deg, ${darkBg} 0%, rgba(10, 12, 14, 1) 100%)`,
+          position: 'relative',
         }}
       >
-        <Container maxWidth="lg">
+        {/* Subtle grid overlay */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundImage: `
+              linear-gradient(to right, ${accentPrimary}08 1px, transparent 1px),
+              linear-gradient(to bottom, ${accentPrimary}08 1px, transparent 1px)
+            `,
+            backgroundSize: '40px 40px',
+            zIndex: 0,
+            opacity: 0.4
+          }}
+        />
+        
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
           <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center">
-            <Grid item xs={12} md={6}>
+            <Grid size={{xs:12, md:6}}>
               <motion.div
                 initial={{ opacity: 0, x: -50 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -205,9 +260,10 @@ const AboutUs = () => {
                     sx={{
                       fontWeight: 700,
                       mb: 2,
-                      '& .highlight': { color: 'primary.main' },
+                      '& .highlight': { color: accentPrimary },
                       fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
-                      textAlign: { xs: 'center', md: 'left' }
+                      textAlign: { xs: 'center', md: 'left' },
+                      color: textPrimary
                     }}
                   >
                     THE <span className="highlight">BEGINNING</span>
@@ -216,7 +272,7 @@ const AboutUs = () => {
                     sx={{ 
                       width: 80, 
                       height: 4, 
-                      bgcolor: 'primary.main',
+                      bgcolor: accentPrimary,
                       mt: 2,
                       mb: 4,
                       mx: { xs: 'auto', md: 0 }
@@ -230,7 +286,8 @@ const AboutUs = () => {
                   sx={{
                     textAlign: { xs: 'center', md: 'left' },
                     fontSize: '1.05rem',
-                    lineHeight: 1.8
+                    lineHeight: 1.8,
+                    color: textSecondary
                   }}
                 >
                   Founded in 2012 by former Formula 1 engineer Alexander Reynolds, Legendary Motorsports began with a simple vision: 
@@ -244,7 +301,8 @@ const AboutUs = () => {
                   sx={{
                     textAlign: { xs: 'center', md: 'left' },
                     fontSize: '1.05rem',
-                    lineHeight: 1.8
+                    lineHeight: 1.8,
+                    color: textSecondary
                   }}
                 >
                   What started with just three vehicles – a Lamborghini Gallardo, Ferrari 458 Italia, and a McLaren MP4-12C – has grown 
@@ -259,7 +317,8 @@ const AboutUs = () => {
                     mb: 4,
                     textAlign: { xs: 'center', md: 'left' },
                     fontSize: '1.05rem',
-                    lineHeight: 1.8
+                    lineHeight: 1.8,
+                    color: textSecondary
                   }}
                 >
                   Our headquarters in Los Angeles quickly expanded to additional locations in Miami, Las Vegas, and New York, 
@@ -269,7 +328,6 @@ const AboutUs = () => {
                 <Box sx={{ display: 'flex', justifyContent: { xs: 'center', md: 'flex-start' } }}>
                   <Button 
                     variant="contained" 
-                    color="primary" 
                     endIcon={<ArrowForwardIcon />}
                     component={Link}
                     to="/#cars"
@@ -277,7 +335,18 @@ const AboutUs = () => {
                       mt: 2,
                       py: 1.2,
                       px: 3,
-                      fontSize: '1rem'
+                      fontSize: '1rem',
+                      bgcolor: accentPrimary,
+                      color: textPrimary,
+                      fontWeight: 600,
+                      borderRadius: 2,
+                      boxShadow: subtleShadow,
+                      transition: 'all 0.3s',
+                      '&:hover': {
+                        bgcolor: accentSecondary,
+                        transform: 'translateY(-3px)',
+                        boxShadow: glowEffect,
+                      }
                     }}
                   >
                     Explore Our Fleet
@@ -286,7 +355,7 @@ const AboutUs = () => {
               </motion.div>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{xs:12, md:6}}>
               <motion.div
                 initial={{ opacity: 0, x: 50 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -298,10 +367,11 @@ const AboutUs = () => {
                     height: { xs: 350, md: 500 },
                     borderRadius: 4,
                     overflow: 'hidden',
-                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                    boxShadow: subtleShadow,
                     position: 'relative',
                     mx: { xs: 'auto', md: 0 },
-                    maxWidth: { xs: 500, md: '100%' }
+                    maxWidth: { xs: 500, md: '100%' },
+                    border: border,
                   }}
                 >
                   <img
@@ -325,10 +395,29 @@ const AboutUs = () => {
         component="section"
         sx={{
           py: { xs: 8, md: 12 },
-          bgcolor: 'primary.blue',
+          bgcolor: darkPanel,
+          position: 'relative',
         }}
       >
-        <Container maxWidth="lg">
+        {/* Subtle grid overlay */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundImage: `
+              linear-gradient(to right, ${accentPrimary}08 1px, transparent 1px),
+              linear-gradient(to bottom, ${accentPrimary}08 1px, transparent 1px)
+            `,
+            backgroundSize: '40px 40px',
+            zIndex: 0,
+            opacity: 0.3
+          }}
+        />
+        
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -342,8 +431,9 @@ const AboutUs = () => {
                 sx={{
                   fontWeight: 700,
                   mb: 2,
-                  '& .highlight': { color: 'primary.main' },
-                  fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' }
+                  '& .highlight': { color: accentPrimary },
+                  fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                  color: textPrimary
                 }}
               >
                 OUR <span className="highlight">MISSION</span> & VALUES
@@ -352,7 +442,7 @@ const AboutUs = () => {
                 sx={{ 
                   width: 100, 
                   height: 4, 
-                  bgcolor: 'primary.main', 
+                  bgcolor: accentPrimary, 
                   mx: 'auto',
                   mt: 2,
                   mb: 4
@@ -364,7 +454,7 @@ const AboutUs = () => {
                   maxWidth: 800, 
                   mx: 'auto', 
                   mt: 4,
-                  color: 'grey.300',
+                  color: textSecondary,
                   lineHeight: 1.8,
                   px: { xs: 2, md: 0 }
                 }}
@@ -378,7 +468,7 @@ const AboutUs = () => {
 
           <Grid container spacing={{ xs: 3, md: 4 }} alignItems="stretch" justifyContent="center">
             {/* Value 1: Performance */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{xs:12, sm:6, md:3}}>
               <motion.div
                 variants={valueBoxVariants}
                 initial="hidden"
@@ -389,29 +479,34 @@ const AboutUs = () => {
               >
                 <Box 
                   sx={{ 
-                    bgcolor: 'rgba(255, 214, 51, 0.05)', 
-                    borderRadius: 2, 
-                    p: { xs: 4, md: 5 }, // Increased padding for uniformity
+                    bgcolor: cardBg, 
+                    borderRadius: 3, 
+                    p: { xs: 4, md: 5 },
                     width: '100%',
-                    height: '100%', // Ensures uniform height
-                    border: '1px solid rgba(255, 214, 51, 0.1)',
+                    height: '100%',
+                    border: `1px solid ${accentPrimary}30`,
                     transition: 'all 0.3s ease',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'flex-start',
-                    boxSizing: 'border-box' // Prevents content overflow
+                    boxSizing: 'border-box',
+                    boxShadow: subtleShadow,
+                    '&:hover': {
+                      border: `1px solid ${accentPrimary}60`,
+                      boxShadow: glowEffect,
+                    }
                   }}
                 >
                   <Avatar 
                     sx={{ 
                       mb: 3,
-                      bgcolor: 'rgba(255, 214, 51, 0.2)', 
+                      bgcolor: `${accentPrimary}20`, 
                       width: 70, 
                       height: 70 
                     }}
                   >
-                    <SpeedIcon sx={{ fontSize: 35, color: 'primary.main' }} />
+                    <SpeedIcon sx={{ fontSize: 35, color: accentPrimary }} />
                   </Avatar>
                   <Typography 
                     variant="h5" 
@@ -420,7 +515,8 @@ const AboutUs = () => {
                       mb: 2, 
                       textAlign: 'center',
                       fontSize: { xs: '1.4rem', sm: '1.5rem' },
-                      fontWeight: 600
+                      fontWeight: 600,
+                      color: textPrimary
                     }}
                   >
                     Performance
@@ -429,7 +525,7 @@ const AboutUs = () => {
                     variant="body2" 
                     sx={{ 
                       textAlign: 'center', 
-                      color: 'grey.400',
+                      color: textSecondary,
                       fontSize: '0.95rem',
                       lineHeight: 1.6
                     }}
@@ -442,7 +538,7 @@ const AboutUs = () => {
             </Grid>
 
             {/* Value 2: Excellence */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid  size={{xs:12, sm:6, md:3}}>
               <motion.div
                 variants={valueBoxVariants}
                 initial="hidden"
@@ -454,29 +550,34 @@ const AboutUs = () => {
               >
                 <Box 
                   sx={{ 
-                    bgcolor: 'rgba(255, 214, 51, 0.05)', 
-                    borderRadius: 2, 
-                    p: { xs: 4, md: 5 }, // Increased padding for uniformity
+                    bgcolor: cardBg, 
+                    borderRadius: 3, 
+                    p: { xs: 4, md: 5 },
                     width: '100%',
-                    height: '100%', // Ensures uniform height
-                    border: '1px solid rgba(255, 214, 51, 0.1)',
+                    height: '100%',
+                    border: `1px solid ${accentSecondary}30`,
                     transition: 'all 0.3s ease',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'flex-start',
-                    boxSizing: 'border-box' // Prevents content overflow
+                    boxSizing: 'border-box',
+                    boxShadow: subtleShadow,
+                    '&:hover': {
+                      border: `1px solid ${accentSecondary}60`,
+                      boxShadow: glowEffect,
+                    }
                   }}
                 >
                   <Avatar 
                     sx={{ 
                       mb: 3,
-                      bgcolor: 'rgba(255, 214, 51, 0.2)', 
+                      bgcolor: `${accentSecondary}20`, 
                       width: 70, 
                       height: 70 
                     }}
                   >
-                    <StarsIcon sx={{ fontSize: 35, color: 'primary.main' }} />
+                    <StarsIcon sx={{ fontSize: 35, color: accentSecondary }} />
                   </Avatar>
                   <Typography 
                     variant="h5" 
@@ -485,7 +586,8 @@ const AboutUs = () => {
                       mb: 2, 
                       textAlign: 'center',
                       fontSize: { xs: '1.4rem', sm: '1.5rem' },
-                      fontWeight: 600
+                      fontWeight: 600,
+                      color: textPrimary
                     }}
                   >
                     Excellence
@@ -494,7 +596,7 @@ const AboutUs = () => {
                     variant="body2" 
                     sx={{ 
                       textAlign: 'center', 
-                      color: 'grey.400',
+                      color: textSecondary,
                       fontSize: '0.95rem',
                       lineHeight: 1.6
                     }}
@@ -507,7 +609,7 @@ const AboutUs = () => {
             </Grid>
 
             {/* Value 3: Passion */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid  size={{xs:12, sm:6, md:3}}>
               <motion.div
                 variants={valueBoxVariants}
                 initial="hidden"
@@ -519,29 +621,34 @@ const AboutUs = () => {
               >
                 <Box 
                   sx={{ 
-                    bgcolor: 'rgba(255, 214, 51, 0.05)', 
-                    borderRadius: 2, 
-                    p: { xs: 4, md: 5 }, // Increased padding for uniformity
+                    bgcolor: cardBg, 
+                    borderRadius: 3, 
+                    p: { xs: 4, md: 5 },
                     width: '100%',
-                    height: '100%', // Ensures uniform height
-                    border: '1px solid rgba(255, 214, 51, 0.1)',
+                    height: '100%',
+                    border: `1px solid ${accentPrimary}30`,
                     transition: 'all 0.3s ease',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'flex-start',
-                    boxSizing: 'border-box' // Prevents content overflow
+                    boxSizing: 'border-box',
+                    boxShadow: subtleShadow,
+                    '&:hover': {
+                      border: `1px solid ${accentPrimary}60`,
+                      boxShadow: glowEffect,
+                    }
                   }}
                 >
                   <Avatar 
                     sx={{ 
                       mb: 3,
-                      bgcolor: 'rgba(255, 214, 51, 0.2)', 
+                      bgcolor: `${accentPrimary}20`, 
                       width: 70, 
                       height: 70 
                     }}
                   >
-                    <LocalGasStationIcon sx={{ fontSize: 35, color: 'primary.main' }} />
+                    <LocalGasStationIcon sx={{ fontSize: 35, color: accentPrimary }} />
                   </Avatar>
                   <Typography 
                     variant="h5" 
@@ -550,7 +657,8 @@ const AboutUs = () => {
                       mb: 2, 
                       textAlign: 'center',
                       fontSize: { xs: '1.4rem', sm: '1.5rem' },
-                      fontWeight: 600
+                      fontWeight: 600,
+                      color: textPrimary
                     }}
                   >
                     Passion
@@ -559,7 +667,7 @@ const AboutUs = () => {
                     variant="body2" 
                     sx={{ 
                       textAlign: 'center', 
-                      color: 'grey.400',
+                      color: textSecondary,
                       fontSize: '0.95rem',
                       lineHeight: 1.6
                     }}
@@ -572,7 +680,7 @@ const AboutUs = () => {
             </Grid>
 
             {/* Value 4: Innovation */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid  size={{xs:12, sm:6, md:3}}>
               <motion.div
                 variants={valueBoxVariants}
                 initial="hidden"
@@ -584,29 +692,34 @@ const AboutUs = () => {
               >
                 <Box 
                   sx={{ 
-                    bgcolor: 'rgba(255, 214, 51, 0.05)', 
-                    borderRadius: 2, 
-                    p: { xs: 4, md: 5 }, // Increased padding for uniformity
+                    bgcolor: cardBg, 
+                    borderRadius: 3, 
+                    p: { xs: 4, md: 5 },
                     width: '100%',
-                    height: '100%', // Ensures uniform height
-                    border: '1px solid rgba(255, 214, 51, 0.1)',
+                    height: '100%',
+                    border: `1px solid ${accentSecondary}30`,
                     transition: 'all 0.3s ease',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'flex-start',
-                    boxSizing: 'border-box' // Prevents content overflow
+                    boxSizing: 'border-box',
+                    boxShadow: subtleShadow,
+                    '&:hover': {
+                      border: `1px solid ${accentSecondary}60`,
+                      boxShadow: glowEffect,
+                    }
                   }}
                 >
                   <Avatar 
                     sx={{ 
                       mb: 3,
-                      bgcolor: 'rgba(255, 214, 51, 0.2)', 
+                      bgcolor: `${accentSecondary}20`, 
                       width: 70, 
                       height: 70 
                     }}
                   >
-                    <EngineeringIcon sx={{ fontSize: 35, color: 'primary.main' }} />
+                    <EngineeringIcon sx={{ fontSize: 35, color: accentSecondary }} />
                   </Avatar>
                   <Typography 
                     variant="h5" 
@@ -615,7 +728,8 @@ const AboutUs = () => {
                       mb: 2, 
                       textAlign: 'center',
                       fontSize: { xs: '1.4rem', sm: '1.5rem' },
-                      fontWeight: 600
+                      fontWeight: 600,
+                      color: textPrimary
                     }}
                   >
                     Innovation
@@ -624,7 +738,7 @@ const AboutUs = () => {
                     variant="body2" 
                     sx={{ 
                       textAlign: 'center', 
-                      color: 'grey.400',
+                      color: textSecondary,
                       fontSize: '0.95rem',
                       lineHeight: 1.6
                     }}
@@ -644,10 +758,29 @@ const AboutUs = () => {
         component="section"
         sx={{
           py: { xs: 8, md: 12 },
-          background: 'linear-gradient(to right, rgba(57, 0, 153, 1), rgba(33, 33, 33, 0.9))'
+          background: `linear-gradient(180deg, ${darkBg} 0%, rgba(10, 12, 14, 1) 100%)`,
+          position: 'relative'
         }}
       >
-        <Container maxWidth="lg">
+        {/* Subtle grid overlay */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundImage: `
+              linear-gradient(to right, ${accentPrimary}08 1px, transparent 1px),
+              linear-gradient(to bottom, ${accentPrimary}08 1px, transparent 1px)
+            `,
+            backgroundSize: '40px 40px',
+            zIndex: 0,
+            opacity: 0.4
+          }}
+        />
+        
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -661,8 +794,9 @@ const AboutUs = () => {
                 sx={{
                   fontWeight: 700,
                   mb: 2,
-                  '& .highlight': { color: 'primary.main' },
-                  fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' }
+                  '& .highlight': { color: accentPrimary },
+                  fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                  color: textPrimary
                 }}
               >
                 MEET THE <span className="highlight">TEAM</span>
@@ -671,7 +805,7 @@ const AboutUs = () => {
                 sx={{ 
                   width: 100, 
                   height: 4, 
-                  bgcolor: 'primary.main', 
+                  bgcolor: accentPrimary, 
                   mx: 'auto',
                   mt: 2,
                   mb: 4
@@ -683,7 +817,7 @@ const AboutUs = () => {
                   maxWidth: 800, 
                   mx: 'auto', 
                   mt: 4,
-                  color: 'grey.300',
+                  color: textSecondary,
                   lineHeight: 1.8,
                   px: { xs: 2, md: 0 }
                 }}
@@ -696,7 +830,7 @@ const AboutUs = () => {
 
           <Grid container spacing={{ xs: 3, md: 4 }}>
             {teamMembers.map((member, index) => (
-              <Grid item xs={12} sm={6} md={3} key={member.id}>
+              <Grid  size={{xs:12, sm:6, md:3}} key={member.id}>
                 <motion.div
                   variants={cardVariants}
                   initial="hidden"
@@ -708,13 +842,19 @@ const AboutUs = () => {
                 >
                   <Card 
                     sx={{ 
-                      bgcolor: 'background.paper',
+                      bgcolor: cardBg,
                       borderRadius: 3,
                       overflow: 'hidden',
-                      boxShadow: '0 15px 35px rgba(0, 0, 0, 0.3)',
+                      boxShadow: subtleShadow,
                       height: '100%',
                       display: 'flex',
-                      flexDirection: 'column'
+                      flexDirection: 'column',
+                      border: border,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        boxShadow: glowEffect,
+                        border: `1px solid ${accentPrimary}60`,
+                      }
                     }}
                   >
                     <CardMedia
@@ -724,25 +864,33 @@ const AboutUs = () => {
                       height="240"
                       sx={{ objectFit: 'cover' }}
                     />
-                    <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                      <Typography variant="h5" component="h3" gutterBottom sx={{ fontWeight: 600 }}>
+                    <CardContent sx={{ flexGrow: 1, p: 3, bgcolor: darkPanel }}>
+                      <Typography 
+                        variant="h5" 
+                        component="h3" 
+                        gutterBottom 
+                        sx={{ 
+                          fontWeight: 600,
+                          color: textPrimary
+                        }}
+                      >
                         {member.name}
                       </Typography>
                       <Typography 
                         variant="subtitle1" 
                         sx={{ 
-                          color: 'primary.main',
+                          color: accentPrimary,
                           fontWeight: 500,
                           mb: 2
                         }}
                       >
                         {member.role}
                       </Typography>
-                      <Divider sx={{ my: 2 }} />
+                      <Divider sx={{ my: 2, borderColor: `${accentPrimary}30` }} />
                       <Typography 
                         variant="body2" 
                         sx={{ 
-                          color: 'text.secondary',
+                          color: textSecondary,
                           lineHeight: 1.7
                         }}
                       >
@@ -762,7 +910,7 @@ const AboutUs = () => {
         component="section"
         sx={{
           py: { xs: 8, md: 12 },
-          bgcolor: 'primary.red',
+          bgcolor: darkPanel,
           position: 'relative',
           '&::before': {
             content: '""',
@@ -800,7 +948,7 @@ const AboutUs = () => {
                   sx={{
                     fontWeight: 700,
                     mb: 3,
-                    color: 'primary.main',
+                    color: accentPrimary,
                     fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' }
                   }}
                 >
@@ -810,7 +958,7 @@ const AboutUs = () => {
                   variant="h6" 
                   sx={{ 
                     mb: 4, 
-                    color: 'grey.100',
+                    color: textSecondary,
                     lineHeight: 1.6
                   }}
                 >
@@ -824,9 +972,7 @@ const AboutUs = () => {
                   justifyContent="center"
                 >
                   <Button 
-                    variant="contained" 
-                    color="primary" 
-                    size="large"
+                    variant="contained"
                     component={Link}
                     to="/#booking"
                     sx={{ 
@@ -834,15 +980,22 @@ const AboutUs = () => {
                       py: 1.5, 
                       fontWeight: 600,
                       fontSize: '1.1rem',
-                      borderRadius: 2 
+                      borderRadius: 2,
+                      bgcolor: accentPrimary,
+                      color: textPrimary,
+                      transition: 'all 0.3s',
+                      boxShadow: subtleShadow,
+                      '&:hover': {
+                        bgcolor: accentSecondary,
+                        transform: 'translateY(-3px)',
+                        boxShadow: glowEffect,
+                      }
                     }}
                   >
                     Book Now
                   </Button>
                   <Button 
-                    variant="outlined" 
-                    color="primary" 
-                    size="large"
+                    variant="outlined"
                     component={Link}
                     to="/#contact"
                     sx={{ 
@@ -851,7 +1004,14 @@ const AboutUs = () => {
                       fontWeight: 600,
                       fontSize: '1.1rem',
                       borderWidth: 2,
-                      borderRadius: 2
+                      borderRadius: 2,
+                      borderColor: accentPrimary,
+                      color: accentPrimary,
+                      '&:hover': {
+                        borderColor: accentSecondary,
+                        color: accentSecondary,
+                        bgcolor: `${accentSecondary}10`,
+                      }
                     }}
                   >
                     Contact Us

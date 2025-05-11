@@ -25,7 +25,7 @@ function App() {
           <Route path="/services" element={<Services/>}/>
           <Route path="/aboutus" element={<AboutUs/>}/>
           <Route path="/carinventory" element={<CarInventory/>}/>
-          <Route path="/cardetail/:carId" element={<CarDetail/>}/>
+          <Route path="/cardetail/:id" element={<CarDetail/>}/>
           
           {/* Protected Routes */}
           <Route
