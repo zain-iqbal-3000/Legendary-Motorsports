@@ -159,5 +159,98 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
+// @route   PUT api/users/:id
+// @desc    Update user profile
+// @access  Private
+router.put('/:id', auth, async (req, res) => {
+  try {
+    const { displayName, email, phoneNumber, address, city, country } = req.body;
+    const [firstName, lastName] = (displayName || '').split(' ');
+
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update user fields
+    user.firstName = firstName || user.firstName;
+    user.lastName = lastName || user.lastName;
+    user.email = email || user.email;
+    user.phoneNumber = phoneNumber || user.phoneNumber;
+    user.address.street = address || user.address.street;
+    user.address.city = city || user.address.city;
+    user.address.country = country || user.address.country;
+
+    await user.save();
+    res.json(user);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+// @route   PUT api/users/:id/password
+// @desc    Update user password
+// @access  Private
+router.put('/:id/password', auth, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Password updated successfully' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+// @route   PUT api/users/:id/notifications
+// @desc    Update user notification preferences
+// @access  Private
+router.put('/:id/notifications', auth, async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { $set: req.body },
+      { new: true }
+    );
+    res.json(user);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+// @route   GET api/users/:id
+// @desc    Get user by ID
+// @access  Private
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(500).send('Server error');
+  }
+});
+
 // Export router
 module.exports = router;
