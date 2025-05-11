@@ -160,7 +160,7 @@ const Header = () => {
         navigate('/settings');
         break;
       case 'logout':
-        logout();
+        dispatch(logout());  // Fix: Use dispatch to trigger logout
         navigate('/');
         break;
       default:

@@ -131,7 +131,7 @@ const Signup = () => {
       
       // Give a moment to see the success message
       setTimeout(() => {
-        navigate('./login');
+        navigate('/');
       }, 1000);
       
     } catch (err) {

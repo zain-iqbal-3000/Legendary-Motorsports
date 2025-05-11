@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { login, clearAuthError } from '../../redux/authSlice';
+import { login, clearAuthError } from '../../redux/authAliases';
 import { Link,useNavigate } from 'react-router-dom';
 import { 
   Box, 
@@ -65,40 +65,33 @@ const Login = () => {
     }
   };
   const handleLogin = async (e) => {
-  e.preventDefault();
-  
-  if (!validateForm()) return;
-  
-  try {
-    // Use formData values instead of undefined email/password
-    await dispatch(login({ 
-      email: formData.email, 
-      password: formData.password 
-    })).unwrap(); // Use unwrap to properly handle promise
+    e.preventDefault();
     
-    setSnackbar({
-      open: true,
-      message: 'Login successful!',
-      severity: 'success'
-    });
+    if (!validateForm()) return;
     
-    // Get intended path or default to home page
-    const intendedPath = sessionStorage.getItem('intendedPath') || '/';
-    sessionStorage.removeItem('intendedPath');
-    
-    // Give a moment to see the success message
-    setTimeout(() => {
-      navigate(intendedPath);
-    }, 1000);
-    
-  } catch (err) {
-    setSnackbar({
-      open: true,
-      message: err.message || 'Login failed. Please try again.',
-      severity: 'error'
-    });
-  }
-};
+    try {
+      const result = await dispatch(login({ 
+        email: formData.email, 
+        password: formData.password 
+      })).unwrap();
+      
+      setSnackbar({
+        open: true,
+        message: 'Login successful!',
+        severity: 'success'
+      });
+      
+      // Navigate after successful login
+      navigate('/');
+      
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message: err.message || 'Login failed. Please try again.',
+        severity: 'error'
+      });
+    }
+  };
 
   const validateForm = () => {
     const errors = {};
@@ -114,37 +107,6 @@ const Login = () => {
     
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) return;
-    
-    try {
-      await login(formData.email, formData.password);
-      setSnackbar({
-        open: true,
-        message: 'Login successful!',
-        severity: 'success'
-      });
-      
-      // Get intended path or default to home page
-      const intendedPath = sessionStorage.getItem('intendedPath') || '/';
-      sessionStorage.removeItem('intendedPath');
-      
-      // Give a moment to see the success message
-      setTimeout(() => {
-        navigate(intendedPath);
-      }, 1000);
-      
-    } catch (err) {
-      setSnackbar({
-        open: true,
-        message: err.response?.data?.msg || 'Login failed. Please try again.',
-        severity: 'error'
-      });
-    }
   };
 
   const handleCloseSnackbar = (event, reason) => {

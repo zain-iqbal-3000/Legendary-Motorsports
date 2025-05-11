@@ -6,8 +6,9 @@ export const login = createAsyncThunk(
   'auth/login',
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await axios.post('/api/auth/login', credentials);
+      const response = await axios.post('/api/users/login', credentials);
       localStorage.setItem('token', response.data.token);
+      localStorage.setItem('userId', response.data.user._id);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Login failed');
@@ -20,7 +21,9 @@ export const register = createAsyncThunk(
   'auth/register',
   async (userData, { rejectWithValue }) => {
     try {
-      const response = await axios.post('/api/auth/register', userData);
+      const response = await axios.post('/api/users/register', userData);
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('userId', response.data.user._id);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Registration failed');
@@ -28,9 +31,9 @@ export const register = createAsyncThunk(
   }
 );
 
-// Async action to fetch current user
-export const fetchCurrentUser = createAsyncThunk(
-  'auth/fetchCurrentUser',
+// Remove fetchCurrentUser and keep only getCurrentUser
+export const getCurrentUser = createAsyncThunk(
+  'auth/getCurrentUser',
   async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('token');
@@ -53,7 +56,7 @@ export const fetchCurrentUser = createAsyncThunk(
 // Initial state
 const initialState = {
   user: null,
-  isAuthenticated: !!localStorage.getItem('token'),
+  isAuthenticated: false,
   loading: false,
   error: null,
   registrationSuccess: false
@@ -69,6 +72,8 @@ const authSlice = createSlice({
       state.user = null;
       state.isAuthenticated = false;
       state.error = null;
+      state.loading = false;
+      state.registrationSuccess = false;
     },
     clearError: (state) => {
       state.error = null;
@@ -79,7 +84,6 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Handle login
       .addCase(login.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -88,10 +92,15 @@ const authSlice = createSlice({
         state.user = action.payload.user;
         state.isAuthenticated = true;
         state.loading = false;
+        state.error = null;
+        localStorage.setItem('token', action.payload.token);
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        state.isAuthenticated = false;
+        state.user = null;
+        localStorage.removeItem('token');
       })
       
       // Handle register
@@ -100,28 +109,36 @@ const authSlice = createSlice({
         state.error = null;
         state.registrationSuccess = false;
       })
-      .addCase(register.fulfilled, (state) => {
+      .addCase(register.fulfilled, (state, action) => {
         state.loading = false;
         state.registrationSuccess = true;
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+        state.error = null;
       })
       .addCase(register.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        state.registrationSuccess = false;
+        state.isAuthenticated = false;
+        localStorage.removeItem('token');
       })
       
-      // Handle fetchCurrentUser
-      .addCase(fetchCurrentUser.pending, (state) => {
+      // Handle getCurrentUser
+      .addCase(getCurrentUser.pending, (state) => {
         state.loading = true;
       })
-      .addCase(fetchCurrentUser.fulfilled, (state, action) => {
+      .addCase(getCurrentUser.fulfilled, (state, action) => {
         state.user = action.payload;
         state.isAuthenticated = true;
         state.loading = false;
       })
-      .addCase(fetchCurrentUser.rejected, (state) => {
+      .addCase(getCurrentUser.rejected, (state, action) => {
         state.user = null;
         state.isAuthenticated = false;
         state.loading = false;
+        state.error = action.payload;
+        localStorage.removeItem('token');
       })
   }
 });

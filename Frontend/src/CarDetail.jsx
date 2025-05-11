@@ -224,27 +224,15 @@ const CarDetail = () => {
         justifyContent: 'center',
       }}>
         <Box sx={{ textAlign: 'center' }}>
-          <CircularProgress 
-            sx={{ color: accentPrimary, mb: 3 }} 
-            size={60}
-          />
-          <Typography 
-            variant="h5" 
-            sx={{
-              color: accentPrimary,
-              fontWeight: 500,
-              letterSpacing: 1,
-            }}
-          >
-            Loading Car Details
-          </Typography>
+          <CircularProgress sx={{ color: accentPrimary, mb: 3 }} size={60} />
+          <Typography variant="h5">Loading Car Details</Typography>
         </Box>
       </Box>
     );
   }
 
-  // Error state
-  if (!currentCar) {
+  // Error or no car state
+  if (!currentCar && !carLoading) {
     return (
       <Box sx={{ 
         minHeight: '100vh', 

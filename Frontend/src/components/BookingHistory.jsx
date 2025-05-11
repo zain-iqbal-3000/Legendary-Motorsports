@@ -108,7 +108,7 @@ function BookingHistory() {
   // const [loading, setLoading] = useState(true);
   // const [error, setError] = useState(null);
  const dispatch = useDispatch();
- const { useBookings, loading, error } = useSelector(state=> state.bookings);
+ const { bookings, loading, error } = useSelector(state=> state.bookings);
   
   // Invoice modal state
   const [invoiceOpen, setInvoiceOpen] = useState(false);
@@ -133,113 +133,6 @@ function BookingHistory() {
     dispatch(fetchUserBookings());
   }, [dispatch]);
 
-  // Fetch bookings from backend
-  const fetchBookings = async () => {
-    if (!currentUser) return;
-
-    setLoading(true);
-    try {
-      const token = localStorage.getItem('authToken');
-      const userId = localStorage.getItem('userId');
-      // Fetch bookings by user id from backend
-      const response = await axios.get(`/api/bookings/user/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      // Map backend bookings to frontend format
-      const mappedBookings = response.data.map(b => {
-        // Determine status for tab filtering
-        // "active" if startDate <= now <= endDate and status is ACTIVE/CONFIRMED
-        // "upcoming" if startDate > now and status is PENDING/CONFIRMED
-        // "completed" if status is COMPLETED or endDate < now
-        // "cancelled" if status is CANCELLED
-        const now = new Date();
-        const start = new Date(b.startDate);
-        const end = new Date(b.endDate);
-        let status = "pending";
-        if (b.status) {
-          const s = b.status.toUpperCase();
-          if (s === "CANCELLED") status = "cancelled";
-          else if (s === "COMPLETED") status = "completed";
-          else if (s === "ACTIVE" || s === "CONFIRMED") {
-            if (end < now) status = "completed";
-            else if (start > now) status = "upcoming";
-            else status = "active";
-          } else if (s === "PENDING") {
-            if (start > now) status = "upcoming";
-            else if (end < now) status = "completed";
-            else status = "active";
-          }
-        }
-        return {
-          id: b._id,
-          carId: b.car && b.car._id, // Add carId explicitly
-          car: {
-            id: b.car && b.car._id, // Add id inside car object
-            name: b.car && b.car.make && b.car.model ? `${b.car.make} ${b.car.model}` : '',
-            year: b.car && b.car.year ? b.car.year : '',
-            image: b.car && b.car.images && b.car.images.length > 0 ? b.car.images[0] : '',
-            type: b.car && b.car.specifications && b.car.specifications.bodyType ? b.car.specifications.bodyType : 'N/A'
-          },
-          pickup: { location: b.pickupLocation, date: b.startDate },
-          dropoff: { location: b.dropoffLocation, date: b.endDate },
-          price: b.totalAmount,
-          duration: `${Math.ceil((new Date(b.endDate) - new Date(b.startDate)) / (1000 * 60 * 60 * 24))} days`,
-          status,
-          requiresAction: typeof b.requiresAction === 'boolean' ? b.requiresAction : false,
-          createdAt: b.createdAt
-        };
-      });
-      setBookings(mappedBookings);
-      setError(null);
-    } catch (err) {
-      console.error("Error fetching bookings:", err);
-      setError("Failed to load your bookings. Please try again.");
-      // Provide fallback mock data for development/testing
-      if (process.env.NODE_ENV !== 'production') {
-        setBookings([
-          {
-            id: "b1",
-            carId: "c1", // Make sure mock data includes carId
-            car: {
-              id: "c1", // Add id inside car object for mock data
-              name: "Lamborghini Aventador",
-              year: 2023,
-              image: "https://images.unsplash.com/photo-1526726538690-5cbf956ae2fd?auto=format&fit=crop&w=600&q=80",
-              type: "Coupe",
-            },
-            pickup: { location: "Dubai Downtown", date: "2025-05-10T10:00:00Z" },
-            dropoff: { location: "Dubai Airport", date: "2025-05-12T14:00:00Z" },
-            price: 5200,
-            duration: "2 days",
-            status: "active",
-            requiresAction: true,
-            createdAt: "2023-05-01T12:00:00Z",
-          },
-          {
-            id: 'mock-completed-1',
-            car: {
-              name: 'Bugatti Veyron',
-              year: 2012,
-              image: 'https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=600&q=80',
-              type: 'Coupe'
-            },
-            pickup: { location: 'Dubai Marina', date: '2023-01-01T10:00:00Z' },
-            dropoff: { location: 'Dubai Marina', date: '2023-01-03T10:00:00Z' },
-            price: 10000,
-            duration: '2 days',
-            status: 'completed',
-            requiresAction: false,
-            createdAt: '2023-01-01T09:00:00Z'
-          }
-        ]);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Cancel booking
   const handleCancelBooking = async (bookingId) => {
     if (!currentUser) return;
@@ -254,12 +147,11 @@ function BookingHistory() {
       });
 
       // Update local state
-      setBookings(userBookings.map(booking =>
+      setBookings(bookings.map(booking =>
         booking.id === bookingId ? { ...booking, status: 'cancelled' } : booking
       ));
       
       // Show success message
-      // You could add a snackbar/toast here
       
     } catch (err) {
       console.error("Error cancelling booking:", err);
@@ -381,9 +273,9 @@ function BookingHistory() {
   // Filter and sort logic
   const filterBookings = (status) => {
     // Guard clause if bookings aren't loaded yet
-    if (!userBookings.length) return [];
+    if (!bookings.length) return [];
     
-    let filtered = userBookings.filter((b) => {
+    let filtered = bookings.filter((b) => {
       if (status === "Current") return b.status === "active";
       if (status === "Upcoming") return b.status === "upcoming";
       if (status === "Past") return b.status === "completed" || b.status === "cancelled";
@@ -404,7 +296,7 @@ function BookingHistory() {
   };
 
   // Get unique car types from the bookings for filtering
-  const carTypes = ["All", ...new Set(userBookings.map(b => b.car.type))];
+  const carTypes = ["All", ...new Set(bookings.map(b => b.car.type))];
 
   // Invoice Modal Component
   const InvoiceModal = () => {
@@ -1244,7 +1136,7 @@ function BookingHistory() {
               >
                 {tabLabels.map((label, idx) => (
                   <Tab
-                    key={label}
+                    key={`tab-${idx}-${label.replace(/\s+/g, '-')}`}
                     label={label}
                     id={`tab-${idx}`}
                     aria-controls={`tabpanel-${idx}`}
@@ -1290,7 +1182,7 @@ function BookingHistory() {
                 boxShadow: `0 4px 12px ${alpha('#000', 0.05)}`
               }}
               action={
-                <Button color="inherit" onClick={fetchBookings}>
+                <Button color="inherit" onClick={() => dispatch(fetchUserBookings())}>
                   Retry
                 </Button>
               }
@@ -1341,8 +1233,8 @@ function BookingHistory() {
                         onChange={(e) => setFilterType(e.target.value)}
                         aria-label="Filter by car type"
                       >
-                        {carTypes.map((type) => (
-                          <MenuItem key={type} value={type}>
+                        {carTypes.map((type, index) => (
+                          <MenuItem key={`type-${index}-${type}`} value={type}>
                             {type}
                           </MenuItem>
                         ))}
@@ -1368,8 +1260,8 @@ function BookingHistory() {
                         onChange={(e) => setSortBy(e.target.value)}
                         aria-label="Sort by"
                       >
-                        <MenuItem value="date-desc">Newest First</MenuItem>
-                        <MenuItem value="date-asc">Oldest First</MenuItem>
+                        <MenuItem key="date-desc" value="date-desc">Newest First</MenuItem>
+                        <MenuItem key="date-asc" value="date-asc">Oldest First</MenuItem>
                       </Select>
                     </FormControl>
                   </Stack>

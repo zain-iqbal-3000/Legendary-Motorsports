@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Async action to fetch comments for a car
 export const fetchCommentsByCar = createAsyncThunk(
-  'comments/fetchByCar',
+  'comments/fetchCommentsByCar',
   async (carId, { rejectWithValue }) => {
     try {
       const response = await axios.get(`/api/comments/car/${carId}`);
@@ -16,13 +16,10 @@ export const fetchCommentsByCar = createAsyncThunk(
 
 // Async action to add a new comment
 export const addComment = createAsyncThunk(
-  'comments/add',
-  async (commentData, { rejectWithValue }) => {
+  'comments/addComment',
+  async ({ carId, comment }, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      
-      const response = await axios.post('/api/comments', commentData, { headers });
+      const response = await axios.post(`/api/comments/`, comment);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to add comment');
@@ -43,6 +40,9 @@ const commentsSlice = createSlice({
   name: 'comments',
   initialState,
   reducers: {
+    clearComments: (state) => {
+      state.comments = [];
+    },
     clearCommentsError: (state) => {
       state.error = null;
     },
@@ -63,26 +63,15 @@ const commentsSlice = createSlice({
       })
       .addCase(fetchCommentsByCar.rejected, (state, action) => {
         state.loading = false;
-        state.comments = []; // Set to empty array if fetch fails
         state.error = action.payload;
       })
       
       // Handle addComment
-      .addCase(addComment.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
       .addCase(addComment.fulfilled, (state, action) => {
         state.comments.push(action.payload); // Add the new comment to the array
-        state.loading = false;
-        state.successMessage = 'Comment added successfully';
-      })
-      .addCase(addComment.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
+      });
   }
 });
 
-export const { clearCommentsError, clearSuccessMessage } = commentsSlice.actions;
+export const { clearComments, clearCommentsError, clearSuccessMessage } = commentsSlice.actions;
 export default commentsSlice.reducer;

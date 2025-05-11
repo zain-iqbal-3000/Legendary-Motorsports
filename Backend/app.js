@@ -24,9 +24,10 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/legendary_m
 
 // Routes
 app.use('/api/cars', carRoute);
-app.use('/api/users', userRoutes);
+app.use('/api/user', userRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/comments', commentRoutes);
+app.use('/api/auth', userRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {
